@@ -1,0 +1,15 @@
+.DS_Store
+.env
+.env.*
+.vercel/
+node_modules/
+
+# Workspace files unrelated to Brew & Bake Lab
+.tmp_tree_cafe_model/
+outputs/
+TREE_CAFE_OPENING_PLAN.md
+
+# Local verification artifacts
+*.inspect.ndjson
+playwright-report/
+test-results/

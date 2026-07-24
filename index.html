@@ -1,0 +1,3826 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Brew & Bake Lab 是面向厨房实操的参数化饮品与烘焙手册，提供配方参数、步骤判断、状态图和失败排查。" />
+  <link rel="icon" href="data:," />
+  <title>Brew & Bake Lab</title>
+  <script src="assets/vendor/lucide.min.js"></script>
+  <style>
+    :root {
+      --paper: #f8f5ee;
+      --panel: #fffdf8;
+      --ink: #2d2924;
+      --muted: #756f67;
+      --line: #ded5c6;
+      --coffee: #6f4a2f;
+      --coffee-dark: #3d2d23;
+      --berry: #aa3f4d;
+      --sage: #6d7e68;
+      --steel: #4f6477;
+      --cream: #f0dfc2;
+      --ok: #46705f;
+      --warn: #b36a32;
+      --shadow: 0 18px 50px rgba(56, 43, 30, 0.12);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(111,74,47,0.04) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(111,74,47,0.035) 1px, transparent 1px),
+        var(--paper);
+      background-size: 28px 28px;
+    }
+
+    button, input { font: inherit; }
+
+    .app-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 248px minmax(0, 1fr);
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 24px 18px;
+      border-right: 1px solid var(--line);
+      background: rgba(255, 253, 248, 0.86);
+      backdrop-filter: blur(16px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      border: 1px solid rgba(111, 74, 47, 0.34);
+      background: var(--coffee-dark);
+      color: #fff8e9;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .brand strong {
+      display: block;
+      font-size: 17px;
+      letter-spacing: 0;
+    }
+
+    .brand span {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .nav {
+      display: grid;
+      gap: 8px;
+    }
+
+    .nav button {
+      border: 0;
+      width: 100%;
+      min-height: 42px;
+      padding: 0 12px;
+      color: var(--muted);
+      background: transparent;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      border-radius: 6px;
+      text-align: left;
+    }
+
+    .nav button.active,
+    .nav button:hover {
+      color: var(--ink);
+      background: #efe5d7;
+    }
+
+    .sidebar-note {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: 22px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      background: #fbf7ed;
+      border-radius: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .main {
+      padding: 28px 34px 56px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    .search {
+      flex: 1;
+      max-width: 560px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      background: rgba(255, 253, 248, 0.88);
+      border-radius: 8px;
+    }
+
+    .search input {
+      width: 100%;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--ink);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 32px;
+      padding: 0 10px;
+      border: 1px solid rgba(70,112,95,0.24);
+      background: #edf4ed;
+      color: var(--ok);
+      border-radius: 999px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .hero {
+      min-height: 350px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
+      gap: 34px;
+      align-items: stretch;
+      margin-bottom: 30px;
+    }
+
+    .hero-copy {
+      padding: 34px 0 24px;
+      align-self: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      color: var(--coffee);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    h1 {
+      max-width: 760px;
+      margin: 0;
+      font-size: clamp(38px, 6vw, 72px);
+      line-height: 0.96;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      max-width: 650px;
+      margin: 20px 0 24px;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.75;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .primary-btn,
+    .ghost-btn {
+      border: 0;
+      min-height: 44px;
+      padding: 0 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      border-radius: 7px;
+      cursor: pointer;
+    }
+
+    .primary-btn {
+      color: #fffaf0;
+      background: var(--coffee-dark);
+    }
+
+    .ghost-btn {
+      color: var(--coffee-dark);
+      background: #efe4d3;
+      border: 1px solid rgba(111,74,47,0.15);
+    }
+
+    .hero-visual {
+      min-height: 330px;
+      position: relative;
+      overflow: hidden;
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      background:
+        linear-gradient(180deg, rgba(45,41,36,0.08), rgba(45,41,36,0.18)),
+        url("assets/recipes/kitchen-worktop.jpg");
+      background-size: cover;
+      background-position: center;
+    }
+
+    .hero-visual::after {
+      content: "";
+      position: absolute;
+      inset: auto 18px 18px 18px;
+      height: 82px;
+      background: rgba(255,253,248,0.9);
+      border: 1px solid rgba(255,255,255,0.6);
+      border-radius: 8px;
+    }
+
+    .mini-spec {
+      position: absolute;
+      z-index: 1;
+      left: 34px;
+      right: 34px;
+      bottom: 36px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      color: var(--ink);
+    }
+
+    .mini-spec div {
+      min-width: 0;
+    }
+
+    .mini-spec strong {
+      display: block;
+      font-size: 19px;
+    }
+
+    .mini-spec span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .section {
+      margin-top: 30px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 14px;
+    }
+
+    .section h2 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: 0;
+    }
+
+    .section-desc {
+      margin: 6px 0 0;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .category {
+      min-height: 126px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 8px;
+      cursor: pointer;
+      display: grid;
+      align-content: space-between;
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+
+    .category:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 28px rgba(56,43,30,0.1);
+    }
+
+    .category i {
+      width: 22px;
+      height: 22px;
+      color: var(--coffee);
+    }
+
+    .category strong {
+      margin-top: 18px;
+      display: block;
+      font-size: 16px;
+    }
+
+    .category span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .recipe-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .recipe-card {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+
+    .recipe-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .recipe-img {
+      height: 158px;
+      background: #dfd3c3;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .recipe-body {
+      padding: 15px;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .tag {
+      padding: 4px 8px;
+      background: #f0e6d7;
+      color: var(--coffee);
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .tag.blue { background: #e7eef3; color: var(--steel); }
+    .tag.red { background: #f4e1e2; color: var(--berry); }
+    .tag.green { background: #e6eee4; color: var(--ok); }
+
+    .recipe-title {
+      margin: 0 0 8px;
+      font-size: 18px;
+    }
+
+    .recipe-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 12px;
+    }
+
+    .recipe-key {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .scenario-strip {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .scenario {
+      min-height: 78px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fffaf1;
+      display: grid;
+      gap: 8px;
+      align-content: center;
+      cursor: pointer;
+    }
+
+    .scenario span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .list-layout {
+      display: grid;
+      grid-template-columns: 258px minmax(0, 1fr);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .filters {
+      position: sticky;
+      top: 20px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      background: rgba(255, 253, 248, 0.92);
+      border-radius: 8px;
+    }
+
+    .filter-group {
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .filter-group:last-child { border-bottom: 0; }
+
+    .filter-title {
+      margin: 0 0 10px;
+      font-size: 13px;
+      color: var(--coffee-dark);
+    }
+
+    .filter-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      border: 1px solid var(--line);
+      background: #fbf7ef;
+      color: var(--muted);
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .chip.active {
+      color: #fffaf0;
+      border-color: var(--coffee-dark);
+      background: var(--coffee-dark);
+    }
+
+    .list-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    .list-head h1 {
+      font-size: 34px;
+      line-height: 1.05;
+    }
+
+    .sort-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .sort-box select {
+      height: 36px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--ink);
+      border-radius: 6px;
+      padding: 0 10px;
+    }
+
+    .prototype-panel {
+      margin-top: 20px;
+      padding: 16px;
+      border: 1px dashed rgba(111,74,47,0.36);
+      background: rgba(255,250,241,0.72);
+      border-radius: 8px;
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: 13px;
+    }
+
+    .detail-shell {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .detail-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 310px;
+      gap: 22px;
+      align-items: stretch;
+      margin-bottom: 20px;
+    }
+
+    .detail-title {
+      position: relative;
+      padding: 22px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 8px;
+    }
+
+    .overview-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .overview-head .tag-row { margin-bottom: 12px; }
+    .overview-tools { flex: 0 0 auto; }
+    .overview-status { margin: 12px 0 0; }
+
+    #overview.is-editing #variantTitle,
+    #overview.is-editing #variantDescription,
+    #overview.is-editing .tag {
+      border-radius: 4px;
+      outline: 0;
+      background: #fffaf1;
+      box-shadow: inset 0 -1px rgba(179,106,50,0.28);
+      caret-color: var(--berry);
+    }
+
+    #overview.is-editing #variantTitle { padding-inline: 4px; }
+    #overview.is-editing #variantDescription { padding: 4px; }
+    #overview.is-editing .tag { cursor: text; }
+
+    .detail-title h1 {
+      font-size: clamp(34px, 5vw, 56px);
+      line-height: 1.02;
+      margin-bottom: 14px;
+    }
+
+    .detail-title p {
+      margin: 0;
+      max-width: 620px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .advanced-recipes {
+      display: flex;
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .advanced-recipes[hidden] { display: none; }
+
+    .advanced-label {
+      flex: 0 0 auto;
+      color: var(--coffee-dark);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .advanced-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .advanced-recipe {
+      min-height: 34px;
+      padding: 6px 10px;
+      border: 0;
+      border-radius: 6px;
+      background: rgba(179,106,50,0.07);
+      color: var(--coffee-dark);
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+      transition: background .18s ease, color .18s ease, transform .18s ease;
+    }
+
+    .advanced-recipe strong,
+    .advanced-recipe span { display: inline; }
+    .advanced-recipe strong { color: var(--berry); font-size: 12px; }
+    .advanced-recipe span { margin-right: 6px; color: var(--muted); font-size: 12px; }
+    .advanced-recipe:hover { background: #eee1cf; }
+    .advanced-recipe:active { transform: scale(.97); }
+    .advanced-recipe.active {
+      background: var(--coffee-dark);
+      color: #fff8e9;
+    }
+    .advanced-recipe.active strong { color: #fff8e9; }
+    .advanced-recipe.active span { color: rgba(255,248,233,0.72); }
+
+    .variant-back {
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--coffee);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .variant-back:hover { color: var(--berry); }
+
+    .detail-photo {
+      position: relative;
+      overflow: hidden;
+      min-height: 260px;
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, rgba(170,63,77,0.14), rgba(111,74,47,0.08)),
+        repeating-linear-gradient(90deg, transparent 0 27px, rgba(111,74,47,0.05) 28px),
+        #efe5d7;
+      box-shadow: var(--shadow);
+      outline: 1px solid rgba(45,41,36,0.12);
+      outline-offset: -1px;
+      display: grid;
+      place-items: center;
+      color: var(--coffee-dark);
+      text-align: center;
+    }
+
+    .detail-photo > img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-height: 260px;
+      object-fit: cover;
+    }
+
+    .detail-photo span {
+      max-width: 180px;
+      padding: 12px 14px;
+      border-radius: 7px;
+      background: rgba(255,253,248,0.82);
+      box-shadow: 0 6px 20px rgba(56,43,30,0.1);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .overview-image-tools {
+      position: absolute;
+      inset: auto 12px 12px;
+      display: flex;
+      gap: 6px;
+    }
+
+    .step-card[data-phase] { position: relative; overflow: hidden; }
+
+    .step-card.current-step {
+      margin-inline: -10px;
+      padding-inline: 10px;
+      background: rgba(179,106,50,0.045);
+      box-shadow: none;
+      border-radius: 6px;
+    }
+
+    .phase-divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 28px 0 4px;
+      color: var(--coffee-dark);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .phase-divider::after {
+      display: none;
+    }
+
+    .phase-divider span {
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: #f2e3e1;
+      color: var(--berry);
+      font-size: 11px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .visual-step > div:nth-child(2) {
+      display: grid;
+      grid-template-columns: 190px minmax(0, 1fr);
+      gap: 12px;
+    }
+
+    .visual-step h3 { grid-column: 1 / -1; }
+
+    .step-media {
+      position: relative;
+      grid-column: 1;
+      grid-row: 2;
+      min-width: 0;
+      margin: 0;
+      overflow: hidden;
+      border: 5px solid #fffdf8;
+      border-radius: 3px;
+      background: #e7dccd;
+      box-shadow: 0 5px 14px rgba(82,56,35,0.13);
+    }
+
+    .step-media img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-height: 190px;
+      object-fit: cover;
+    }
+
+    .step-media figcaption {
+      position: absolute;
+      inset: auto 8px 8px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      background: rgba(45,41,36,0.82);
+      color: #fff8e9;
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    #steps.is-editing .step-media figcaption {
+      min-width: 110px;
+      outline: 0;
+      box-shadow: inset 0 -1px rgba(255,250,241,0.45);
+      cursor: text;
+    }
+
+    .step-image-tools {
+      position: absolute;
+      z-index: 2;
+      inset: 8px 8px auto;
+      display: none;
+      gap: 6px;
+    }
+
+    #steps.is-editing .step-image-tools { display: flex; }
+
+    .step-image-empty {
+      display: none;
+      min-height: 62px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      background: rgba(111,74,47,0.05);
+    }
+
+    #steps.is-editing .step-image-empty { display: flex; }
+
+    .visual-step .step-grid { grid-column: 2; grid-row: 2; }
+
+    .image-credit {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 11px;
+      text-align: right;
+    }
+
+    .image-credit a { color: var(--coffee); }
+
+    .state-tile .state-index {
+      margin-bottom: auto;
+      color: var(--berry);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+
+    .follow-progress {
+      height: 5px;
+      margin: 0 0 14px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #eadfce;
+    }
+
+    .follow-progress span {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: var(--berry);
+      transition: transform .24s cubic-bezier(.16,1,.3,1);
+      transform-origin: left;
+    }
+
+    .follow-actions { display: flex; gap: 8px; }
+    .follow-actions button { flex: 1; justify-content: center; }
+
+    .follow-start {
+      width: 100%;
+      justify-content: center;
+      margin-top: 10px;
+    }
+
+    .follow-dialog {
+      width: min(760px, calc(100vw - 32px));
+      max-height: min(820px, calc(100dvh - 32px));
+      padding: 0;
+      overflow: hidden;
+      border: 0;
+      border-radius: 12px;
+      color: var(--ink);
+      background: #fffaf1;
+      box-shadow: 0 28px 90px rgba(45, 32, 22, 0.28);
+    }
+
+    .follow-dialog::backdrop {
+      background: rgba(45, 32, 22, 0.52);
+      backdrop-filter: blur(3px);
+    }
+
+    .follow-dialog-shell {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      max-height: min(820px, calc(100dvh - 32px));
+    }
+
+    .follow-dialog-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 22px 15px;
+      border-bottom: 1px solid rgba(82,56,35,0.09);
+    }
+
+    .follow-dialog-head span {
+      color: var(--berry);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+
+    .follow-dialog-head-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .follow-reset {
+      min-height: 38px;
+      padding: 0 10px;
+      border: 0;
+      border-radius: 6px;
+      color: var(--muted);
+      background: transparent;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .follow-reset:hover { color: var(--coffee-dark); background: #efe4d3; }
+
+    .follow-close {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      color: var(--muted);
+      background: #efe4d3;
+      cursor: pointer;
+    }
+
+    .follow-dialog-body {
+      overflow-y: auto;
+      padding: 24px 22px 28px;
+    }
+
+    .follow-dialog-count {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .follow-dialog-title {
+      margin: 0 0 22px;
+      font-size: clamp(26px, 5vw, 42px);
+      line-height: 1.12;
+    }
+
+    .follow-dialog-title.is-complete::before {
+      content: "✓";
+      display: inline-grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      margin-right: 10px;
+      border-radius: 50%;
+      color: #fffaf0;
+      background: #6f8b70;
+      font-size: 17px;
+      vertical-align: 5px;
+    }
+
+    .follow-focus-list {
+      display: grid;
+      gap: 4px;
+    }
+
+    .follow-focus-item {
+      display: grid;
+      grid-template-columns: 26px 52px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      padding: 13px 0;
+      border-bottom: 1px solid rgba(82,56,35,0.08);
+      line-height: 1.65;
+    }
+
+    .follow-focus-item:last-child { border-bottom: 0; }
+    .follow-focus-item i { width: 20px; height: 20px; margin-top: 2px; }
+    .follow-focus-item strong { color: var(--muted); font-size: 13px; }
+    .follow-focus-item span { font-size: 16px; }
+    .follow-focus-item.action i { color: var(--berry); }
+    .follow-focus-item.check i { color: #607d63; }
+    .follow-focus-item.note i { color: #9a6a10; }
+
+    .follow-dialog-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 14px 22px 20px;
+      border-top: 1px solid rgba(82,56,35,0.09);
+      background: rgba(255,250,241,0.96);
+    }
+
+    .follow-dialog-actions button { justify-content: center; }
+
+    .primary-btn:active,
+    .ghost-btn:active,
+    .chip:active { transform: scale(.96); }
+
+    button:focus-visible,
+    a:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    [contenteditable="true"]:focus-visible,
+    [contenteditable="true"]:focus {
+      outline: 2px solid var(--berry) !important;
+      outline-offset: 3px;
+    }
+
+    .anchor-tabs {
+      position: sticky;
+      top: 12px;
+      z-index: 2;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 10px;
+      margin-bottom: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255, 253, 248, 0.92);
+      backdrop-filter: blur(14px);
+      border-radius: 8px;
+    }
+
+    .anchor-tabs a {
+      text-decoration: none;
+      color: var(--muted);
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+
+    .anchor-tabs a:hover {
+      color: var(--ink);
+      background: #efe5d7;
+    }
+
+    .detail-section {
+      margin-top: 22px;
+      padding-top: 2px;
+    }
+
+    .content-band {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .band-head {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      background: #fbf7ef;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .band-head h2 {
+      margin: 0;
+      font-size: 19px;
+    }
+
+    .band-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .section-tools,
+    .edit-actions {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .edit-actions[hidden],
+    .edit-button[hidden] { display: none; }
+
+    .edit-button,
+    .edit-action {
+      min-height: 32px;
+      padding: 0 10px;
+      border: 0;
+      border-radius: 5px;
+      background: #efe4d3;
+      color: var(--coffee-dark);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .edit-action.save { background: var(--coffee-dark); color: #fff8e9; }
+    .edit-action.add { background: #e8efe7; color: #506a52; }
+    .edit-button:active,
+    .edit-action:active { transform: scale(.97); }
+
+    .param-add-row { display: none; margin-top: 12px; }
+    #params.is-editing .param-add-row { display: inline-flex; }
+    .version-add-row { display: none; margin: 12px 16px; }
+    #versions.is-editing .version-add-row { display: inline-flex; }
+    #versions .edit-status { padding: 0 16px 10px; }
+    #versions.is-editing #variantVersionName {
+      color: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .editable-section.is-editing [contenteditable="true"] {
+      border-radius: 4px;
+      outline: 0;
+      background: rgba(255,250,241,0.72);
+      box-shadow: inset 0 -1px rgba(179,106,50,0.2);
+      caret-color: var(--berry);
+    }
+
+    .editable-section.is-editing [contenteditable="true"]:focus {
+      outline: 2px solid rgba(179,106,50,0.38);
+      outline-offset: 2px;
+      background: #fffaf1;
+      box-shadow: none;
+    }
+
+    .editable-section.is-editing .editable-text { min-width: 24px; }
+
+    .edit-status {
+      min-height: 18px;
+      margin: 8px 0 0;
+      color: #6f8b70;
+      font-size: 12px;
+    }
+
+    #params .edit-status { padding: 0 16px 10px; }
+
+    .param-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .param-table th,
+    .param-table td {
+      padding: 13px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    .param-table th {
+      width: 34%;
+      color: var(--coffee-dark);
+      background: #fbf7ef;
+      font-weight: 700;
+    }
+
+    .param-table tr:last-child th,
+    .param-table tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .param-table select,
+    .param-table input {
+      width: 100%;
+      min-height: 32px;
+      padding: 5px 7px;
+      border: 0;
+      border-radius: 4px;
+      background: #fffaf1;
+      color: var(--coffee-dark);
+      font: inherit;
+      font-size: 13px;
+    }
+
+    .param-type-editor { display: grid; gap: 5px; }
+    .param-row-controls {
+      width: 132px;
+      padding-inline: 8px !important;
+      white-space: nowrap;
+      background: #fffdf8;
+    }
+
+    .param-control {
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border: 0;
+      border-radius: 4px;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .param-control:hover { background: #efe4d3; color: var(--coffee-dark); }
+    .param-control.delete:hover { color: var(--berry); }
+    .param-drag { cursor: grab; touch-action: none; }
+    .param-table tr.dragging { opacity: .42; }
+
+    .postmortem {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      overflow: hidden;
+    }
+
+    .postmortem summary {
+      min-height: 48px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      cursor: pointer;
+      color: var(--coffee-dark);
+      font-size: 14px;
+      font-weight: 700;
+      list-style: none;
+    }
+
+    .postmortem summary::-webkit-details-marker { display: none; }
+    .postmortem summary::after { content: "+"; color: var(--berry); font-size: 20px; }
+    .postmortem[open] summary::after { content: "−"; }
+    .postmortem .param-table { border-top: 1px solid var(--line); }
+
+    .trouble-section { position: relative; }
+    .trouble-tools {
+      position: absolute;
+      z-index: 1;
+      top: 9px;
+      right: 42px;
+    }
+    .trouble-section .postmortem summary { padding-right: 112px; }
+    .trouble-section.is-editing .postmortem summary { cursor: default; }
+    .trouble-add-row { display: none; margin: 12px 16px; }
+    .trouble-section.is-editing .trouble-add-row { display: inline-flex; }
+    .trouble-section .edit-status { padding-inline: 16px; }
+
+    .step-list {
+      display: grid;
+      gap: 0;
+      padding: 8px 22px 24px;
+      border-radius: 12px;
+      background: rgba(255, 253, 248, 0.82);
+      box-shadow: 0 10px 34px rgba(82,56,35,0.07);
+    }
+
+    .step-card {
+      position: relative;
+      display: grid;
+      grid-template-columns: 44px minmax(0, 1fr);
+      gap: 12px;
+      padding: 21px 0 18px;
+      border: 0;
+      background: transparent;
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    .step-card[hidden],
+    .phase-divider[hidden] { display: none; }
+
+    .step-no {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      color: #fffaf0;
+      background: var(--coffee-dark);
+      border-radius: 50%;
+      font-size: 13px;
+      font-weight: 800;
+      box-shadow: 0 2px 0 rgba(82,56,35,0.14);
+    }
+
+    .step-card > div:nth-child(2) { min-width: 0; }
+
+    .step-card h3 {
+      margin: 2px 0 14px;
+      color: var(--coffee-dark);
+      font-size: 19px;
+      line-height: 1.35;
+      letter-spacing: -.01em;
+    }
+
+    .step-edit-tools {
+      display: none;
+      grid-column: 1 / -1;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin: -4px 0 12px;
+    }
+
+    #steps.is-editing .step-edit-tools { display: flex; }
+
+    .step-phase-editor {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      gap: 6px;
+    }
+
+    .step-phase-editor::before {
+      content: "阶段";
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .step-phase-editor select,
+    .step-phase-editor input {
+      min-height: 30px;
+      border: 0;
+      border-radius: 5px;
+      background: #f3ebdf;
+      color: var(--coffee-dark);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .step-phase-editor select { padding: 0 26px 0 9px; }
+    .step-phase-editor input { width: 110px; padding: 0 9px; }
+
+    .step-row-controls { display: flex; align-items: center; gap: 2px; }
+
+    .step-control {
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      border: 0;
+      border-radius: 5px;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .step-control:hover { background: #f3ebdf; color: var(--coffee-dark); }
+    .step-control.delete { color: var(--berry); }
+    .step-control.add { color: #506a52; }
+
+    .step-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+
+    .step-note {
+      padding: 7px 0;
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      color: var(--ink);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .step-note:not(:last-child) { border-bottom: 1px solid rgba(82,56,35,0.07); }
+
+    .step-note strong,
+    .step-note:nth-child(n) strong {
+      display: inline;
+      margin: 0 10px 0 0;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+
+    .step-note:nth-child(1) strong { color: var(--berry); }
+    .step-note:nth-child(2) strong { color: #607d63; }
+    .step-note:nth-child(3) strong { color: #9a6a10; }
+
+    #steps.is-editing .step-note .editable-text:empty::before {
+      content: attr(data-placeholder);
+      color: rgba(117, 108, 99, 0.48);
+      pointer-events: none;
+    }
+
+    .state-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .state-tile {
+      min-height: 260px;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fffaf1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .state-media {
+      position: relative;
+      aspect-ratio: 4 / 3;
+      overflow: hidden;
+      background: #ece3d6;
+    }
+
+    .state-media img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .state-image-placeholder {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 12px;
+      background:
+        linear-gradient(135deg, rgba(111,74,47,0.06), rgba(96,118,138,0.09)),
+        #f3ece1;
+    }
+
+    .state-image-tools {
+      position: absolute;
+      inset: auto 10px 10px;
+      display: none;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #states.is-editing .state-image-tools { display: flex; }
+
+    .state-image-action {
+      min-height: 32px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 10px;
+      border: 0;
+      border-radius: 5px;
+      color: #fffaf0;
+      background: rgba(45, 32, 22, 0.88);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 3px 12px rgba(45,32,22,0.2);
+    }
+
+    .state-image-action.remove {
+      color: var(--coffee-dark);
+      background: rgba(255,250,241,0.94);
+    }
+
+    .state-image-action input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+    .state-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 13px 14px 14px;
+    }
+
+    .state-tile strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .state-tile span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .state-editor-tools {
+      display: none;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 2px;
+      margin-top: 10px;
+    }
+
+    #states.is-editing .state-editor-tools { display: flex; }
+    .state-add-row { display: none; margin: 0 16px 16px; }
+    #states.is-editing .state-add-row { display: inline-flex; }
+    #states .edit-status { padding: 0 16px 10px; }
+
+    .aside-panel {
+      position: sticky;
+      top: 20px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .follow-card,
+    .toc-card,
+    .data-card {
+      padding: 16px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 8px;
+      box-shadow: 0 8px 28px rgba(56,43,30,0.08);
+    }
+
+    .follow-card h2,
+    .toc-card h2,
+    .data-card h2 {
+      margin: 0 0 10px;
+      font-size: 17px;
+    }
+
+    .follow-card p,
+    .toc-card p,
+    .data-card p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .data-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .data-actions button,
+    .data-actions label {
+      min-height: 38px;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .data-actions input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .data-status {
+      min-height: 18px;
+      margin: 10px 0 0 !important;
+      font-size: 11px !important;
+    }
+
+    .follow-step {
+      padding: 12px;
+      background: #fbf7ef;
+      border-radius: 7px;
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .toc-list {
+      display: grid;
+      gap: 7px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .toc-list a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+    }
+
+    .toc-list a:hover { color: var(--coffee-dark); }
+
+    @media (max-width: 1040px) {
+      .app-shell { grid-template-columns: 1fr; }
+      .sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .sidebar-note { position: static; margin-top: 18px; }
+      .nav { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .hero { grid-template-columns: 1fr; }
+      .recipe-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .category-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .scenario-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .list-layout { grid-template-columns: 1fr; }
+      .filters { position: static; }
+      .detail-shell { grid-template-columns: 1fr; }
+      .detail-hero { grid-template-columns: 1fr; }
+      .aside-panel { position: static; }
+      .state-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 680px) {
+      .main { padding: 20px 16px 40px; }
+      .topbar { align-items: stretch; flex-direction: column; }
+      .nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .hero-copy { padding-top: 10px; }
+      .advanced-recipes { align-items: flex-start; flex-direction: column; }
+      .overview-head { flex-direction: column; }
+      #overview .overview-tools { width: auto; align-self: flex-end; }
+      .advanced-options { width: 100%; }
+      .advanced-recipe { flex: 1 1 130px; }
+      .editable-section .section-head { align-items: flex-start; flex-direction: column; }
+      .editable-section .section-tools { width: 100%; }
+      .trouble-section .trouble-tools { width: auto; }
+      #params .band-head { align-items: flex-start; flex-direction: column; }
+      #params .section-tools { width: 100%; }
+      #params.is-editing .param-table tr,
+      #trouble.is-editing .param-table tr,
+      #versions.is-editing .param-table tr {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+      }
+      #params.is-editing .param-table th,
+      #trouble.is-editing .param-table th,
+      #versions.is-editing .param-table th {
+        width: auto;
+        grid-column: 1;
+        grid-row: 1;
+      }
+      #params.is-editing .param-table td[data-param-value],
+      #trouble.is-editing .param-table td:not(.param-row-controls),
+      #versions.is-editing .param-table td:not(.param-row-controls) {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        min-height: 44px;
+      }
+      #params.is-editing .param-row-controls,
+      #trouble.is-editing .param-row-controls,
+      #versions.is-editing .param-row-controls {
+        width: auto;
+        grid-column: 2;
+        grid-row: 1;
+        display: flex;
+        align-items: center;
+      }
+      .recipe-grid,
+      .category-grid,
+      .scenario-strip { grid-template-columns: 1fr; }
+      .mini-spec { left: 22px; right: 22px; grid-template-columns: 1fr; }
+      .hero-visual::after { height: 150px; }
+      .list-head { align-items: stretch; flex-direction: column; }
+      .step-grid { grid-template-columns: 1fr; }
+      .step-list { padding: 6px 12px 18px; }
+      .step-card {
+        grid-template-columns: 34px minmax(0, 1fr);
+        gap: 10px;
+        padding-block: 18px 16px;
+      }
+      .step-card h3 { margin-top: 1px; font-size: 17px; }
+      .step-edit-tools { align-items: flex-start; flex-direction: column; }
+      .step-row-controls { align-self: flex-end; }
+      .step-phase-editor { width: 100%; }
+      .step-phase-editor select { flex: 1; min-width: 0; }
+      .step-note:nth-child(n) { grid-column: auto; grid-row: auto; }
+      .visual-step > div:nth-child(2) { grid-template-columns: 1fr; }
+      .visual-step h3,
+      .step-media,
+      .visual-step .step-grid { grid-column: 1; grid-row: auto; }
+      .step-media img { height: 190px; min-height: 0; }
+      .step-card[data-phase]::after { position: static; grid-column: 1; grid-row: 1; justify-self: end; }
+      .edit-button,
+      .edit-action { min-height: 40px; }
+      .follow-dialog {
+        width: 100vw;
+        max-width: none;
+        max-height: 100dvh;
+        margin: 0;
+        border-radius: 0;
+      }
+      .follow-dialog-shell { min-height: 100dvh; max-height: 100dvh; }
+      .follow-dialog-head,
+      .follow-dialog-body,
+      .follow-dialog-actions { padding-inline: 18px; }
+      .follow-focus-item { grid-template-columns: 24px 44px minmax(0, 1fr); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">B</div>
+        <div>
+          <strong>Brew & Bake Lab</strong>
+          <span>参数化实操手册</span>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="主导航">
+        <button class="active" data-page="home"><i data-lucide="layout-dashboard"></i>首页</button>
+        <button data-page="recipes"><i data-lucide="book-open"></i>作品库</button>
+        <button><i data-lucide="wand-sparkles"></i>基础技巧</button>
+        <button><i data-lucide="clipboard-list"></i>参数笔记</button>
+      </nav>
+
+      <div class="sidebar-note">
+        v0.2：一级品类聚焦“做什么”，技巧库作为独立入口，并在作品内就地引用。
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <label class="search">
+          <i data-lucide="search"></i>
+          <input aria-label="搜索作品、技巧或问题" placeholder="搜索瑞士卷、麦芬、蛋白打发、开裂、手冲" />
+        </label>
+        <span class="status-pill"><i data-lucide="flask-conical"></i>Beta v0.4</span>
+      </div>
+
+      <section class="page active" id="home">
+        <div class="hero">
+          <div class="hero-copy">
+            <div class="eyebrow"><i data-lucide="timer"></i>厨房里能直接照着做</div>
+            <h1>Brew & Bake Lab</h1>
+            <p class="lead">
+              咖啡、茶饮与烘焙的参数化实操手册。每个作品都拆成材料、工具、参数、步骤、状态判断和失败排查。
+            </p>
+            <div class="hero-actions">
+              <button class="primary-btn" data-page="recipes"><i data-lucide="book-open-check"></i>查看作品库</button>
+              <button class="ghost-btn" data-page="detail"><i data-lucide="play-circle"></i>进入跟做模式示例</button>
+            </div>
+          </div>
+          <div class="hero-visual" aria-label="厨房操作台照片">
+            <div class="mini-spec">
+              <div><strong>5</strong><span>首批作品</span></div>
+              <div><strong>7步</strong><span>统一详情模板</span></div>
+              <div><strong>状态图</strong><span>判断比描述更清楚</span></div>
+            </div>
+          </div>
+        </div>
+
+        <section class="section">
+          <div class="section-head">
+            <div>
+              <h2>快速分类</h2>
+              <p class="section-desc">首页按“今天想做什么”进入；技巧库保留在主导航和作品详情里。</p>
+            </div>
+          </div>
+          <div class="category-grid">
+            <article class="category" data-page="recipes">
+              <i data-lucide="cake-slice"></i>
+              <div><strong>烘焙</strong><span>麦芬、瑞士卷、裸蛋糕、面包</span></div>
+            </article>
+            <article class="category" data-page="recipes">
+              <i data-lucide="cup-soda"></i>
+              <div><strong>饮品</strong><span>咖啡、抹茶/茶饮、可可/奶饮</span></div>
+            </article>
+            <article class="category" data-page="recipes">
+              <i data-lucide="chef-hat"></i>
+              <div><strong>烤箱菜</strong><span>鸡翅、牛排、蔬菜、复热炸物</span></div>
+            </article>
+            <article class="category">
+              <i data-lucide="git-branch"></i>
+              <div><strong>饮品二级</strong><span>手冲、意式、奶咖、冷萃、抹茶拿铁</span></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <div>
+              <h2>首批作品</h2>
+              <p class="section-desc">卡片先回答今天能不能做：耗时、工具、关键风险都直接露出。</p>
+            </div>
+            <button class="ghost-btn" data-page="recipes"><i data-lucide="sliders-horizontal"></i>筛选作品</button>
+          </div>
+          <div class="recipe-grid" id="homeRecipes"></div>
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <div>
+              <h2>按场景选择</h2>
+              <p class="section-desc">比分类更贴近真实厨房决策。</p>
+            </div>
+          </div>
+          <div class="scenario-strip">
+            <button class="scenario"><strong>30分钟内</strong><span>快手甜点和饮品</span></button>
+            <button class="scenario"><strong>做给别人</strong><span>稳定、好看、可分享</span></button>
+            <button class="scenario"><strong>消耗水果</strong><span>香蕉、蓝莓、草莓</span></button>
+            <button class="scenario"><strong>练习打发</strong><span>蛋白霜与奶油状态</span></button>
+            <button class="scenario"><strong>正餐烤箱菜</strong><span>鸡翅、牛排、蔬菜</span></button>
+            <button class="scenario"><strong>做一杯饮品</strong><span>手冲、意式、抹茶拿铁</span></button>
+          </div>
+        </section>
+      </section>
+
+      <section class="page" id="recipes">
+        <div class="list-head">
+          <div>
+            <h1>作品库</h1>
+            <p class="section-desc">筛选时优先看“我有什么工具”和“今天有多少时间”。</p>
+          </div>
+          <div class="sort-box">
+            <span>排序</span>
+            <select>
+              <option>默认推荐</option>
+              <option>耗时从短到长</option>
+              <option>新手优先</option>
+              <option>最近更新</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="list-layout">
+          <aside class="filters">
+            <div class="filter-group">
+              <h3 class="filter-title">分类</h3>
+              <div class="filter-options">
+                <button class="chip active">全部</button>
+                <button class="chip">烘焙</button>
+                <button class="chip">饮品</button>
+                <button class="chip">烤箱菜</button>
+              </div>
+            </div>
+            <div class="filter-group">
+              <h3 class="filter-title">饮品二级</h3>
+              <div class="filter-options">
+                <button class="chip">咖啡</button>
+                <button class="chip">抹茶/茶饮</button>
+                <button class="chip">可可/奶饮</button>
+              </div>
+            </div>
+            <div class="filter-group">
+              <h3 class="filter-title">咖啡方式</h3>
+              <div class="filter-options">
+                <button class="chip">手冲</button>
+                <button class="chip">意式</button>
+                <button class="chip">奶咖</button>
+                <button class="chip">冷萃</button>
+              </div>
+            </div>
+            <div class="filter-group">
+              <h3 class="filter-title">难度</h3>
+              <div class="filter-options">
+                <button class="chip active">全部</button>
+                <button class="chip">新手</button>
+                <button class="chip">中等</button>
+                <button class="chip">进阶</button>
+              </div>
+            </div>
+            <div class="filter-group">
+              <h3 class="filter-title">时间</h3>
+              <div class="filter-options">
+                <button class="chip">15分钟内</button>
+                <button class="chip">1小时内</button>
+                <button class="chip">需冷藏</button>
+                <button class="chip">需腌制</button>
+              </div>
+            </div>
+            <div class="filter-group">
+              <h3 class="filter-title">工具</h3>
+              <div class="filter-options">
+                <button class="chip">烤箱</button>
+                <button class="chip">打蛋器</button>
+                <button class="chip">麦芬模</button>
+                <button class="chip">咖啡滤杯</button>
+              </div>
+            </div>
+            <div class="filter-group">
+              <h3 class="filter-title">技法</h3>
+              <div class="filter-options">
+                <button class="chip">打发</button>
+                <button class="chip">翻拌</button>
+                <button class="chip">手冲</button>
+                <button class="chip">腌制</button>
+              </div>
+            </div>
+          </aside>
+
+          <div>
+            <div class="recipe-grid" id="listRecipes"></div>
+            <div class="prototype-panel">
+              后续点击卡片进入作品详情页。详情页会固定包含：顶部概览、参数卡、步骤流程、状态图库、失败排查和版本记录。
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="detail">
+        <div class="breadcrumb">
+          <button class="chip" data-page="recipes"><i data-lucide="arrow-left"></i> 返回作品库</button>
+          <span>烘焙 / 蛋糕卷 / 瑞士卷</span>
+        </div>
+
+        <div class="detail-hero">
+          <div class="detail-title editable-section" id="overview" data-editable-section="overview">
+            <div class="overview-head">
+              <div class="tag-row" id="overviewTags">
+                <span class="tag red">中等难度</span>
+                <span class="tag">约 2 小时</span>
+                <span class="tag blue">蛋白打发</span>
+              </div>
+              <div class="section-tools overview-tools">
+                <button class="edit-button" type="button" data-start-edit="overview" aria-label="编辑配方概览">编辑</button>
+                <div class="edit-actions" data-edit-actions="overview" hidden>
+                  <button class="edit-action save" type="button" data-save-edit="overview" aria-label="保存配方概览">保存</button>
+                  <button class="edit-action" type="button" data-cancel-edit="overview" aria-label="取消编辑配方概览">取消</button>
+                </div>
+              </div>
+            </div>
+            <h1 id="variantTitle">原味奶油瑞士卷</h1>
+            <p id="variantDescription">
+              柔软、细密、能顺利卷起的基础蛋糕卷。先守住蛋白霜和翻拌，再用烤色、回弹与温度判断出炉时机；卷制成败取决于出炉后的前 10 分钟。
+            </p>
+            <div class="advanced-recipes" aria-label="这份配方还能这样做">
+              <span class="advanced-label">这份配方还能这样做</span>
+              <div class="advanced-options">
+                <button class="advanced-recipe" type="button" aria-pressed="false" data-variant="sugarFree">
+                  <span>想做得更轻</span><strong>0 糖无油卷 →</strong>
+                </button>
+                <button class="advanced-recipe" type="button" aria-pressed="false" data-variant="cocoa">
+                  <span>想换个风味</span><strong>可可蛋糕卷 →</strong>
+                </button>
+              </div>
+              <button class="variant-back" id="variantBack" type="button" hidden>← 返回原味基础</button>
+            </div>
+            <p class="edit-status overview-status" data-edit-status="overview" aria-live="polite"></p>
+          </div>
+          <div class="detail-photo" id="overviewPhoto" role="img" aria-label="原味奶油瑞士卷成品实拍占位" data-overview-image="" data-overview-image-alt=""><span><strong>成品实拍待替换</strong><br>需要展示卷芯、奶油厚度与表皮状态</span></div>
+        </div>
+
+        <div class="anchor-tabs">
+          <a href="#params">参数</a>
+          <a href="#steps">步骤</a>
+          <a href="#states">状态图</a>
+          <a href="#versions">版本</a>
+        </div>
+
+        <div class="detail-shell">
+          <div>
+            <section class="detail-section editable-section" id="params" data-editable-section="params">
+              <div class="content-band">
+                <div class="band-head">
+                  <div>
+                    <h2>参数卡</h2>
+                    <p>这里只放不会随步骤变化的固定参数。</p>
+                  </div>
+                  <div class="section-tools">
+                    <button class="edit-button" type="button" data-start-edit="params" aria-label="编辑参数卡">编辑</button>
+                    <div class="edit-actions" data-edit-actions="params" hidden>
+                      <button class="edit-action save" type="button" data-save-edit="params" aria-label="保存参数卡">保存</button>
+                      <button class="edit-action" type="button" data-cancel-edit="params" aria-label="取消编辑参数卡">取消</button>
+                    </div>
+                  </div>
+                </div>
+                <table class="param-table">
+                  <tr><th>成品</th><td>1 条，约 8 切。</td></tr>
+                  <tr><th>蛋糕糊</th><td id="variantParam">4 蛋、油 50g、牛奶或水 50g、低粉 60g、细砂糖 60g。</td></tr>
+                  <tr><th>夹馅</th><td>淡奶油 200g、糖 14g。</td></tr>
+                  <tr><th>烤箱 &amp; 烤盘</th><td>28 × 28cm 方盘。</td></tr>
+                  <tr><th>烘烤</th><td>上下管 170°C，下层约 25 分钟；最后 3–5 分钟可开热风。</td></tr>
+                  <tr><th>定型</th><td>晾到手温预卷；抹馅后冷藏至少 45 分钟。</td></tr>
+                </table>
+                <button class="edit-action add param-add-row" type="button" data-add-param>＋ 添加参数</button>
+                <p class="edit-status" data-edit-status="params" aria-live="polite"></p>
+              </div>
+            </section>
+
+            <section class="detail-section editable-section" id="steps" data-editable-section="steps">
+              <div class="section-head">
+                <div>
+                  <h2>步骤流程</h2>
+                  <p class="section-desc">按实际动手顺序排列；做到哪一步，只看当前卡片。</p>
+                </div>
+                <div class="section-tools">
+                  <button class="edit-button" type="button" data-start-edit="steps" aria-label="编辑步骤流程">编辑</button>
+                  <div class="edit-actions" data-edit-actions="steps" hidden>
+                    <button class="edit-action save" type="button" data-save-edit="steps" aria-label="保存步骤流程">保存</button>
+                    <button class="edit-action" type="button" data-cancel-edit="steps" aria-label="取消编辑步骤流程">取消</button>
+                  </div>
+                </div>
+              </div>
+              <div class="step-list" id="swissRollSteps">
+                <div class="phase-divider"><span>PHASE 01</span>蛋糊制作</div>
+                <article class="step-card" data-phase="蛋糊制作">
+                  <div class="step-no">1</div>
+                  <div>
+                    <h3>分离蛋白和蛋黄</h3>
+                    <div class="step-grid">
+                      <div class="step-note"><strong>操作</strong><span id="variantStep1Action">分离 4 个鸡蛋：蛋黄放入小碗，蛋白放入蛋白盆。分好后立刻把蛋白盆放进冰箱。</span></div>
+                      <div class="step-note"><strong>判断</strong>蛋白里没有蛋黄，蛋壳碎片已经取出。</div>
+                      <div class="step-note"><strong>注意</strong>蛋黄糊用的大盆先保持空盆，下一步直接放到秤上加材料。</div>
+                    </div>
+                  </div>
+                </article>
+                <article class="step-card" data-phase="蛋糊制作">
+                  <div class="step-no">2</div>
+                  <div>
+                    <h3 id="variantStep2Title">大盆上秤，制作粉水糊</h3>
+                    <div class="step-grid">
+                      <div class="step-note"><strong>操作</strong><span id="variantStep2Action">大盆直接上秤，倒入油和牛奶，搅匀后筛入低粉。</span></div>
+                      <div class="step-note"><strong>判断</strong><span id="variantStep2Check">粉水糊均匀，看不到干粉和浮油。</span></div>
+                      <div class="step-note"><strong>注意</strong><span id="variantStep2Note">每加入一种材料就归零，避免另外换盆称量。</span></div>
+                    </div>
+                  </div>
+                </article>
+                <article class="step-card" data-phase="蛋糊制作">
+                  <div class="step-no">3</div>
+                  <div>
+                    <h3>加入蛋黄</h3>
+                    <div class="step-grid">
+                      <div class="step-note"><strong>操作</strong>加入蛋黄，用 Z 字拌匀。完成后把蛋黄糊放进冰箱。</div>
+                      <div class="step-note"><strong>判断</strong>蛋黄糊顺滑、有光泽，提起打蛋器能连续落下。</div>
+                      <div class="step-note"><strong>注意</strong>不要画圈久搅；蛋黄糊冷藏到混合前再取出。</div>
+                    </div>
+                  </div>
+                </article>
+                <article class="step-card" data-phase="烤制准备">
+                  <div class="step-no">4</div>
+                  <div>
+                    <h3>铺油纸并预热烤箱</h3>
+                    <div class="step-grid">
+                      <div class="step-note"><strong>操作</strong>烤盘铺好油纸，烤箱上下管预热至 170°C。</div>
+                      <div class="step-note"><strong>判断</strong>油纸贴住四边和四角，烤箱已经开始升温。</div>
+                      <div class="step-note"><strong>注意</strong>在打发蛋白前完成，面糊混合好后可以直接入盘进炉。</div>
+                    </div>
+                  </div>
+                </article>
+                <article class="step-card visual-step" data-phase="蛋糊制作">
+                  <div class="step-no">5</div>
+                  <div>
+                    <h3>打发蛋白</h3>
+                    <figure class="step-media"><img src="assets/swiss-roll/egg-white-peaks.jpg" width="1200" height="1200" loading="lazy" alt="打发后的蛋白霜在打蛋头上形成弯曲尖角"><figcaption>看尖角：细腻、有光泽、末端微弯</figcaption></figure>
+                    <div class="step-grid">
+                      <div class="step-note"><strong>操作</strong><span id="variantStep5Action">开始打发时加第一次糖，高速打到鱼眼泡；加第二次糖，出现纹路后改低速，再加剩余糖。</span></div>
+                      <div class="step-note"><strong>判断</strong>蛋白霜细腻有光泽，提起打蛋头，尖角微弯。</div>
+                      <div class="step-note"><strong>注意</strong>可加少量柠檬汁和 1–2 滴香草精。出现短硬尖角就停，继续打会让成品粗糙、卷时易裂。</div>
+                    </div>
+                  </div>
+                </article>
+                <article class="step-card visual-step" data-phase="蛋糊制作">
+                  <div class="step-no">6</div>
+                  <div>
+                    <h3>混合蛋黄糊和蛋白霜</h3>
+                    <figure class="step-media"><img src="assets/swiss-roll/folding-batter.jpg" width="1200" height="1200" loading="lazy" alt="用硅胶刮刀把蛋白霜翻入蛋黄糊"><figcaption>从盆底翻起，不画圈搅拌</figcaption></figure>
+                    <div class="step-grid">
+                      <div class="step-note"><strong>操作</strong>取 1/3 蛋白霜拌入蛋黄糊，再把混合物全部倒回蛋白盆翻拌。</div>
+                      <div class="step-note"><strong>判断</strong>面糊颜色均匀，呈宽带状落下，看不到白色蛋白块。</div>
+                      <div class="step-note"><strong>注意</strong>刮刀贴盆底翻起，不要画圈。面糊明显变稀就是消泡，烤后容易回缩。</div>
+                    </div>
+                  </div>
+                </article>
+                <div class="phase-divider"><span>PHASE 02</span>烤制与卷形</div>
+                <article class="step-card visual-step" data-phase="烤制">
+                  <div class="step-no">7</div>
+                  <div>
+                    <h3>入盘并排气</h3>
+                    <figure class="step-media"><img src="assets/swiss-roll/batter-to-corners-v2.png" width="1254" height="1254" loading="lazy" alt="双手捏住油纸对角轻晃烤盘，让蛋糕糊铺满四角"><figcaption>捏住对角轻晃，确认四角都铺满</figcaption></figure>
+                    <div class="step-grid">
+                      <div class="step-note"><strong>操作</strong>倒入面糊。捏住油纸对角晃动烤盘，让面糊流到四角，再拍烤盘底部排气。</div>
+                      <div class="step-note"><strong>判断</strong>面糊厚度均匀，四角填满，表面没有大气泡。</div>
+                      <div class="step-note"><strong>注意</strong>不要反复刮平。四角太薄会先干，中心太厚容易湿黏。</div>
+                    </div>
+                  </div>
+                </article>
+                <article class="step-card visual-step" data-phase="烤制">
+                  <div class="step-no">8</div>
+                  <div>
+                    <h3>烘烤、脱模并散热</h3>
+                    <figure class="step-media"><img src="assets/swiss-roll/baked-sponge.jpg" width="1200" height="1200" loading="lazy" alt="烤成金黄色的方形蛋糕片在油纸上散热"><figcaption>颜色均匀，轻按能回弹</figcaption></figure>
+                    <div class="step-grid">
+                      <div class="step-note"><strong>操作</strong>放入预热好的烤箱下层，烤约 25 分钟。出炉后分离四周，平移到晾网上，掀开四边油纸。</div>
+                      <div class="step-note"><strong>判断</strong>表面上色均匀，轻按回弹，底部没有湿黏。</div>
+                      <div class="step-note"><strong>注意</strong>颜色太浅、按压不回弹就继续烤。出炉后不要留在热烤盘里。</div>
+                    </div>
+                  </div>
+                </article>
+                <article class="step-card visual-step" data-phase="卷制">
+                  <div class="step-no">9</div>
+                  <div>
+                    <h3>晾到手温，先卷出形状</h3>
+                    <figure class="step-media"><img src="assets/swiss-roll/rolling-cake.jpg" width="1200" height="1200" loading="lazy" alt="双手把蛋糕片卷成圆筒形"><figcaption>卷芯圆润，不压扁蛋糕片</figcaption></figure>
+                    <div class="step-grid">
+                      <div class="step-note"><strong>操作</strong>蛋糕晾到手摸还有一点温度，从近端卷起，借卷筒带出圆润卷芯。</div>
+                      <div class="step-note"><strong>判断</strong>蛋糕能弯曲，表皮没有开裂，卷芯没有被压扁。</div>
+                      <div class="step-note"><strong>注意</strong>太热容易粘皮，完全冷透再卷又容易开裂。</div>
+                    </div>
+                  </div>
+                </article>
+                <div class="phase-divider"><span>PHASE 03</span>夹馅定型</div>
+                <article class="step-card" data-phase="夹馅">
+                  <div class="step-no">10</div>
+                  <div>
+                    <h3>抹奶油、终卷并冷藏</h3>
+                    <div class="step-grid">
+                      <div class="step-note"><strong>操作</strong>蛋糕完全冷却后展开，抹上奶油，再沿原来的卷向卷紧。</div>
+                      <div class="step-note"><strong>判断</strong>奶油不流动，卷好后接口能朝下放稳。</div>
+                      <div class="step-note"><strong>注意</strong>包好后冷藏至少 45 分钟再切。</div>
+                    </div>
+                  </div>
+                </article>
+              </div>
+              <p class="edit-status" data-edit-status="steps" aria-live="polite"></p>
+              <p class="image-credit">过程示意图来源：<a href="https://japanesetaste.de/blogs/japanese-taste-recipes/how-to-make-japanese-strawberry-roll-cake-strawberry-swiss-roll" target="_blank" rel="noreferrer">Japanese Taste</a></p>
+            </section>
+
+            <section class="detail-section editable-section" id="states" data-editable-section="states">
+              <div class="content-band">
+                <div class="band-head">
+                  <div>
+                    <h2>关键状态图</h2>
+                    <p>只保留真正影响成败、需要用眼睛判断的状态。</p>
+                  </div>
+                  <div class="section-tools">
+                    <button class="edit-button" type="button" data-start-edit="states" aria-label="编辑关键状态图">编辑</button>
+                    <div class="edit-actions" data-edit-actions="states" hidden>
+                      <button class="edit-action save" type="button" data-save-edit="states" aria-label="保存关键状态图">保存</button>
+                      <button class="edit-action" type="button" data-cancel-edit="states" aria-label="取消编辑关键状态图">取消</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="state-grid">
+                  <article class="state-tile" data-state-id="state-1" data-state-image="assets/swiss-roll/egg-white-peaks.jpg" data-state-alt="蛋白霜形成细腻有光泽的微弯尖角"><div class="state-media"><img src="assets/swiss-roll/egg-white-peaks.jpg" alt="蛋白霜形成细腻有光泽的微弯尖角"></div><div class="state-content"><span class="state-index">STATE 01</span><strong>湿性偏中性蛋白霜</strong><span class="state-description">纹路清楚、尖角微弯；比戚风蛋糕的硬性发泡更柔软。</span></div></article>
+                  <article class="state-tile" data-state-id="state-2" data-state-image="assets/swiss-roll/folding-batter.jpg" data-state-alt="刮刀从盆底翻起蛋白霜和蛋黄糊"><div class="state-media"><img src="assets/swiss-roll/folding-batter.jpg" alt="刮刀从盆底翻起蛋白霜和蛋黄糊"></div><div class="state-content"><span class="state-index">STATE 02</span><strong>正确翻拌面糊</strong><span class="state-description">宽带状落下并缓慢融回；太稀是消泡，成块是未拌匀。</span></div></article>
+                  <article class="state-tile" data-state-id="state-3" data-state-image="assets/swiss-roll/rolling-cake.jpg" data-state-alt="蛋糕片在手温状态下卷成圆润卷芯"><div class="state-media"><img src="assets/swiss-roll/rolling-cake.jpg" alt="蛋糕片在手温状态下卷成圆润卷芯"></div><div class="state-content"><span class="state-index">STATE 03</span><strong>手温预卷状态</strong><span class="state-description">蛋糕片能自然弯曲，卷芯圆润，表皮没有开裂或被压扁。</span></div></article>
+                </div>
+                <button class="edit-action add state-add-row" type="button" data-add-state>＋ 添加状态</button>
+                <p class="edit-status" data-edit-status="states" aria-live="polite"></p>
+              </div>
+            </section>
+
+            <section class="detail-section editable-section trouble-section" id="trouble" data-editable-section="trouble">
+              <div class="section-tools trouble-tools">
+                <button class="edit-button" type="button" data-start-edit="trouble" aria-label="编辑失败排查">编辑</button>
+                <div class="edit-actions" data-edit-actions="trouble" hidden>
+                  <button class="edit-action save" type="button" data-save-edit="trouble" aria-label="保存失败排查">保存</button>
+                  <button class="edit-action" type="button" data-cancel-edit="trouble" aria-label="取消编辑失败排查">取消</button>
+                </div>
+              </div>
+              <details class="postmortem" id="troubleDetails">
+                <summary>成品有问题？做完后再看</summary>
+                <table class="param-table">
+                  <tr><th>开裂</th><td>蛋白过硬、烤得太干，或凉透后才预卷。</td></tr>
+                  <tr><th>湿黏或回缩</th><td>中心没熟，或翻拌时消泡。</td></tr>
+                  <tr><th>掉皮</th><td>上色不足，或蛋糕没凉透就抹馅。</td></tr>
+                  <tr><th>奶油挤出</th><td>奶油太软、远端抹得太厚，或卷得过紧。</td></tr>
+                </table>
+                <button class="edit-action add trouble-add-row" type="button" data-add-trouble>＋ 添加问题</button>
+                <p class="edit-status" data-edit-status="trouble" aria-live="polite"></p>
+              </details>
+            </section>
+
+            <section class="detail-section editable-section" id="versions" data-editable-section="versions">
+              <div class="content-band">
+                <div class="band-head">
+                  <div><h2>版本记录</h2><p>保留每次调整的变量，避免同时改太多参数。</p></div>
+                  <div class="section-tools">
+                    <span class="tag green" id="variantVersionTag">当前 · 原味基础</span>
+                    <button class="edit-button" type="button" data-start-edit="versions" aria-label="编辑版本记录">编辑</button>
+                    <div class="edit-actions" data-edit-actions="versions" hidden>
+                      <button class="edit-action save" type="button" data-save-edit="versions" aria-label="保存版本记录">保存</button>
+                      <button class="edit-action" type="button" data-cancel-edit="versions" aria-label="取消编辑版本记录">取消</button>
+                    </div>
+                  </div>
+                </div>
+                <table class="param-table">
+                  <tr><th id="variantVersionName">原味基础</th><td id="variantVersionSummary">4 蛋 / 28cm 方盘 / 170°C；油、牛奶各 50g，低粉、细砂糖各 60g。</td></tr>
+                  <tr><th>下一轮只测</th><td>根据自家烤箱实测温差，在 160–170°C 内单独调整温度，不同时改变时间与配方。</td></tr>
+                </table>
+                <button class="edit-action add version-add-row" type="button" data-add-version-record>＋ 添加实验记录</button>
+                <p class="edit-status" data-edit-status="versions" aria-live="polite"></p>
+              </div>
+            </section>
+          </div>
+
+          <aside class="aside-panel">
+            <div class="follow-card">
+              <h2>跟做模式</h2>
+              <p>一次只守住一个状态；切换步骤时正文会同步定位。</p>
+              <div class="follow-progress" aria-hidden="true"><span id="followProgress"></span></div>
+              <div class="follow-step" id="followStep" aria-live="polite">
+                <strong>步骤 1 / 10 · 分离蛋白和蛋黄</strong><br>
+                蛋黄放入小碗，蛋白放入无油无水的蛋白盆。分好后立刻冷藏蛋白。
+              </div>
+              <div class="follow-actions">
+                <button class="ghost-btn" id="followPrev" disabled><i data-lucide="arrow-left"></i>上一步</button>
+                <button class="primary-btn" id="followNext">下一步<i data-lucide="arrow-right"></i></button>
+              </div>
+              <button class="ghost-btn follow-start" id="followStart"><i data-lucide="maximize-2"></i>进入专注跟做</button>
+            </div>
+            <div class="toc-card">
+              <h2>相关技巧</h2>
+              <p>技巧既能独立学习，也能在步骤里就地打开。</p>
+              <ul class="toc-list">
+                <li><a href="#states"><i data-lucide="corner-down-right"></i>蛋白霜阶段判断</a></li>
+                <li><a href="#steps"><i data-lucide="corner-down-right"></i>戚风面糊翻拌</a></li>
+                <li><a href="#trouble"><i data-lucide="corner-down-right"></i>蛋糕卷开裂排查</a></li>
+              </ul>
+            </div>
+            <div class="data-card">
+              <h2>配方备份</h2>
+              <p>导出当前配方；导入时只覆盖当前版本。</p>
+              <div class="data-actions">
+                <button class="ghost-btn" id="exportRecipe" type="button"><i data-lucide="download"></i>导出</button>
+                <label class="ghost-btn"><i data-lucide="upload"></i>导入<input id="importRecipe" type="file" accept="application/json,.json" aria-label="导入配方备份"></label>
+              </div>
+              <p class="data-status" id="recipeDataStatus" aria-live="polite"></p>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog class="follow-dialog" id="followDialog" aria-labelledby="followDialogTitle">
+    <div class="follow-dialog-shell">
+      <div class="follow-dialog-head">
+        <span>专注跟做 · <b id="followDialogVariant">原味基础</b></span>
+        <div class="follow-dialog-head-actions">
+          <button class="follow-reset" id="followReset" type="button">重新开始</button>
+          <button class="follow-close" id="followClose" type="button" aria-label="退出跟做模式"><i data-lucide="x"></i></button>
+        </div>
+      </div>
+      <div class="follow-dialog-body">
+        <div class="follow-progress" aria-hidden="true"><span id="followDialogProgress"></span></div>
+        <span class="follow-dialog-count" id="followDialogCount"></span>
+        <h2 class="follow-dialog-title" id="followDialogTitle"></h2>
+        <div class="follow-focus-list" id="followDialogContent"></div>
+      </div>
+      <div class="follow-dialog-actions">
+        <button class="ghost-btn" id="followDialogPrev" type="button"><i data-lucide="arrow-left"></i>上一步</button>
+        <button class="primary-btn" id="followDialogNext" type="button">下一步<i data-lucide="arrow-right"></i></button>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+    const recipes = [
+      {
+        title: "香蕉蓝莓麦芬",
+        category: "烘焙 / 麦芬",
+        tags: ["新手", "45分钟", "无需打发"],
+        meta: ["6个", "烤箱", "麦芬模"],
+        key: "关键：蓝莓擦干裹粉，面糊看不见干粉就停。",
+        img: "assets/recipes/banana-blueberry-muffins.jpg",
+        color: "green"
+      },
+      {
+        title: "瑞士卷",
+        category: "烘焙 / 蛋糕卷",
+        tags: ["中等", "90分钟", "打蛋白"],
+        meta: ["28x28烤盘", "电动打蛋器", "需冷藏"],
+        key: "关键：蛋白湿性偏中性，出炉盖油纸保湿。",
+        img: "assets/recipes/swiss-roll.jpg",
+        color: "red"
+      },
+      {
+        title: "裸蛋糕",
+        category: "烘焙 / 生日蛋糕",
+        tags: ["中等", "2-3小时", "奶油"],
+        meta: ["6寸模", "打蛋器", "水果"],
+        key: "关键：蛋糕胚完全冷却，水果擦干再夹入。",
+        img: "assets/recipes/naked-cake.jpg",
+        color: "red"
+      },
+      {
+        title: "烤鸡翅",
+        category: "烤箱菜",
+        tags: ["新手", "45分钟+", "需腌制"],
+        meta: ["烤箱", "锡纸", "食品夹"],
+        key: "关键：鸡翅擦干，最后升温上色但不要离开烤箱。",
+        img: "assets/recipes/roasted-chicken-wings.jpg",
+        color: "blue"
+      },
+      {
+        title: "手冲咖啡",
+        category: "饮品 / 咖啡 / 手冲",
+        tags: ["5分钟", "参数可调", "新手-进阶"],
+        meta: ["15g粉", "240g水", "90-93°C"],
+        key: "关键：总时间控制在 2:30-3:00，酸苦用研磨度调整。",
+        img: "assets/recipes/pour-over-coffee.jpg",
+        color: "blue"
+      }
+    ];
+
+    function renderRecipes(targetId) {
+      const target = document.getElementById(targetId);
+      target.innerHTML = recipes.map((recipe) => `
+        <article class="recipe-card" data-page="${recipe.title === "瑞士卷" ? "detail" : "recipes"}" tabindex="0" role="button" aria-label="${recipe.title === "瑞士卷" ? "打开瑞士卷详情" : recipe.title + "详情尚未完成"}">
+          <div class="recipe-img" style="background-image:url('${recipe.img}')"></div>
+          <div class="recipe-body">
+            <div class="tag-row">
+              ${recipe.tags.map((tag, index) => `<span class="tag ${index === 0 ? recipe.color : ""}">${tag}</span>`).join("")}
+            </div>
+            <h3 class="recipe-title">${recipe.title}</h3>
+            <div class="recipe-meta">
+              <span>${recipe.category}</span>
+              ${recipe.meta.map((item) => `<span>${item}</span>`).join("")}
+            </div>
+            <p class="recipe-key">${recipe.key}</p>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function setPage(pageId) {
+      document.querySelectorAll(".page").forEach((page) => {
+        page.classList.toggle("active", page.id === pageId);
+      });
+      document.querySelectorAll("[data-page]").forEach((button) => {
+        if (button.closest(".nav")) {
+          button.classList.toggle("active", button.dataset.page === pageId);
+        }
+      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    const sharedFollowSteps = [
+      ["加入蛋黄", "加入蛋黄，用 Z 字拌匀；完成后把蛋黄糊放进冰箱。"],
+      ["铺油纸并预热烤箱", "烤盘铺好油纸，烤箱上下管预热至 170°C。"],
+      ["混合蛋黄糊和蛋白霜", "取 1/3 蛋白霜拌入蛋黄糊，再把混合物全部倒回蛋白盆翻拌。"],
+      ["入盘并排气", "倒入面糊，捏住油纸对角晃到四角，再拍烤盘底部排气。"],
+      ["烘烤、脱模并散热", "上下管 170°C，下层约 25 分钟；出炉后平移到晾网，掀开四边油纸。"],
+      ["晾到手温，先卷出形状", "蛋糕还有一点温度时卷起，可借保鲜膜卷筒带出圆润卷芯。"],
+      ["抹奶油、终卷并冷藏", "完全冷却后抹奶油，沿原卷向卷紧，包好冷藏至少 45 分钟。"]
+    ];
+
+    function buildFollowSteps(first, second, fifth) {
+      return [first, second, sharedFollowSteps[0], sharedFollowSteps[1], fifth, ...sharedFollowSteps.slice(2)];
+    }
+
+    const swissRollVariants = {
+      classic: {
+        title: "原味奶油瑞士卷",
+        description: "柔软、细密、能顺利卷起的基础蛋糕卷。先守住蛋白霜和翻拌，再用烤色、回弹与温度判断出炉时机；卷制成败取决于出炉后的前 10 分钟。",
+        note: "4 蛋基础配方 · 适合第一次制作",
+        ingredients: "4 蛋 · 油 50g · 牛奶/水 50g · 低粉 60g · 糖 60g",
+        param: "4 蛋、油 50g、牛奶或水 50g、低粉 60g、细砂糖 60g。",
+        step1: "分离 4 个鸡蛋：蛋黄放入小碗，蛋白放入蛋白盆。分好后立刻把蛋白盆放进冰箱。",
+        step2Title: "大盆上秤，制作粉水糊",
+        step2: "大盆直接上秤，倒入油 50g 和牛奶或水 50g，搅匀后筛入低粉 60g。",
+        step2Check: "粉水糊均匀，看不到干粉和浮油。",
+        step2Note: "每加入一种材料就归零，避免另外换盆称量。",
+        step5: "细砂糖 60g 分三次加入：开始打发时加第一次，高速打到鱼眼泡后加第二次；出现纹路后改低速，再加剩余糖。",
+        version: "原味基础",
+        summary: "4 蛋 / 28cm 方盘 / 170°C；油、牛奶各 50g，低粉、细砂糖各 60g。"
+      },
+      sugarFree: {
+        title: "0 糖无油瑞士卷",
+        description: "去掉玉米油，并用零卡糖替代细砂糖的轻负担版本。材料比例与基础版不同，切换后请按本版本用量完整制作，不与基础版混用。",
+        note: "5 蛋 · 无油 · 零卡糖 30g",
+        ingredients: "5 蛋 · 牛奶 65g · 低粉 50g · 零卡糖 30g · 无油",
+        param: "5 蛋、牛奶 65g、低粉 50g、零卡糖 30g，不加油。",
+        step1: "分离 5 个鸡蛋：蛋黄放入小碗，蛋白放入蛋白盆。分好后立刻把蛋白盆放进冰箱。",
+        step2Title: "大盆上秤，制作粉水糊",
+        step2: "大盆直接上秤，倒入牛奶 65g，筛入低粉 50g 后搅匀；这个版本不加油。",
+        step2Check: "粉水糊均匀，看不到干粉。",
+        step2Note: "确认没有误加油；每加入一种材料就归零。",
+        step5: "零卡糖 30g 分三次加入：开始打发时加第一次，高速打到鱼眼泡后加第二次；出现纹路后改低速，再加剩余零卡糖。",
+        version: "0 糖无油",
+        summary: "5 蛋 / 28cm 方盘 / 170°C；牛奶 65g、低粉 50g、零卡糖 30g，不加油。"
+      },
+      cocoa: {
+        title: "可可奶油瑞士卷",
+        description: "在基础配方上加入可可粉的版本。可可先在牛奶或水中充分融开，必要时短暂加热，再放凉进入粉水糊步骤。",
+        note: "基础配方 + 可可粉 10g · 液体增加 5g",
+        ingredients: "4 蛋 · 油 50g · 牛奶/水 55g · 低粉 60g · 糖 60g · 可可粉 10g",
+        param: "4 蛋、油 50g、牛奶或水 55g、低粉 60g、细砂糖 60g、可可粉 10g。",
+        step1: "分离 4 个鸡蛋：蛋黄放入小碗，蛋白放入蛋白盆。分好后立刻把蛋白盆放进冰箱。",
+        step2Title: "融化可可，制作粉水糊",
+        step2: "可可粉 10g 提前过筛到牛奶或水 55g 中融开；不好融开时短暂加热。放凉后加入油 50g 搅匀，再筛入低粉 60g。",
+        step2Check: "可可液没有结块，粉水糊颜色均匀。",
+        step2Note: "加热过的可可液要先放凉，再继续混合，避免影响蛋黄糊状态。",
+        step5: "细砂糖 60g 分三次加入：开始打发时加第一次，高速打到鱼眼泡后加第二次；出现纹路后改低速，再加剩余糖。",
+        version: "可可",
+        summary: "4 蛋 / 28cm 方盘 / 170°C；基础版增加可可粉 10g，牛奶或水增加至 55g。"
+      }
+    };
+
+    Object.values(swissRollVariants).forEach((variant) => {
+      variant.followSteps = buildFollowSteps(
+        ["分离蛋白和蛋黄", variant.step1],
+        [variant.step2Title, variant.step2],
+        ["打发蛋白", variant.step5]
+      );
+    });
+
+    const recipeEditStorageKey = "brewBakeLab.recipeEdits.v1";
+    const followProgressStorageKey = "brewBakeLab.followProgress.v1";
+    const defaultRecipeContent = {};
+    let savedRecipeEdits = loadRecipeEdits();
+    let savedFollowProgress = loadFollowProgress();
+    let activeVariant = "classic";
+    let followSteps = swissRollVariants[activeVariant].followSteps;
+    let followIndex = 0;
+    let followCompleted = new Set(savedFollowProgress[activeVariant] || []);
+    let editingSection = null;
+    let editDraft = null;
+
+    function loadRecipeEdits() {
+      try {
+        return JSON.parse(localStorage.getItem(recipeEditStorageKey)) || {};
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function persistRecipeEdits() {
+      try {
+        localStorage.setItem(recipeEditStorageKey, JSON.stringify(savedRecipeEdits));
+        return true;
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function loadFollowProgress() {
+      try {
+        return JSON.parse(localStorage.getItem(followProgressStorageKey)) || {};
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function persistFollowProgress() {
+      try {
+        savedFollowProgress[activeVariant] = [...followCompleted];
+        localStorage.setItem(followProgressStorageKey, JSON.stringify(savedFollowProgress));
+        return true;
+      } catch (error) {
+        return false;
+      }
+    }
+
+    const paramTypeOptions = ["成品", "蛋糕糊", "夹馅", "装饰", "烤箱 & 烤盘", "烘烤", "冷却", "卷制", "定型", "保存"];
+    const stepPhaseOptions = ["蛋糊制作", "烤制准备", "烤制", "卷制", "夹馅", "定型"];
+
+    function prepareEditableText() {
+      document.querySelectorAll("#swissRollSteps .step-card").forEach((card, index) => {
+        card.dataset.stepId ||= `step-${index + 1}`;
+        card.querySelector(":scope > .step-delete")?.remove();
+      });
+      const stepPlaceholders = ["填写操作内容（必填）", "填写判断标准（可选）", "填写注意事项（可选）"];
+      document.querySelectorAll("#swissRollSteps .step-note").forEach((note) => {
+        const strong = note.querySelector(":scope > strong");
+        let text = note.querySelector(":scope > span");
+        if (!text) {
+          text = document.createElement("span");
+          [...note.childNodes].filter((node) => node !== strong).forEach((node) => text.appendChild(node));
+          note.appendChild(text);
+        }
+        text.classList.add("editable-text");
+        const noteIndex = [...note.parentElement.children].indexOf(note);
+        text.dataset.placeholder = stepPlaceholders[noteIndex] || "填写内容";
+      });
+    }
+
+    function captureParams() {
+      return [...document.querySelectorAll("#params .param-table tr")].map((row, index) => {
+        const select = row.querySelector("select[data-param-type]");
+        const customInput = row.querySelector("input[data-param-custom]");
+        const label = select ? (select.value === "custom" ? customInput?.value.trim() : select.value) : row.querySelector("th").innerText.trim();
+        const type = select ? select.value : (row.dataset.paramType || (paramTypeOptions.includes(label) ? label : "custom"));
+        const valueCell = row.querySelector("td[data-param-value], td:not(.param-row-controls)");
+        return {
+          id: row.dataset.paramId || `param-${index + 1}`,
+          type,
+          label,
+          value: valueCell.innerText.trim(),
+          slot: valueCell.id || ""
+        };
+      });
+    }
+
+    function captureSteps() {
+      return [...document.querySelectorAll("#swissRollSteps .step-card:not([hidden])")].map((card) => {
+        const notes = card.querySelectorAll(".editable-text");
+        const customPhase = card.querySelector("[data-step-phase-custom]")?.value.trim();
+        const image = card.querySelector(".step-media img");
+        return {
+          id: card.dataset.stepId,
+          phase: customPhase || card.dataset.phase,
+          title: card.querySelector("h3").innerText.trim(),
+          action: notes[0].innerText.trim(),
+          check: notes[1].innerText.trim(),
+          note: notes[2].innerText.trim(),
+          image: image?.getAttribute("src") || "",
+          imageAlt: image?.getAttribute("alt") || "",
+          imageCaption: card.querySelector(".step-media figcaption")?.innerText.trim() || ""
+        };
+      });
+    }
+
+    function captureTrouble() {
+      return [...document.querySelectorAll("#trouble .param-table tr")].map((row, index) => ({
+        id: row.dataset.troubleId || `trouble-${index + 1}`,
+        problem: row.querySelector("th").textContent.trim(),
+        solution: row.querySelector("td:not(.param-row-controls)").textContent.trim()
+      }));
+    }
+
+    function captureVersions() {
+      const rows = [...document.querySelectorAll("#versions .param-table tr")];
+      const summaryRow = rows[0];
+      return {
+        name: summaryRow.querySelector("th").textContent.trim(),
+        summary: summaryRow.querySelector("td:not(.param-row-controls)").textContent.trim(),
+        records: rows.slice(1).map((row, index) => ({
+          id: row.dataset.versionRecordId || `version-record-${index + 1}`,
+          label: row.querySelector("th").textContent.trim(),
+          detail: row.querySelector("td:not(.param-row-controls)").textContent.trim()
+        }))
+      };
+    }
+
+    function captureStates() {
+      return [...document.querySelectorAll("#states .state-tile")].map((tile, index) => ({
+        id: tile.dataset.stateId || `state-${index + 1}`,
+        title: tile.querySelector("strong").textContent.trim(),
+        description: tile.querySelector(".state-description").textContent.trim(),
+        image: tile.dataset.stateImage || "",
+        alt: tile.dataset.stateAlt || ""
+      }));
+    }
+
+    function captureOverview() {
+      const photo = document.getElementById("overviewPhoto");
+      return {
+        title: document.getElementById("variantTitle").textContent.trim(),
+        description: document.getElementById("variantDescription").textContent.trim(),
+        tags: [...document.querySelectorAll("#overviewTags .tag")].map((tag) => tag.textContent.trim()),
+        image: photo.dataset.overviewImage || "",
+        imageAlt: photo.dataset.overviewImageAlt || ""
+      };
+    }
+
+    function captureRecipeContent() {
+      return { overview: captureOverview(), params: captureParams(), steps: captureSteps(), states: captureStates(), trouble: captureTrouble(), versions: captureVersions() };
+    }
+
+    function renderOverview(data) {
+      if (!data) return;
+      document.getElementById("variantTitle").textContent = data.title || "";
+      document.getElementById("variantDescription").textContent = data.description || "";
+      const tags = document.getElementById("overviewTags");
+      const tagClasses = ["tag red", "tag", "tag blue"];
+      tags.replaceChildren();
+      (data.tags || []).slice(0, 3).forEach((text, index) => {
+        const tag = document.createElement("span");
+        tag.className = tagClasses[index] || "tag";
+        tag.textContent = text;
+        tags.appendChild(tag);
+      });
+      const photo = document.getElementById("overviewPhoto");
+      photo.dataset.overviewImage = data.image || "";
+      photo.dataset.overviewImageAlt = data.imageAlt || "";
+      photo.setAttribute("aria-label", data.imageAlt || `${data.title || "当前配方"}成品图`);
+      photo.replaceChildren();
+      if (data.image) {
+        const image = document.createElement("img");
+        image.src = data.image;
+        image.alt = data.imageAlt || `${data.title || "当前配方"}成品图`;
+        photo.appendChild(image);
+      } else {
+        const placeholder = document.createElement("span");
+        placeholder.innerHTML = "<strong>成品实拍待替换</strong><br>需要展示卷芯、奶油厚度与表皮状态";
+        photo.appendChild(placeholder);
+      }
+      if (editingSection === "overview") {
+        const tools = document.createElement("div");
+        tools.className = "overview-image-tools";
+        const choose = document.createElement("label");
+        choose.className = "state-image-action";
+        choose.textContent = data.image ? "更换成品图" : "选择成品图";
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/jpeg,image/png,image/webp";
+        input.dataset.overviewImageInput = "";
+        input.setAttribute("aria-label", "选择成品图片");
+        choose.appendChild(input);
+        tools.appendChild(choose);
+        if (data.image) {
+          const remove = document.createElement("button");
+          remove.className = "state-image-action remove";
+          remove.type = "button";
+          remove.dataset.removeOverviewImage = "";
+          remove.textContent = "移除";
+          tools.appendChild(remove);
+        }
+        photo.appendChild(tools);
+      }
+    }
+
+    function renderParams(params) {
+      const tbody = document.querySelector("#params .param-table tbody");
+      tbody.replaceChildren();
+      params.forEach((rawItem, index) => {
+        const item = {
+          id: rawItem.id || `param-${index + 1}`,
+          type: rawItem.type || (paramTypeOptions.includes(rawItem.label) ? rawItem.label : "custom"),
+          label: rawItem.label || "自定义参数",
+          value: rawItem.value || "",
+          slot: rawItem.slot || ((rawItem.type === "蛋糕糊" || rawItem.label === "蛋糕糊") ? "variantParam" : "")
+        };
+        const row = document.createElement("tr");
+        row.dataset.paramId = item.id;
+        row.dataset.paramType = item.type;
+        const heading = document.createElement("th");
+        const value = document.createElement("td");
+        value.dataset.paramValue = "";
+        value.textContent = item.value;
+        if (item.slot) value.id = item.slot;
+
+        if (editingSection === "params") {
+          const editor = document.createElement("div");
+          editor.className = "param-type-editor";
+          const select = document.createElement("select");
+          select.dataset.paramType = "";
+          [...paramTypeOptions, "custom"].forEach((optionValue) => {
+            const option = document.createElement("option");
+            option.value = optionValue;
+            option.textContent = optionValue === "custom" ? "自定义…" : optionValue;
+            option.selected = item.type === optionValue;
+            select.appendChild(option);
+          });
+          editor.appendChild(select);
+          if (item.type === "custom") {
+            const input = document.createElement("input");
+            input.dataset.paramCustom = "";
+            input.value = item.label;
+            input.setAttribute("aria-label", "自定义参数名称");
+            editor.appendChild(input);
+          }
+          heading.appendChild(editor);
+          value.contentEditable = "true";
+          value.setAttribute("spellcheck", "false");
+
+          const controls = document.createElement("td");
+          controls.className = "param-row-controls";
+          controls.innerHTML = `
+            <button class="param-control param-drag" type="button" title="拖动排序" aria-label="拖动排序">↕</button>
+            <button class="param-control" type="button" data-move-param="up" title="上移" aria-label="上移">↑</button>
+            <button class="param-control" type="button" data-move-param="down" title="下移" aria-label="下移">↓</button>
+            <button class="param-control delete" type="button" data-delete-param title="删除" aria-label="删除参数">×</button>`;
+          row.append(heading, value, controls);
+        } else {
+          heading.textContent = item.label;
+          row.append(heading, value);
+        }
+        tbody.appendChild(row);
+      });
+      if (editingSection === "params") refreshParamTypeOptions();
+    }
+
+    function renderTrouble(items) {
+      const tbody = document.querySelector("#trouble .param-table tbody");
+      tbody.replaceChildren();
+      items.forEach((rawItem, index) => {
+        const item = {
+          id: rawItem.id || `trouble-${index + 1}`,
+          problem: rawItem.problem || "",
+          solution: rawItem.solution || ""
+        };
+        const row = document.createElement("tr");
+        row.dataset.troubleId = item.id;
+        const problem = document.createElement("th");
+        const solution = document.createElement("td");
+        problem.textContent = item.problem;
+        solution.textContent = item.solution;
+        if (editingSection === "trouble") {
+          problem.contentEditable = "true";
+          solution.contentEditable = "true";
+          problem.setAttribute("spellcheck", "false");
+          solution.setAttribute("spellcheck", "false");
+          const controls = document.createElement("td");
+          controls.className = "param-row-controls";
+          controls.innerHTML = `
+            <button class="param-control" type="button" data-move-trouble="up" title="上移" aria-label="上移问题">↑</button>
+            <button class="param-control" type="button" data-move-trouble="down" title="下移" aria-label="下移问题">↓</button>
+            <button class="param-control delete" type="button" data-delete-trouble title="删除" aria-label="删除问题">×</button>`;
+          row.append(problem, solution, controls);
+        } else {
+          row.append(problem, solution);
+        }
+        tbody.appendChild(row);
+      });
+    }
+
+    function renderVersions(data) {
+      const tbody = document.querySelector("#versions .param-table tbody");
+      tbody.replaceChildren();
+      const summaryRow = document.createElement("tr");
+      const name = document.createElement("th");
+      const summary = document.createElement("td");
+      name.id = "variantVersionName";
+      summary.id = "variantVersionSummary";
+      name.textContent = data.name || swissRollVariants[activeVariant].version;
+      summary.textContent = data.summary || "";
+      if (editingSection === "versions") {
+        summary.contentEditable = "true";
+        summary.setAttribute("spellcheck", "false");
+      }
+      summaryRow.append(name, summary);
+      tbody.appendChild(summaryRow);
+
+      (data.records || []).forEach((rawItem, index) => {
+        const item = {
+          id: rawItem.id || `version-record-${index + 1}`,
+          label: rawItem.label || "",
+          detail: rawItem.detail || ""
+        };
+        const row = document.createElement("tr");
+        row.dataset.versionRecordId = item.id;
+        const label = document.createElement("th");
+        const detail = document.createElement("td");
+        label.textContent = item.label;
+        detail.textContent = item.detail;
+        if (editingSection === "versions") {
+          label.contentEditable = "true";
+          detail.contentEditable = "true";
+          label.setAttribute("spellcheck", "false");
+          detail.setAttribute("spellcheck", "false");
+          const controls = document.createElement("td");
+          controls.className = "param-row-controls";
+          controls.innerHTML = `
+            <button class="param-control" type="button" data-move-version-record="up" title="上移" aria-label="上移实验记录">↑</button>
+            <button class="param-control" type="button" data-move-version-record="down" title="下移" aria-label="下移实验记录">↓</button>
+            <button class="param-control delete" type="button" data-delete-version-record title="删除" aria-label="删除实验记录">×</button>`;
+          row.append(label, detail, controls);
+        } else {
+          row.append(label, detail);
+        }
+        tbody.appendChild(row);
+      });
+    }
+
+    function renderStates(items) {
+      const grid = document.querySelector("#states .state-grid");
+      grid.replaceChildren();
+      items.forEach((rawItem, index) => {
+        const item = {
+          id: rawItem.id || `state-${index + 1}`,
+          title: rawItem.title || "",
+          description: rawItem.description || "",
+          image: rawItem.image || "",
+          alt: rawItem.alt || "状态示意图"
+        };
+        const tile = document.createElement("article");
+        tile.className = "state-tile";
+        tile.dataset.stateId = item.id;
+        tile.dataset.stateImage = item.image;
+        tile.dataset.stateAlt = item.alt;
+        const media = document.createElement("div");
+        media.className = "state-media";
+        if (item.image) {
+          const image = document.createElement("img");
+          image.src = item.image;
+          image.alt = item.alt;
+          image.loading = "lazy";
+          media.appendChild(image);
+        } else {
+          const placeholder = document.createElement("div");
+          placeholder.className = "state-image-placeholder";
+          placeholder.textContent = "图片待添加";
+          media.appendChild(placeholder);
+        }
+        if (editingSection === "states") {
+          const imageTools = document.createElement("div");
+          imageTools.className = "state-image-tools";
+          const choose = document.createElement("label");
+          choose.className = "state-image-action";
+          choose.textContent = item.image ? "更换图片" : "选择图片";
+          const input = document.createElement("input");
+          input.type = "file";
+          input.accept = "image/jpeg,image/png,image/webp";
+          input.dataset.stateImageInput = "";
+          input.setAttribute("aria-label", `${item.title || "当前状态"}选择图片`);
+          choose.appendChild(input);
+          imageTools.appendChild(choose);
+          if (item.image) {
+            const remove = document.createElement("button");
+            remove.className = "state-image-action remove";
+            remove.type = "button";
+            remove.dataset.removeStateImage = "";
+            remove.textContent = "移除";
+            imageTools.appendChild(remove);
+          }
+          media.appendChild(imageTools);
+        }
+        const content = document.createElement("div");
+        content.className = "state-content";
+        const stateIndex = document.createElement("span");
+        stateIndex.className = "state-index";
+        stateIndex.textContent = `STATE ${String(index + 1).padStart(2, "0")}`;
+        const title = document.createElement("strong");
+        title.textContent = item.title;
+        const description = document.createElement("span");
+        description.className = "state-description";
+        description.textContent = item.description;
+        content.append(stateIndex, title, description);
+        if (editingSection === "states") {
+          title.contentEditable = "true";
+          description.contentEditable = "true";
+          title.setAttribute("spellcheck", "false");
+          description.setAttribute("spellcheck", "false");
+          const controls = document.createElement("div");
+          controls.className = "state-editor-tools";
+          controls.innerHTML = `
+            <button class="param-control" type="button" data-move-state="up" title="上移" aria-label="上移状态">↑</button>
+            <button class="param-control" type="button" data-move-state="down" title="下移" aria-label="下移状态">↓</button>
+            <button class="param-control delete" type="button" data-delete-state title="删除" aria-label="删除状态">×</button>`;
+          content.appendChild(controls);
+        }
+        tile.append(media, content);
+        grid.appendChild(tile);
+      });
+    }
+
+    function createStepCard(step) {
+      const card = document.createElement("article");
+      card.className = "step-card";
+      card.dataset.stepId = step.id;
+      card.innerHTML = `
+        <div class="step-no"></div>
+        <div>
+          <h3></h3>
+          <div class="step-grid">
+            <div class="step-note"><strong>操作</strong><span class="editable-text" data-placeholder="填写操作内容（必填）"></span></div>
+            <div class="step-note"><strong>判断</strong><span class="editable-text" data-placeholder="填写判断标准（可选）"></span></div>
+            <div class="step-note"><strong>注意</strong><span class="editable-text" data-placeholder="填写注意事项（可选）"></span></div>
+          </div>
+        </div>`;
+      return card;
+    }
+
+    function createStepImageInput(step, labelText) {
+      const choose = document.createElement("label");
+      choose.className = "state-image-action";
+      choose.textContent = labelText;
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/jpeg,image/png,image/webp";
+      input.dataset.stepImageInput = "";
+      input.setAttribute("aria-label", `${step.title || "当前步骤"}选择图片`);
+      choose.appendChild(input);
+      return choose;
+    }
+
+    function renderStepMedia(card, step) {
+      const content = card.children[1];
+      content.querySelector(".step-media")?.remove();
+      content.querySelector(".step-image-empty")?.remove();
+      card.classList.toggle("visual-step", Boolean(step.image));
+      if (step.image) {
+        const figure = document.createElement("figure");
+        figure.className = "step-media";
+        const image = document.createElement("img");
+        image.src = step.image;
+        image.alt = step.imageAlt || `步骤图：${step.title}`;
+        image.loading = "lazy";
+        const caption = document.createElement("figcaption");
+        caption.textContent = step.imageCaption || "填写图注";
+        if (editingSection === "steps") {
+          caption.contentEditable = "true";
+          caption.setAttribute("spellcheck", "false");
+          const tools = document.createElement("div");
+          tools.className = "step-image-tools";
+          tools.appendChild(createStepImageInput(step, "更换图片"));
+          const remove = document.createElement("button");
+          remove.className = "state-image-action remove";
+          remove.type = "button";
+          remove.dataset.removeStepImage = "";
+          remove.textContent = "移除";
+          tools.appendChild(remove);
+          figure.append(image, tools, caption);
+        } else {
+          figure.append(image, caption);
+        }
+        content.querySelector(".step-grid").before(figure);
+      } else if (editingSection === "steps") {
+        const empty = document.createElement("div");
+        empty.className = "step-image-empty";
+        empty.appendChild(createStepImageInput(step, "＋ 添加步骤图"));
+        content.querySelector(".step-grid").before(empty);
+      }
+    }
+
+    function createPhaseDivider(phase, index) {
+      const divider = document.createElement("div");
+      divider.className = "phase-divider";
+      const label = document.createElement("span");
+      label.textContent = `PHASE ${String(index).padStart(2, "0")}`;
+      divider.append(label, document.createTextNode(phase));
+      return divider;
+    }
+
+    function renderStepEditor(card, phase) {
+      const content = card.children[1];
+      content.querySelector(":scope > .step-edit-tools")?.remove();
+      if (editingSection !== "steps") return;
+      const isCustom = !stepPhaseOptions.includes(phase);
+      const tools = document.createElement("div");
+      tools.className = "step-edit-tools";
+      const phaseEditor = document.createElement("div");
+      phaseEditor.className = "step-phase-editor";
+      const select = document.createElement("select");
+      select.dataset.stepPhase = "";
+      select.setAttribute("aria-label", "步骤阶段");
+      [...stepPhaseOptions, "custom"].forEach((value) => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value === "custom" ? "自定义…" : value;
+        option.selected = value === (isCustom ? "custom" : phase);
+        select.appendChild(option);
+      });
+      phaseEditor.appendChild(select);
+      if (isCustom) {
+        const input = document.createElement("input");
+        input.dataset.stepPhaseCustom = "";
+        input.setAttribute("aria-label", "自定义阶段名称");
+        input.value = phase;
+        phaseEditor.appendChild(input);
+      }
+      const controls = document.createElement("div");
+      controls.className = "step-row-controls";
+      controls.innerHTML = `
+        <button class="step-control" type="button" data-move-step="up" title="上移" aria-label="上移步骤">↑</button>
+        <button class="step-control" type="button" data-move-step="down" title="下移" aria-label="下移步骤">↓</button>
+        <button class="step-control add" type="button" data-add-step-after title="在下方新增" aria-label="在当前步骤后新增步骤">＋</button>
+        <button class="step-control delete" type="button" data-delete-step title="删除" aria-label="删除步骤">×</button>`;
+      tools.append(phaseEditor, controls);
+      content.prepend(tools);
+    }
+
+    function renderSteps(steps) {
+      const list = document.getElementById("swissRollSteps");
+      const cards = [...list.querySelectorAll(".step-card")];
+      const usedCards = [];
+      list.querySelectorAll(".phase-divider").forEach((divider) => divider.remove());
+      cards.forEach((card) => { card.hidden = true; });
+      let previousPhase = "";
+      let phaseIndex = 0;
+      steps.forEach((rawStep, index) => {
+        const step = { ...rawStep, id: rawStep.id || `step-${Date.now()}-${index}`, phase: rawStep.phase || "蛋糊制作" };
+        let card = cards.find((item) => item.dataset.stepId === step.id);
+        if (!card) {
+          card = createStepCard(step);
+          cards.push(card);
+        }
+        card.hidden = false;
+        card.dataset.phase = step.phase;
+        const notes = card.querySelectorAll(".editable-text");
+        card.querySelector("h3").textContent = step.title;
+        notes[0].textContent = step.action;
+        notes[1].textContent = step.check;
+        notes[2].textContent = step.note;
+        notes.forEach((note, noteIndex) => {
+          note.closest(".step-note").hidden = editingSection !== "steps" && noteIndex > 0 && !note.textContent.trim();
+        });
+        renderStepMedia(card, step);
+        renderStepEditor(card, step.phase);
+        card.querySelectorAll("h3, .editable-text").forEach((field) => {
+          field.contentEditable = editingSection === "steps" ? "true" : "false";
+          if (editingSection === "steps") field.setAttribute("spellcheck", "false");
+          else field.removeAttribute("spellcheck");
+        });
+        if (step.phase !== previousPhase) {
+          phaseIndex += 1;
+          list.appendChild(createPhaseDivider(step.phase, phaseIndex));
+          previousPhase = step.phase;
+        }
+        list.appendChild(card);
+        usedCards.push(card);
+      });
+      cards.filter((card) => !usedCards.includes(card)).forEach((card) => list.appendChild(card));
+      refreshStepStructure();
+    }
+
+    function refreshParamTypeOptions() {
+      const selects = [...document.querySelectorAll("#params select[data-param-type]")];
+      const selectedTypes = selects.map((select) => select.value).filter((value) => value !== "custom");
+      selects.forEach((select) => {
+        [...select.options].forEach((option) => {
+          option.disabled = option.value !== select.value && option.value !== "custom" && selectedTypes.includes(option.value);
+        });
+      });
+    }
+
+    function refreshStepStructure() {
+      const visibleCards = [...document.querySelectorAll("#swissRollSteps .step-card:not([hidden])")];
+      visibleCards.forEach((card, index) => {
+        card.querySelector(".step-no").textContent = index + 1;
+      });
+    }
+
+    function addParamRow() {
+      if (editingSection !== "params") return;
+      const params = captureParams();
+      const used = new Set(params.map((item) => item.type));
+      const type = paramTypeOptions.find((item) => !used.has(item)) || "custom";
+      params.push({
+        id: `param-${Date.now()}`,
+        type,
+        label: type === "custom" ? "自定义参数" : type,
+        value: "填写参数内容",
+        slot: ""
+      });
+      renderParams(params);
+      document.querySelector("#params .param-table tr:last-child [contenteditable='true']")?.focus();
+    }
+
+    function deleteParamRow(row) {
+      const params = captureParams();
+      if (params.length <= 1) {
+        setEditStatus("params", "参数卡至少保留一行。", true);
+        return;
+      }
+      renderParams(params.filter((item) => item.id !== row.dataset.paramId));
+    }
+
+    function moveParamRow(row, direction) {
+      const params = captureParams();
+      const index = params.findIndex((item) => item.id === row.dataset.paramId);
+      const target = direction === "up" ? index - 1 : index + 1;
+      if (index < 0 || target < 0 || target >= params.length) return;
+      [params[index], params[target]] = [params[target], params[index]];
+      renderParams(params);
+    }
+
+    function updateParamType(select) {
+      const row = select.closest("tr");
+      row.dataset.paramType = select.value;
+      const editor = select.closest(".param-type-editor");
+      editor.querySelector("[data-param-custom]")?.remove();
+      if (select.value === "custom") {
+        const input = document.createElement("input");
+        input.dataset.paramCustom = "";
+        input.value = "自定义参数";
+        input.setAttribute("aria-label", "自定义参数名称");
+        editor.appendChild(input);
+        input.focus();
+        input.select();
+      }
+      refreshParamTypeOptions();
+    }
+
+    function addTroubleRow() {
+      if (editingSection !== "trouble") return;
+      const items = captureTrouble();
+      const id = `trouble-${Date.now()}`;
+      items.push({ id, problem: "新问题", solution: "填写可能原因和下一次调整方式。" });
+      renderTrouble(items);
+      document.querySelector(`#trouble tr[data-trouble-id="${id}"] th`)?.focus();
+    }
+
+    function deleteTroubleRow(row) {
+      if (editingSection !== "trouble") return;
+      const items = captureTrouble();
+      if (items.length <= 1) {
+        setEditStatus("trouble", "失败排查至少保留一条。", true);
+        return;
+      }
+      renderTrouble(items.filter((item) => item.id !== row.dataset.troubleId));
+    }
+
+    function moveTroubleRow(row, direction) {
+      if (editingSection !== "trouble") return;
+      const items = captureTrouble();
+      const index = items.findIndex((item) => item.id === row.dataset.troubleId);
+      const target = direction === "up" ? index - 1 : index + 1;
+      if (index < 0 || target < 0 || target >= items.length) return;
+      [items[index], items[target]] = [items[target], items[index]];
+      renderTrouble(items);
+    }
+
+    function addVersionRecord() {
+      if (editingSection !== "versions") return;
+      const data = captureVersions();
+      const id = `version-record-${Date.now()}`;
+      data.records.push({ id, label: "新一轮测试", detail: "填写本轮只调整的变量。" });
+      renderVersions(data);
+      document.querySelector(`#versions tr[data-version-record-id="${id}"] th`)?.focus();
+    }
+
+    function deleteVersionRecord(row) {
+      if (editingSection !== "versions") return;
+      const data = captureVersions();
+      if (data.records.length <= 1) {
+        setEditStatus("versions", "版本记录至少保留一条实验记录。", true);
+        return;
+      }
+      data.records = data.records.filter((item) => item.id !== row.dataset.versionRecordId);
+      renderVersions(data);
+    }
+
+    function moveVersionRecord(row, direction) {
+      if (editingSection !== "versions") return;
+      const data = captureVersions();
+      const index = data.records.findIndex((item) => item.id === row.dataset.versionRecordId);
+      const target = direction === "up" ? index - 1 : index + 1;
+      if (index < 0 || target < 0 || target >= data.records.length) return;
+      [data.records[index], data.records[target]] = [data.records[target], data.records[index]];
+      renderVersions(data);
+    }
+
+    function addStateTile() {
+      if (editingSection !== "states") return;
+      const items = captureStates();
+      const id = `state-${Date.now()}`;
+      items.push({ id, title: "新状态", description: "填写需要观察的状态和判断标准。", image: "", alt: "" });
+      renderStates(items);
+      document.querySelector(`#states .state-tile[data-state-id="${id}"] strong`)?.focus();
+    }
+
+    function deleteStateTile(tile) {
+      if (editingSection !== "states") return;
+      const items = captureStates();
+      if (items.length <= 1) {
+        setEditStatus("states", "关键状态至少保留一个。", true);
+        return;
+      }
+      renderStates(items.filter((item) => item.id !== tile.dataset.stateId));
+    }
+
+    function moveStateTile(tile, direction) {
+      if (editingSection !== "states") return;
+      const items = captureStates();
+      const index = items.findIndex((item) => item.id === tile.dataset.stateId);
+      const target = direction === "up" ? index - 1 : index + 1;
+      if (index < 0 || target < 0 || target >= items.length) return;
+      [items[index], items[target]] = [items[target], items[index]];
+      renderStates(items);
+    }
+
+    function resizeStateImage(file) {
+      return new Promise((resolve, reject) => {
+        if (!file.type.startsWith("image/")) {
+          reject(new Error("请选择图片文件。"));
+          return;
+        }
+        if (file.size > 12 * 1024 * 1024) {
+          reject(new Error("图片超过 12MB，请先缩小后再上传。"));
+          return;
+        }
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error("图片读取失败，请重新选择。"));
+        reader.onload = () => {
+          const image = new Image();
+          image.onerror = () => reject(new Error("图片无法识别，请换一张。"));
+          image.onload = () => {
+            const maxSide = 1200;
+            const scale = Math.min(1, maxSide / Math.max(image.naturalWidth, image.naturalHeight));
+            const canvas = document.createElement("canvas");
+            canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+            canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+            canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL("image/webp", 0.82));
+          };
+          image.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function replaceStepImage(input) {
+      if (editingSection !== "steps" || !input.files?.[0]) return;
+      const card = input.closest(".step-card");
+      try {
+        setEditStatus("steps", "正在处理图片…");
+        const image = await resizeStateImage(input.files[0]);
+        const steps = captureSteps();
+        const step = steps.find((item) => item.id === card.dataset.stepId);
+        if (!step) return;
+        step.image = image;
+        step.imageAlt = `步骤图：${step.title}`;
+        step.imageCaption ||= "填写这张图要判断的状态";
+        renderSteps(steps);
+        setEditStatus("steps", "步骤图已替换，保存后生效。");
+      } catch (error) {
+        setEditStatus("steps", error.message, true);
+        input.value = "";
+      }
+    }
+
+    async function replaceOverviewImage(input) {
+      if (editingSection !== "overview" || !input.files?.[0]) return;
+      try {
+        setEditStatus("overview", "正在处理图片…");
+        const image = await resizeStateImage(input.files[0]);
+        const overview = captureOverview();
+        overview.image = image;
+        overview.imageAlt = `${overview.title}成品图`;
+        renderOverview(overview);
+        setEditStatus("overview", "成品图已替换，保存后生效。");
+      } catch (error) {
+        setEditStatus("overview", error.message, true);
+        input.value = "";
+      }
+    }
+
+    function removeOverviewImage() {
+      if (editingSection !== "overview") return;
+      const overview = captureOverview();
+      overview.image = "";
+      overview.imageAlt = "";
+      renderOverview(overview);
+      setEditStatus("overview", "成品图已移除，保存后生效。");
+    }
+
+    function removeStepImage(card) {
+      if (editingSection !== "steps") return;
+      const steps = captureSteps();
+      const step = steps.find((item) => item.id === card.dataset.stepId);
+      if (!step) return;
+      step.image = "";
+      step.imageAlt = "";
+      step.imageCaption = "";
+      renderSteps(steps);
+      setEditStatus("steps", "步骤图已移除，保存后生效。");
+    }
+
+    async function replaceStateImage(input) {
+      if (editingSection !== "states" || !input.files?.[0]) return;
+      const tile = input.closest(".state-tile");
+      try {
+        setEditStatus("states", "正在处理图片…");
+        const image = await resizeStateImage(input.files[0]);
+        const items = captureStates();
+        const item = items.find((entry) => entry.id === tile.dataset.stateId);
+        if (!item) return;
+        item.image = image;
+        item.alt = `状态图：${item.title}`;
+        renderStates(items);
+        setEditStatus("states", "图片已替换，保存后生效。");
+      } catch (error) {
+        setEditStatus("states", error.message, true);
+        input.value = "";
+      }
+    }
+
+    function removeStateImage(tile) {
+      if (editingSection !== "states") return;
+      const items = captureStates();
+      const item = items.find((entry) => entry.id === tile.dataset.stateId);
+      if (!item) return;
+      item.image = "";
+      item.alt = "";
+      renderStates(items);
+      setEditStatus("states", "图片已移除，保存后生效。");
+    }
+
+    function addStepCard(afterCard) {
+      if (editingSection !== "steps") return;
+      const steps = captureSteps();
+      const afterIndex = steps.findIndex((step) => step.id === afterCard?.dataset.stepId);
+      const insertIndex = afterIndex >= 0 ? afterIndex + 1 : steps.length;
+      const phase = steps[afterIndex]?.phase || steps.at(-1)?.phase || "蛋糊制作";
+      const id = `step-${Date.now()}`;
+      steps.splice(insertIndex, 0, {
+        id,
+        phase,
+        title: "新步骤",
+        action: "填写这一步要做什么。",
+        check: "",
+        note: ""
+      });
+      renderSteps(steps);
+      const card = document.querySelector(`#swissRollSteps .step-card[data-step-id="${id}"]`);
+      card?.querySelector("h3")?.focus();
+      card?.scrollIntoView({ behavior: "smooth", block: "center" });
+      setEditStatus("steps", "已添加新步骤，保存后生效。");
+    }
+
+    function moveStepCard(card, direction) {
+      if (editingSection !== "steps") return;
+      const steps = captureSteps();
+      const index = steps.findIndex((step) => step.id === card.dataset.stepId);
+      const target = direction === "up" ? index - 1 : index + 1;
+      if (index < 0 || target < 0 || target >= steps.length) return;
+      [steps[index], steps[target]] = [steps[target], steps[index]];
+      renderSteps(steps);
+      document.querySelector(`#swissRollSteps .step-card[data-step-id="${card.dataset.stepId}"]`)?.scrollIntoView({ block: "nearest" });
+    }
+
+    function updateStepPhase(select) {
+      if (editingSection !== "steps") return;
+      const card = select.closest(".step-card");
+      const editor = select.closest(".step-phase-editor");
+      editor.querySelector("[data-step-phase-custom]")?.remove();
+      if (select.value === "custom") {
+        const input = document.createElement("input");
+        input.dataset.stepPhaseCustom = "";
+        input.setAttribute("aria-label", "自定义阶段名称");
+        input.value = "自定义阶段";
+        editor.appendChild(input);
+        card.dataset.phase = input.value;
+        input.focus();
+        input.select();
+      } else {
+        card.dataset.phase = select.value;
+      }
+      rebuildStepPhases();
+    }
+
+    function rebuildStepPhases() {
+      if (editingSection !== "steps") return;
+      renderSteps(captureSteps());
+    }
+
+    function deleteStepCard(card) {
+      if (editingSection !== "steps") return;
+      const visibleCards = document.querySelectorAll("#swissRollSteps .step-card:not([hidden])");
+      if (visibleCards.length <= 1) {
+        setEditStatus("steps", "步骤流程至少保留一个步骤。", true);
+        return;
+      }
+      card.hidden = true;
+      renderSteps(captureSteps());
+      setEditStatus("steps", `已移除“${card.querySelector("h3").innerText.trim()}”，保存后生效。`);
+    }
+
+    function renderRecipeContent(content) {
+      renderOverview(content.overview);
+      renderParams(content.params);
+      renderSteps(content.steps);
+      renderStates(content.states || []);
+      renderTrouble(content.trouble || []);
+      renderVersions(content.versions || { name: swissRollVariants[activeVariant].version, summary: swissRollVariants[activeVariant].summary, records: [] });
+    }
+
+    function renderVariantDynamicFields(variantId) {
+      const variant = swissRollVariants[variantId];
+      const textById = {
+        variantTitle: variant.title,
+        variantDescription: variant.description,
+        variantParam: variant.param,
+        variantStep1Action: variant.step1,
+        variantStep2Title: variant.step2Title,
+        variantStep2Action: variant.step2,
+        variantStep2Check: variant.step2Check,
+        variantStep2Note: variant.step2Note,
+        variantStep5Action: variant.step5,
+        variantVersionTag: `当前 · ${variant.version}`,
+        variantVersionName: variant.version,
+        variantVersionSummary: variant.summary
+      };
+      Object.entries(textById).forEach(([id, value]) => {
+        const target = document.getElementById(id);
+        if (target) target.textContent = value;
+      });
+    }
+
+    function buildDefaultRecipeContent() {
+      prepareEditableText();
+      const base = captureRecipeContent();
+      Object.keys(swissRollVariants).forEach((variantId) => {
+        renderRecipeContent(base);
+        renderVariantDynamicFields(variantId);
+        defaultRecipeContent[variantId] = captureRecipeContent();
+      });
+      renderRecipeContent(defaultRecipeContent.classic);
+    }
+
+    function applySavedRecipeContent(variantId) {
+      const saved = savedRecipeEdits[variantId];
+      if (!saved) return;
+      if (saved.overview) renderOverview(saved.overview);
+      if (Array.isArray(saved.params)) renderParams(saved.params);
+      if (Array.isArray(saved.steps)) renderSteps(saved.steps);
+      if (Array.isArray(saved.states)) renderStates(saved.states);
+      if (Array.isArray(saved.trouble)) renderTrouble(saved.trouble);
+      if (saved.versions && Array.isArray(saved.versions.records)) renderVersions(saved.versions);
+    }
+
+    function syncFollowStepsFromPage() {
+      followSteps = captureSteps();
+    }
+
+    function applyVariant(variantId) {
+      const variant = swissRollVariants[variantId];
+      if (!variant || editingSection) return;
+      activeVariant = variantId;
+      followIndex = 0;
+      followCompleted = new Set(savedFollowProgress[variantId] || []);
+      renderRecipeContent(defaultRecipeContent[variantId]);
+      renderVariantDynamicFields(variantId);
+      applySavedRecipeContent(variantId);
+      syncFollowStepsFromPage();
+      document.querySelectorAll("[data-variant]").forEach((button) => {
+        const isActive = button.dataset.variant === variantId;
+        button.classList.toggle("active", isActive);
+        button.setAttribute("aria-pressed", String(isActive));
+      });
+      document.getElementById("variantBack").hidden = variantId === "classic";
+      updateFollowStep();
+    }
+
+    function getSectionData(section) {
+      if (section === "overview") return captureOverview();
+      if (section === "params") return captureParams();
+      if (section === "steps") return captureSteps();
+      if (section === "states") return captureStates();
+      if (section === "trouble") return captureTrouble();
+      return captureVersions();
+    }
+
+    function renderSectionData(section, data) {
+      if (section === "overview") renderOverview(data);
+      else if (section === "params") renderParams(data);
+      else if (section === "steps") renderSteps(data);
+      else if (section === "states") renderStates(data);
+      else if (section === "trouble") renderTrouble(data);
+      else renderVersions(data);
+    }
+
+    function setEditStatus(section, message, isError = false) {
+      const status = document.querySelector(`[data-edit-status="${section}"]`);
+      status.textContent = message;
+      status.style.color = isError ? "var(--berry)" : "#6f8b70";
+    }
+
+    function setEditingUI(section, isEditing) {
+      const root = document.querySelector(`[data-editable-section="${section}"]`);
+      root.classList.toggle("is-editing", isEditing);
+      root.querySelector(`[data-start-edit="${section}"]`).hidden = isEditing;
+      root.querySelector(`[data-edit-actions="${section}"]`).hidden = !isEditing;
+      const fields = section === "params"
+        ? root.querySelectorAll(".param-table td[data-param-value]")
+        : section === "overview"
+          ? root.querySelectorAll("#variantTitle, #variantDescription, #overviewTags .tag")
+        : section === "steps"
+          ? root.querySelectorAll(isEditing ? ".step-card:not([hidden]) h3, .step-card:not([hidden]) .editable-text" : ".step-card h3, .step-card .editable-text")
+          : section === "states"
+            ? root.querySelectorAll(".state-tile strong, .state-description")
+          : section === "trouble"
+            ? root.querySelectorAll(".param-table th, .param-table td:not(.param-row-controls)")
+            : root.querySelectorAll("#variantVersionSummary, tr[data-version-record-id] th, tr[data-version-record-id] td:not(.param-row-controls)");
+      fields.forEach((field) => {
+        field.contentEditable = isEditing ? "true" : "false";
+        if (isEditing) field.setAttribute("spellcheck", "false");
+        else field.removeAttribute("spellcheck");
+      });
+      document.querySelectorAll("[data-variant], #variantBack").forEach((button) => {
+        button.disabled = isEditing;
+      });
+      if (section === "overview") root.querySelector(".advanced-recipes").hidden = isEditing;
+      if (section === "trouble") document.getElementById("troubleDetails").open = isEditing;
+    }
+
+    function startSectionEdit(section) {
+      if (editingSection) return;
+      editingSection = section;
+      editDraft = getSectionData(section);
+      renderSectionData(section, editDraft);
+      setEditStatus(section, "编辑中；修改只会保存到当前配方。 ");
+      setEditingUI(section, true);
+      const firstField = document.querySelector(`[data-editable-section="${section}"] [contenteditable="true"]`);
+      firstField?.focus();
+    }
+
+    function finishSectionEdit(section, finalData) {
+      setEditingUI(section, false);
+      editingSection = null;
+      editDraft = null;
+      if (finalData) renderSectionData(section, finalData);
+    }
+
+    function saveSectionEdit(section) {
+      if (editingSection !== section) return;
+      const data = getSectionData(section);
+      const hasEmpty = section === "params"
+        ? data.some((item) => !item.label || !item.value)
+        : section === "overview"
+          ? !data.title || !data.description || data.tags.length !== 3 || data.tags.some((tag) => !tag)
+        : section === "steps"
+          ? data.some((step) => !step.phase || !step.title || !step.action)
+          : section === "states"
+            ? data.some((item) => !item.title || !item.description)
+          : section === "trouble"
+            ? data.some((item) => !item.problem || !item.solution)
+            : !data.summary || data.records.some((item) => !item.label || !item.detail);
+      if (hasEmpty) {
+        setEditStatus(section, section === "steps" ? "步骤标题和操作为必填内容。" : "还有空白内容，补充后再保存。", true);
+        return;
+      }
+      savedRecipeEdits[activeVariant] ||= {};
+      savedRecipeEdits[activeVariant][section] = data;
+      if (!persistRecipeEdits()) {
+        setEditStatus(section, "浏览器无法写入本地存储，本次修改尚未保存。", true);
+        return;
+      }
+      finishSectionEdit(section, data);
+      if (section === "steps") {
+        syncFollowStepsFromPage();
+        updateFollowStep();
+      }
+      setEditStatus(section, `已保存到${swissRollVariants[activeVariant].version}配方。`);
+    }
+
+    function cancelSectionEdit(section) {
+      if (editingSection !== section) return;
+      const draft = editDraft;
+      finishSectionEdit(section, draft);
+      setEditStatus(section, "已取消修改。");
+    }
+
+    function updateFollowStep(shouldScroll = false) {
+      const step = followSteps[followIndex];
+      if (!step) return;
+      const title = Array.isArray(step) ? step[0] : step.title;
+      const action = Array.isArray(step) ? step[1] : step.action;
+      const followStep = document.getElementById("followStep");
+      const heading = document.createElement("strong");
+      heading.textContent = `步骤 ${followIndex + 1} / ${followSteps.length} · ${title}`;
+      followStep.replaceChildren(heading, document.createElement("br"), document.createTextNode(action));
+      document.getElementById("followProgress").style.transform = `scaleX(${(followIndex + 1) / followSteps.length})`;
+      document.getElementById("followPrev").disabled = followIndex === 0;
+      document.getElementById("followNext").disabled = followIndex === followSteps.length - 1;
+      const visibleCards = document.querySelectorAll("#swissRollSteps .step-card:not([hidden])");
+      document.querySelectorAll("#swissRollSteps .step-card").forEach((card) => card.classList.remove("current-step"));
+      visibleCards[followIndex]?.classList.add("current-step");
+      if (shouldScroll) visibleCards[followIndex]?.scrollIntoView({ behavior: "smooth", block: "center" });
+      updateFollowDialog();
+    }
+
+    function updateFollowDialog() {
+      const dialog = document.getElementById("followDialog");
+      if (!dialog.open) return;
+      const rawStep = followSteps[followIndex];
+      if (!rawStep) return;
+      const step = Array.isArray(rawStep)
+        ? { title: rawStep[0], action: rawStep[1], check: "", note: "" }
+        : rawStep;
+      document.getElementById("followDialogVariant").textContent = swissRollVariants[activeVariant].version;
+      const validStepIds = new Set(followSteps.map((item, index) => Array.isArray(item) ? `legacy-${index}` : item.id));
+      followCompleted = new Set([...followCompleted].filter((id) => validStepIds.has(id)));
+      const stepId = Array.isArray(rawStep) ? `legacy-${followIndex}` : rawStep.id;
+      const completedCount = followCompleted.size;
+      const isComplete = followCompleted.has(stepId);
+      document.getElementById("followDialogCount").textContent = `步骤 ${followIndex + 1} / ${followSteps.length} · 已完成 ${completedCount}`;
+      const dialogTitle = document.getElementById("followDialogTitle");
+      dialogTitle.textContent = step.title;
+      dialogTitle.classList.toggle("is-complete", isComplete);
+      document.getElementById("followDialogProgress").style.transform = `scaleX(${completedCount / followSteps.length})`;
+      const content = document.getElementById("followDialogContent");
+      content.replaceChildren();
+      [
+        ["action", "play", "操作", step.action],
+        ["check", "circle-check", "判断", step.check],
+        ["note", "triangle-alert", "注意", step.note]
+      ].forEach(([className, icon, label, value]) => {
+        if (!value) return;
+        const item = document.createElement("div");
+        item.className = `follow-focus-item ${className}`;
+        item.innerHTML = `<i data-lucide="${icon}"></i><strong>${label}</strong><span></span>`;
+        item.querySelector("span").textContent = value;
+        content.appendChild(item);
+      });
+      document.getElementById("followDialogPrev").disabled = followIndex === 0;
+      const next = document.getElementById("followDialogNext");
+      const allComplete = completedCount === followSteps.length;
+      next.disabled = allComplete;
+      const nextIcon = document.createElement("i");
+      nextIcon.dataset.lucide = allComplete ? "check-check" : "check";
+      next.replaceChildren(
+        document.createTextNode(allComplete ? "本次已完成" : (followIndex === followSteps.length - 1 ? "完成本次跟做" : "完成并继续")),
+        nextIcon
+      );
+      lucide.createIcons({ nodes: [content, next] });
+    }
+
+    function openFollowDialog() {
+      if (editingSection) return;
+      syncFollowStepsFromPage();
+      const firstIncomplete = followSteps.findIndex((step, index) => {
+        const id = Array.isArray(step) ? `legacy-${index}` : step.id;
+        return !followCompleted.has(id);
+      });
+      followIndex = firstIncomplete === -1 ? Math.max(0, followSteps.length - 1) : firstIncomplete;
+      document.getElementById("followDialog").showModal();
+      updateFollowDialog();
+    }
+
+    function completeCurrentFollowStep() {
+      const step = followSteps[followIndex];
+      if (!step) return;
+      const stepId = Array.isArray(step) ? `legacy-${followIndex}` : step.id;
+      followCompleted.add(stepId);
+      persistFollowProgress();
+      if (followIndex < followSteps.length - 1) followIndex += 1;
+      updateFollowStep();
+    }
+
+    function resetFollowProgress() {
+      followCompleted.clear();
+      followIndex = 0;
+      persistFollowProgress();
+      updateFollowStep();
+    }
+
+    function moveFollow(direction, shouldScroll = false) {
+      const nextIndex = followIndex + direction;
+      if (nextIndex < 0 || nextIndex >= followSteps.length) return;
+      followIndex = nextIndex;
+      updateFollowStep(shouldScroll);
+    }
+
+    function setRecipeDataStatus(message, isError = false) {
+      const status = document.getElementById("recipeDataStatus");
+      status.textContent = message;
+      status.style.color = isError ? "var(--berry)" : "#6f8b70";
+    }
+
+    function exportCurrentRecipe() {
+      if (editingSection) {
+        setRecipeDataStatus("请先保存或取消正在编辑的内容。", true);
+        return;
+      }
+      const content = captureRecipeContent();
+      const payload = {
+        format: "brew-bake-lab-recipe",
+        formatVersion: 1,
+        exportedAt: new Date().toISOString(),
+        sourceVariant: activeVariant,
+        content
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const link = document.createElement("a");
+      const safeTitle = (content.overview.title || "瑞士卷配方").replace(/[\\/:*?"<>|]/g, "-");
+      link.href = URL.createObjectURL(blob);
+      link.download = `${safeTitle}-备份.json`;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+      setRecipeDataStatus("当前配方已导出。");
+    }
+
+    function isValidRecipeBackup(payload) {
+      const content = payload?.content;
+      return payload?.format === "brew-bake-lab-recipe"
+        && payload?.formatVersion === 1
+        && content?.overview
+        && Array.isArray(content.params) && content.params.length > 0
+        && Array.isArray(content.steps) && content.steps.length > 0
+        && Array.isArray(content.states) && content.states.length > 0
+        && Array.isArray(content.trouble) && content.trouble.length > 0
+        && content.versions && Array.isArray(content.versions.records);
+    }
+
+    async function importCurrentRecipe(input) {
+      const file = input.files?.[0];
+      if (!file) return;
+      if (editingSection) {
+        setRecipeDataStatus("请先保存或取消正在编辑的内容。", true);
+        input.value = "";
+        return;
+      }
+      try {
+        const payload = JSON.parse(await file.text());
+        if (!isValidRecipeBackup(payload)) throw new Error("这不是有效的 Brew & Bake Lab 配方备份。");
+        const variantName = swissRollVariants[activeVariant].version;
+        if (!window.confirm(`导入会覆盖当前“${variantName}”配方，是否继续？`)) {
+          setRecipeDataStatus("已取消导入。");
+          return;
+        }
+        savedRecipeEdits[activeVariant] = payload.content;
+        if (!persistRecipeEdits()) throw new Error("浏览器无法保存导入内容。");
+        renderRecipeContent(payload.content);
+        syncFollowStepsFromPage();
+        followIndex = 0;
+        updateFollowStep();
+        setRecipeDataStatus(`已导入到“${variantName}”。`);
+      } catch (error) {
+        setRecipeDataStatus(error.message || "导入失败，请检查文件。", true);
+      } finally {
+        input.value = "";
+      }
+    }
+
+    document.addEventListener("click", (event) => {
+      if (editingSection === "trouble" && event.target.closest("#troubleDetails > summary")) {
+        event.preventDefault();
+      }
+      const trigger = event.target.closest("[data-page]");
+      if (trigger) setPage(trigger.dataset.page);
+
+      const chip = event.target.closest(".chip");
+      if (chip) chip.classList.toggle("active");
+
+      const variantTab = event.target.closest("[data-variant]");
+      if (variantTab) applyVariant(variantTab.dataset.variant);
+
+      if (event.target.closest("#variantBack")) applyVariant("classic");
+
+      const startEdit = event.target.closest("[data-start-edit]");
+      if (startEdit) startSectionEdit(startEdit.dataset.startEdit);
+      const saveEdit = event.target.closest("[data-save-edit]");
+      if (saveEdit) saveSectionEdit(saveEdit.dataset.saveEdit);
+      const cancelEdit = event.target.closest("[data-cancel-edit]");
+      if (cancelEdit) cancelSectionEdit(cancelEdit.dataset.cancelEdit);
+      if (event.target.closest("[data-add-param]")) addParamRow();
+      if (event.target.closest("[data-add-trouble]")) addTroubleRow();
+      if (event.target.closest("[data-add-version-record]")) addVersionRecord();
+      if (event.target.closest("[data-add-state]")) addStateTile();
+      const addStep = event.target.closest("[data-add-step-after]");
+      if (addStep) addStepCard(addStep.closest(".step-card"));
+      const deleteParam = event.target.closest("[data-delete-param]");
+      if (deleteParam) deleteParamRow(deleteParam.closest("tr"));
+      const moveParam = event.target.closest("[data-move-param]");
+      if (moveParam) moveParamRow(moveParam.closest("tr"), moveParam.dataset.moveParam);
+      const deleteStep = event.target.closest("[data-delete-step]");
+      if (deleteStep) deleteStepCard(deleteStep.closest(".step-card"));
+      const moveStep = event.target.closest("[data-move-step]");
+      if (moveStep) moveStepCard(moveStep.closest(".step-card"), moveStep.dataset.moveStep);
+      const removeStepImageButton = event.target.closest("[data-remove-step-image]");
+      if (removeStepImageButton) removeStepImage(removeStepImageButton.closest(".step-card"));
+      if (event.target.closest("[data-remove-overview-image]")) removeOverviewImage();
+      const deleteTrouble = event.target.closest("[data-delete-trouble]");
+      if (deleteTrouble) deleteTroubleRow(deleteTrouble.closest("tr"));
+      const moveTrouble = event.target.closest("[data-move-trouble]");
+      if (moveTrouble) moveTroubleRow(moveTrouble.closest("tr"), moveTrouble.dataset.moveTrouble);
+      const deleteVersionRecordButton = event.target.closest("[data-delete-version-record]");
+      if (deleteVersionRecordButton) deleteVersionRecord(deleteVersionRecordButton.closest("tr"));
+      const moveVersionRecordButton = event.target.closest("[data-move-version-record]");
+      if (moveVersionRecordButton) moveVersionRecord(moveVersionRecordButton.closest("tr"), moveVersionRecordButton.dataset.moveVersionRecord);
+      const deleteStateButton = event.target.closest("[data-delete-state]");
+      if (deleteStateButton) deleteStateTile(deleteStateButton.closest(".state-tile"));
+      const moveStateButton = event.target.closest("[data-move-state]");
+      if (moveStateButton) moveStateTile(moveStateButton.closest(".state-tile"), moveStateButton.dataset.moveState);
+      const removeStateImageButton = event.target.closest("[data-remove-state-image]");
+      if (removeStateImageButton) removeStateImage(removeStateImageButton.closest(".state-tile"));
+
+      if (event.target.closest("#followStart")) openFollowDialog();
+      if (event.target.closest("#followClose")) document.getElementById("followDialog").close();
+      if (event.target.closest("#followReset")) resetFollowProgress();
+      if (event.target.closest("#followPrev")) moveFollow(-1, true);
+      if (event.target.closest("#followNext")) moveFollow(1, true);
+      if (event.target.closest("#followDialogPrev")) moveFollow(-1);
+      if (event.target.closest("#followDialogNext")) completeCurrentFollowStep();
+      if (event.target.closest("#exportRecipe")) exportCurrentRecipe();
+    });
+
+    document.addEventListener("change", (event) => {
+      const select = event.target.closest("select[data-param-type]");
+      if (select) updateParamType(select);
+      const phaseSelect = event.target.closest("select[data-step-phase]");
+      if (phaseSelect) updateStepPhase(phaseSelect);
+      const stateImageInput = event.target.closest("[data-state-image-input]");
+      if (stateImageInput) replaceStateImage(stateImageInput);
+      const stepImageInput = event.target.closest("[data-step-image-input]");
+      if (stepImageInput) replaceStepImage(stepImageInput);
+      const overviewImageInput = event.target.closest("[data-overview-image-input]");
+      if (overviewImageInput) replaceOverviewImage(overviewImageInput);
+      if (event.target.matches("#importRecipe")) importCurrentRecipe(event.target);
+    });
+
+    let draggedParamRow = null;
+    document.addEventListener("pointerdown", (event) => {
+      const handle = event.target.closest(".param-drag");
+      if (!handle || editingSection !== "params") return;
+      event.preventDefault();
+      draggedParamRow = handle.closest("tr");
+      draggedParamRow.classList.add("dragging");
+      handle.setPointerCapture?.(event.pointerId);
+    });
+
+    document.addEventListener("pointermove", (event) => {
+      if (!draggedParamRow) return;
+      event.preventDefault();
+      const target = document.elementFromPoint(event.clientX, event.clientY)?.closest("#params tr[data-param-id]");
+      if (!target || target === draggedParamRow) return;
+      const bounds = target.getBoundingClientRect();
+      const insertAfter = event.clientY > bounds.top + bounds.height / 2;
+      target.parentElement.insertBefore(draggedParamRow, insertAfter ? target.nextSibling : target);
+    });
+
+    function finishParamDrag() {
+      if (!draggedParamRow) return;
+      draggedParamRow.classList.remove("dragging");
+      draggedParamRow = null;
+      refreshParamTypeOptions();
+    }
+
+    document.addEventListener("pointerup", finishParamDrag);
+    document.addEventListener("pointercancel", finishParamDrag);
+
+    document.addEventListener("keydown", (event) => {
+      const card = event.target.closest(".recipe-card[data-page]");
+      if (card && (event.key === "Enter" || event.key === " ")) {
+        event.preventDefault();
+        setPage(card.dataset.page);
+      }
+    });
+
+    renderRecipes("homeRecipes");
+    renderRecipes("listRecipes");
+    buildDefaultRecipeContent();
+    applyVariant("classic");
+    lucide.createIcons();
+  </script>
+</body>
+</html>
