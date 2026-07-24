@@ -130,7 +130,7 @@ Current prototype file:
 
 Current prototype version shown in UI:
 
-- Prototype v0.3
+- Beta v0.4
 
 Implemented in prototype:
 
@@ -141,6 +141,9 @@ Implemented in prototype:
 - Coffee method filters: Pour-over, Espresso, Milk Coffee, Cold Brew
 - Recipe cards exposing difficulty, time, tools, and key risk
 - Banana Blueberry Muffin detail page sample
+- Editable Swiss Roll detail page with classic, sugar-free/oil-free, and cocoa variants
+- Shared recipe schema with category extensions
+- Editable Pour-over Coffee detail page with drink-specific parameters
 - Before-start checklist
 - Parameter card
 - Step cards
@@ -148,14 +151,12 @@ Implemented in prototype:
 - Troubleshooting
 - Follow-along mode placeholder
 
-## Next Design Step
+## Current Schema Direction
 
-Build the Swiss Roll detail page to test a more complex workflow:
+Use one shared recipe skeleton with category-specific extensions:
 
-- Egg white peak state
-- Cake roll batter mixing
-- Oven temperature tuning
-- Surface cracking
-- Pre-roll and chilling
-- Cream filling
-- Troubleshooting for cracking, wet center, shrinkage, and rough texture
+- Shared: overview, ingredients and tools, parameters, steps, key states, troubleshooting, versions
+- Baking: oven and pan, baking, shaping and setting
+- Drinks: ratio, water temperature, grind size, pouring rhythm
+
+Swiss Roll and Pour-over Coffee are the first two validation recipes.

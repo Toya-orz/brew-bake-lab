@@ -1568,6 +1568,42 @@
       font-size: 11px !important;
     }
 
+    .generic-detail .detail-photo {
+      background-size: cover;
+      background-position: center;
+    }
+
+    .generic-editable[contenteditable="true"] {
+      outline: 2px solid rgba(79, 100, 119, 0.24);
+      outline-offset: 3px;
+      border-radius: 3px;
+      background: #fffdf8;
+    }
+
+    .generic-step-list {
+      padding: 4px 18px 18px;
+      background: rgba(255, 253, 248, 0.72);
+      border-radius: 10px;
+    }
+
+    .generic-step-list .phase-divider { margin-top: 22px; }
+
+    .generic-detail .state-tile { min-height: 160px; }
+    .generic-detail .state-content { justify-content: flex-end; }
+
+    .generic-empty {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .generic-save-status {
+      min-height: 18px;
+      margin: 10px 0 0;
+      color: var(--ok);
+      font-size: 12px;
+    }
+
     .follow-step {
       padding: 12px;
       background: #fbf7ef;
@@ -2234,6 +2270,89 @@
           </aside>
         </div>
       </section>
+
+      <section class="page generic-detail" id="genericDetail">
+        <div class="breadcrumb">
+          <button class="chip" data-page="recipes"><i data-lucide="arrow-left"></i> 返回作品库</button>
+          <span id="genericBreadcrumb"></span>
+        </div>
+
+        <div class="detail-hero">
+          <div class="detail-title">
+            <div class="overview-head">
+              <div class="tag-row" id="genericTags"></div>
+              <div class="section-tools">
+                <button class="edit-button" id="genericEdit" type="button">编辑</button>
+                <div class="edit-actions" id="genericEditActions" hidden>
+                  <button class="edit-action save" id="genericSave" type="button">保存</button>
+                  <button class="edit-action" id="genericCancel" type="button">取消</button>
+                </div>
+              </div>
+            </div>
+            <h1 class="generic-editable" id="genericTitle"></h1>
+            <p class="generic-editable" id="genericDescription"></p>
+            <p class="generic-save-status" id="genericSaveStatus" aria-live="polite"></p>
+          </div>
+          <div class="detail-photo" id="genericPhoto" role="img"></div>
+        </div>
+
+        <div class="anchor-tabs">
+          <a href="#genericParams">参数</a>
+          <a href="#genericSteps">步骤</a>
+          <a href="#genericStates">状态图</a>
+          <a href="#genericTrouble">排查</a>
+        </div>
+
+        <div class="detail-shell">
+          <div>
+            <section class="detail-section" id="genericParams">
+              <div class="content-band">
+                <div class="band-head">
+                  <div>
+                    <h2>参数卡</h2>
+                    <p id="genericParamHint"></p>
+                  </div>
+                  <span class="tag blue" id="genericTypeTag"></span>
+                </div>
+                <table class="param-table" id="genericParamTable"></table>
+              </div>
+            </section>
+
+            <section class="detail-section" id="genericSteps">
+              <div class="section-head">
+                <div>
+                  <h2>步骤流程</h2>
+                  <p class="section-desc">按动手顺序排列；操作必填，判断和注意没有内容时不展示。</p>
+                </div>
+              </div>
+              <div class="generic-step-list" id="genericStepList"></div>
+            </section>
+
+            <section class="detail-section" id="genericStates">
+              <div class="section-head">
+                <div><h2>关键状态</h2><p class="section-desc">只保留真正需要停下来观察的节点。</p></div>
+              </div>
+              <div class="state-grid" id="genericStateGrid"></div>
+            </section>
+
+            <section class="detail-section trouble-section" id="genericTrouble">
+              <div class="section-head"><div><h2>失败排查</h2></div></div>
+              <details class="postmortem">
+                <summary>结果不对？做完后再看</summary>
+                <table class="param-table" id="genericTroubleTable"></table>
+              </details>
+            </section>
+          </div>
+
+          <aside class="aside-panel">
+            <div class="follow-card">
+              <h2>这份菜谱的结构</h2>
+              <p>共用基础骨架，再按分类显示专属参数。</p>
+              <ul class="toc-list" id="genericStructureList"></ul>
+            </div>
+          </aside>
+        </div>
+      </section>
     </main>
   </div>
 
@@ -2260,6 +2379,107 @@
   </dialog>
 
   <script>
+    const recipeSchemas = {
+      swissRoll: {
+        id: "swiss-roll",
+        type: "baking",
+        typeLabel: "烘焙配方",
+        detailPage: "detail",
+        sharedSections: ["基础信息", "材料与器具", "参数", "步骤", "关键状态", "失败排查", "版本"],
+        extensions: ["烤箱与烤盘", "烘烤", "定型"],
+        variants: ["原味基础", "0 糖无油", "可可"]
+      },
+      pourOver: {
+        id: "pour-over-coffee",
+        type: "drink",
+        typeLabel: "饮品配方",
+        detailPage: "genericDetail",
+        category: ["饮品", "咖啡", "手冲"],
+        title: "基础手冲咖啡",
+        description: "先固定粉量、水量和注水节奏，再只用研磨度校正流速。第一次不追求复杂手法，重点是让每一段注水都有清楚的目的和停止点。",
+        tags: ["新手友好", "约 5 分钟", "参数可调"],
+        image: "assets/recipes/pour-over-coffee.jpg",
+        paramHint: "饮品专属参数：比例、水温、研磨度与注水节奏。",
+        params: [
+          { type: "成品", value: "约 220ml，1 杯。" },
+          { type: "咖啡", value: "咖啡豆 15g，中细研磨。" },
+          { type: "用水", value: "过滤水 240g，水温 92°C。" },
+          { type: "比例", value: "粉水比 1:16。" },
+          { type: "器具", value: "滤杯、滤纸、分享壶、电子秤、细口壶。" },
+          { type: "萃取", value: "闷蒸 30 秒；总时间 2:30–3:00。" }
+        ],
+        phases: [
+          {
+            name: "冲煮准备",
+            steps: [
+              {
+                title: "烧水、称豆并折滤纸",
+                action: "烧水至 92°C；称取咖啡豆 15g。折好滤纸并放入滤杯。",
+                check: "滤纸完整贴入滤杯，没有翘起或破损。",
+                note: "先不要磨豆，等器具和热水准备好再磨，减少香气散失。"
+              },
+              {
+                title: "润洗滤纸并预热器具",
+                action: "用热水充分润湿滤纸，同时预热滤杯和分享壶；倒掉分享壶里的润洗水。",
+                check: "滤纸贴合滤杯，纸味被冲走，分享壶已经温热。"
+              },
+              {
+                title: "研磨、入粉并归零",
+                action: "把 15g 咖啡豆研磨成中细颗粒，倒入滤纸，轻拍滤杯使粉床平整；放到秤上归零。",
+                check: "粉床大致水平，颗粒接近细砂糖粗细。",
+                note: "不要用力摇晃或压实粉床。"
+              }
+            ]
+          },
+          {
+            name: "分段注水",
+            steps: [
+              {
+                title: "闷蒸至 30 秒",
+                action: "从中心开始缓慢绕圈注水至 30g，确认所有咖啡粉都被润湿；等待至计时 30 秒。",
+                check: "粉床均匀鼓起并释放气泡，没有明显干粉。",
+                note: "新鲜豆排气较多；只需浸透，不要在闷蒸阶段注入过多水。"
+              },
+              {
+                title: "第一段注水至 150g",
+                action: "从中心向外小圈稳定注水，再回到中心；水量到 150g 时停止。",
+                check: "水柱细而连续，液面稳定上升，没有冲到滤纸边缘。"
+              },
+              {
+                title: "第二段注水至 240g",
+                action: "液面略降后继续绕圈注水，总水量到 240g 时停止，等待咖啡液自然滴完。",
+                check: "总萃取时间落在 2:30–3:00，粉床基本平整。",
+                note: "不要为追求平整而大幅摇晃滤杯。"
+              }
+            ]
+          },
+          {
+            name: "品尝与校正",
+            steps: [
+              {
+                title: "摇匀、降温后品尝",
+                action: "轻晃分享壶使咖啡液均匀，倒入杯中；稍微降温后再判断酸甜苦。",
+                check: "入口清晰、甜感可辨，没有尖锐酸味或持续干苦。",
+                note: "先调整研磨度：偏酸且薄则磨细一点，偏苦且慢则磨粗一点。下一杯只改一个变量。"
+              }
+            ]
+          }
+        ],
+        states: [
+          { name: "闷蒸充分", description: "粉床均匀膨胀、持续冒出小气泡，没有大片干粉。" },
+          { name: "稳定注水", description: "水柱细且连续，绕圈不碰滤纸，液面不会忽高忽低。" },
+          { name: "合理粉床", description: "滴滤结束后粉床大致平整；以风味和总时间为主，不强求完美形状。" }
+        ],
+        trouble: [
+          { problem: "尖酸、味道薄", cause: "萃取不足；研磨偏粗、流速过快或水温偏低。" },
+          { problem: "苦涩、口腔发干", cause: "萃取过度；研磨偏细、流速过慢或水温偏高。" },
+          { problem: "忽酸忽苦、不均匀", cause: "粉床没有润透，或注水水柱太大、反复冲刷边缘。" }
+        ],
+        sharedSections: ["基础信息", "材料与器具", "参数", "步骤", "关键状态", "失败排查", "版本"],
+        extensions: ["粉水比", "水温", "研磨度", "注水节奏"]
+      }
+    };
+
     const recipes = [
       {
         title: "香蕉蓝莓麦芬",
@@ -2271,13 +2491,15 @@
         color: "green"
       },
       {
+        id: "swiss-roll",
         title: "瑞士卷",
         category: "烘焙 / 蛋糕卷",
         tags: ["中等", "90分钟", "打蛋白"],
         meta: ["28x28烤盘", "电动打蛋器", "需冷藏"],
         key: "关键：蛋白湿性偏中性，出炉盖油纸保湿。",
         img: "assets/recipes/swiss-roll.jpg",
-        color: "red"
+        color: "red",
+        detailPage: recipeSchemas.swissRoll.detailPage
       },
       {
         title: "裸蛋糕",
@@ -2298,20 +2520,22 @@
         color: "blue"
       },
       {
+        id: "pour-over-coffee",
         title: "手冲咖啡",
         category: "饮品 / 咖啡 / 手冲",
         tags: ["5分钟", "参数可调", "新手-进阶"],
         meta: ["15g粉", "240g水", "90-93°C"],
         key: "关键：总时间控制在 2:30-3:00，酸苦用研磨度调整。",
         img: "assets/recipes/pour-over-coffee.jpg",
-        color: "blue"
+        color: "blue",
+        detailPage: recipeSchemas.pourOver.detailPage
       }
     ];
 
     function renderRecipes(targetId) {
       const target = document.getElementById(targetId);
       target.innerHTML = recipes.map((recipe) => `
-        <article class="recipe-card" data-page="${recipe.title === "瑞士卷" ? "detail" : "recipes"}" tabindex="0" role="button" aria-label="${recipe.title === "瑞士卷" ? "打开瑞士卷详情" : recipe.title + "详情尚未完成"}">
+        <article class="recipe-card" data-page="${recipe.detailPage || "recipes"}" data-recipe-id="${recipe.id || ""}" tabindex="0" role="button" aria-label="${recipe.detailPage ? `打开${recipe.title}详情` : recipe.title + "详情尚未完成"}">
           <div class="recipe-img" style="background-image:url('${recipe.img}')"></div>
           <div class="recipe-body">
             <div class="tag-row">
@@ -2338,6 +2562,145 @@
         }
       });
       window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    const genericRecipeStorageKey = "brewBakeLab.genericRecipes.v1";
+    let activeGenericRecipeId = null;
+    let genericDraft = null;
+
+    function cloneData(data) {
+      return JSON.parse(JSON.stringify(data));
+    }
+
+    function loadGenericRecipes() {
+      try {
+        return JSON.parse(localStorage.getItem(genericRecipeStorageKey)) || {};
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function getGenericRecipe(recipeId) {
+      const base = Object.values(recipeSchemas).find((recipe) => recipe.id === recipeId);
+      if (!base) return null;
+      return { ...cloneData(base), ...(loadGenericRecipes()[recipeId] || {}) };
+    }
+
+    function renderGenericRecipe(recipeId) {
+      const recipe = getGenericRecipe(recipeId);
+      if (!recipe) return;
+      activeGenericRecipeId = recipeId;
+      document.getElementById("genericBreadcrumb").textContent = recipe.category.join(" / ");
+      document.getElementById("genericTitle").textContent = recipe.title;
+      document.getElementById("genericDescription").textContent = recipe.description;
+      document.getElementById("genericTags").innerHTML = recipe.tags.map((tag, index) =>
+        `<span class="tag ${index === 0 ? "blue" : ""}">${tag}</span>`
+      ).join("");
+      const photo = document.getElementById("genericPhoto");
+      photo.style.backgroundImage = `linear-gradient(180deg, rgba(45,41,36,.04), rgba(45,41,36,.16)), url("${recipe.image}")`;
+      photo.setAttribute("aria-label", `${recipe.title}成品图`);
+      document.getElementById("genericParamHint").textContent = recipe.paramHint;
+      document.getElementById("genericTypeTag").textContent = recipe.typeLabel;
+      document.getElementById("genericParamTable").innerHTML = recipe.params.map((item) =>
+        `<tr><th class="generic-editable">${item.type}</th><td class="generic-editable">${item.value}</td></tr>`
+      ).join("");
+
+      let stepNumber = 0;
+      document.getElementById("genericStepList").innerHTML = recipe.phases.map((phase, phaseIndex) => `
+        <div class="phase-divider"><span>PHASE ${String(phaseIndex + 1).padStart(2, "0")}</span><b class="generic-editable">${phase.name}</b></div>
+        ${phase.steps.map((step) => {
+          stepNumber += 1;
+          return `<article class="step-card" data-generic-step>
+            <div class="step-no">${stepNumber}</div>
+            <div>
+              <h3 class="generic-editable">${step.title}</h3>
+              <div class="step-grid">
+                <div class="step-note"><strong>操作</strong><span class="generic-editable" data-required-action>${step.action}</span></div>
+                ${step.check ? `<div class="step-note"><strong>判断</strong><span class="generic-editable">${step.check}</span></div>` : ""}
+                ${step.note ? `<div class="step-note"><strong>注意</strong><span class="generic-editable">${step.note}</span></div>` : ""}
+              </div>
+            </div>
+          </article>`;
+        }).join("")}
+      `).join("");
+
+      document.getElementById("genericStateGrid").innerHTML = recipe.states.map((state, index) => `
+        <article class="state-tile">
+          <div class="state-content">
+            <span class="state-index">STATE ${String(index + 1).padStart(2, "0")}</span>
+            <strong class="generic-editable">${state.name}</strong>
+            <span class="state-description generic-editable">${state.description}</span>
+          </div>
+        </article>
+      `).join("");
+      document.getElementById("genericTroubleTable").innerHTML = recipe.trouble.map((item) =>
+        `<tr><th class="generic-editable">${item.problem}</th><td class="generic-editable">${item.cause}</td></tr>`
+      ).join("");
+      document.getElementById("genericStructureList").innerHTML = [
+        ...recipe.sharedSections.map((item) => `<li><i data-lucide="check"></i>${item}</li>`),
+        ...recipe.extensions.map((item) => `<li><i data-lucide="plus"></i>${item}</li>`)
+      ].join("");
+      setGenericEditing(false);
+      lucide.createIcons();
+    }
+
+    function setGenericEditing(isEditing) {
+      document.querySelectorAll("#genericDetail .generic-editable").forEach((node) => {
+        node.contentEditable = isEditing ? "true" : "false";
+      });
+      document.getElementById("genericEdit").hidden = isEditing;
+      document.getElementById("genericEditActions").hidden = !isEditing;
+      if (!isEditing) genericDraft = null;
+    }
+
+    function captureGenericRecipe() {
+      const recipe = getGenericRecipe(activeGenericRecipeId);
+      recipe.title = document.getElementById("genericTitle").textContent.trim();
+      recipe.description = document.getElementById("genericDescription").textContent.trim();
+      recipe.params = [...document.querySelectorAll("#genericParamTable tr")].map((row) => ({
+        type: row.querySelector("th").textContent.trim(),
+        value: row.querySelector("td").textContent.trim()
+      }));
+      let phaseIndex = -1;
+      recipe.phases = [];
+      document.querySelectorAll("#genericStepList > *").forEach((node) => {
+        if (node.classList.contains("phase-divider")) {
+          phaseIndex += 1;
+          recipe.phases.push({ name: node.querySelector("b").textContent.trim(), steps: [] });
+          return;
+        }
+        const notes = [...node.querySelectorAll(".step-note span")];
+        recipe.phases[phaseIndex].steps.push({
+          title: node.querySelector("h3").textContent.trim(),
+          action: notes[0]?.textContent.trim() || "",
+          check: notes.find((item) => item.parentElement.querySelector("strong")?.textContent === "判断")?.textContent.trim() || "",
+          note: notes.find((item) => item.parentElement.querySelector("strong")?.textContent === "注意")?.textContent.trim() || ""
+        });
+      });
+      recipe.states = [...document.querySelectorAll("#genericStateGrid .state-tile")].map((tile) => ({
+        name: tile.querySelector("strong").textContent.trim(),
+        description: tile.querySelector(".state-description").textContent.trim()
+      }));
+      recipe.trouble = [...document.querySelectorAll("#genericTroubleTable tr")].map((row) => ({
+        problem: row.querySelector("th").textContent.trim(),
+        cause: row.querySelector("td").textContent.trim()
+      }));
+      return recipe;
+    }
+
+    function saveGenericRecipe() {
+      const missingAction = [...document.querySelectorAll("#genericStepList [data-required-action]")]
+        .find((node) => !node.textContent.trim());
+      if (missingAction) {
+        missingAction.focus();
+        document.getElementById("genericSaveStatus").textContent = "每个步骤都必须填写“操作”。";
+        return;
+      }
+      const saved = loadGenericRecipes();
+      saved[activeGenericRecipeId] = captureGenericRecipe();
+      localStorage.setItem(genericRecipeStorageKey, JSON.stringify(saved));
+      setGenericEditing(false);
+      document.getElementById("genericSaveStatus").textContent = "已保存到当前设备。";
     }
 
     const sharedFollowSteps = [
@@ -3812,7 +4175,23 @@
       const card = event.target.closest(".recipe-card[data-page]");
       if (card && (event.key === "Enter" || event.key === " ")) {
         event.preventDefault();
+        if (card.dataset.page === "genericDetail") renderGenericRecipe(card.dataset.recipeId);
         setPage(card.dataset.page);
+      }
+    });
+
+    document.addEventListener("click", (event) => {
+      const card = event.target.closest(".recipe-card[data-page]");
+      if (card?.dataset.page === "genericDetail") renderGenericRecipe(card.dataset.recipeId);
+      if (event.target.closest("#genericEdit")) {
+        genericDraft = getGenericRecipe(activeGenericRecipeId);
+        setGenericEditing(true);
+        document.getElementById("genericSaveStatus").textContent = "";
+      }
+      if (event.target.closest("#genericSave")) saveGenericRecipe();
+      if (event.target.closest("#genericCancel")) {
+        renderGenericRecipe(activeGenericRecipeId);
+        document.getElementById("genericSaveStatus").textContent = "已取消，未保存更改。";
       }
     });
 
