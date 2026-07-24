@@ -13,3 +13,4 @@ TREE_CAFE_OPENING_PLAN.md
 *.inspect.ndjson
 playwright-report/
 test-results/
+.vercel
