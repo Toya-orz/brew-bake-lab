@@ -1590,6 +1590,11 @@
 
     .generic-detail .state-tile { min-height: 160px; }
     .generic-detail .state-content { justify-content: flex-end; }
+    .generic-detail:not(.is-editing) .generic-optional:has(.generic-editable:empty) { display: none; }
+    .generic-row-controls { display: none; gap: 4px; }
+    .generic-detail.is-editing .generic-row-controls { display: inline-flex; }
+    .generic-detail.is-editing .generic-add-control { display: inline-flex; }
+    .generic-add-control { display: none; margin-top: 12px; }
 
     .generic-empty {
       margin: 0;
@@ -1602,6 +1607,86 @@
       margin: 10px 0 0;
       color: var(--ok);
       font-size: 12px;
+    }
+
+    .list-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .recipe-create-dialog {
+      width: min(560px, calc(100vw - 28px));
+      max-height: min(760px, calc(100dvh - 28px));
+      padding: 0;
+      border: 0;
+      border-radius: 12px;
+      color: var(--ink);
+      background: var(--panel);
+      box-shadow: 0 24px 80px rgba(45, 32, 22, 0.24);
+    }
+
+    .recipe-create-dialog::backdrop { background: rgba(45, 32, 22, 0.42); }
+
+    .recipe-create-form { padding: 24px; }
+
+    .recipe-create-head,
+    .recipe-create-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .recipe-create-head h2 { margin: 0; }
+    .recipe-create-head p { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+
+    .recipe-create-fields {
+      display: grid;
+      gap: 16px;
+      margin-block: 22px;
+    }
+
+    .recipe-create-field {
+      display: grid;
+      gap: 7px;
+      color: var(--coffee-dark);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .recipe-create-field input,
+    .recipe-create-field select,
+    .recipe-create-field textarea {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      color: var(--ink);
+      background: #fffdf8;
+      font: inherit;
+      font-weight: 400;
+    }
+
+    .recipe-create-field textarea { min-height: 94px; resize: vertical; }
+    .recipe-create-error { min-height: 18px; margin: 0; color: var(--berry); font-size: 12px; }
+
+    .generic-recipe-actions {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .generic-recipe-actions .ghost-btn { justify-content: center; }
+    .generic-delete { color: var(--berry); background: #f6e8e5; }
+    .generic-recipe-actions input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
     }
 
     .follow-step {
@@ -1705,6 +1790,8 @@
       .mini-spec { left: 22px; right: 22px; grid-template-columns: 1fr; }
       .hero-visual::after { height: 150px; }
       .list-head { align-items: stretch; flex-direction: column; }
+      .list-actions { align-items: stretch; flex-direction: column; }
+      .list-actions > * { width: 100%; }
       .step-grid { grid-template-columns: 1fr; }
       .step-list { padding: 6px 12px 18px; }
       .step-card {
@@ -1861,14 +1948,17 @@
             <h1>作品库</h1>
             <p class="section-desc">筛选时优先看“我有什么工具”和“今天有多少时间”。</p>
           </div>
-          <div class="sort-box">
-            <span>排序</span>
-            <select>
-              <option>默认推荐</option>
-              <option>耗时从短到长</option>
-              <option>新手优先</option>
-              <option>最近更新</option>
-            </select>
+          <div class="list-actions">
+            <button class="primary-btn" id="openRecipeCreate" type="button"><i data-lucide="plus"></i>添加菜谱</button>
+            <div class="sort-box">
+              <span>排序</span>
+              <select>
+                <option>默认推荐</option>
+                <option>耗时从短到长</option>
+                <option>新手优先</option>
+                <option>最近更新</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -2315,6 +2405,7 @@
                   <span class="tag blue" id="genericTypeTag"></span>
                 </div>
                 <table class="param-table" id="genericParamTable"></table>
+                <button class="edit-action add generic-add-control" id="addGenericParam" type="button">＋ 添加参数</button>
               </div>
             </section>
 
@@ -2326,6 +2417,7 @@
                 </div>
               </div>
               <div class="generic-step-list" id="genericStepList"></div>
+              <button class="edit-action add generic-add-control" id="addGenericStep" type="button">＋ 添加步骤</button>
             </section>
 
             <section class="detail-section" id="genericStates">
@@ -2333,6 +2425,7 @@
                 <div><h2>关键状态</h2><p class="section-desc">只保留真正需要停下来观察的节点。</p></div>
               </div>
               <div class="state-grid" id="genericStateGrid"></div>
+              <button class="edit-action add generic-add-control" id="addGenericState" type="button">＋ 添加状态</button>
             </section>
 
             <section class="detail-section trouble-section" id="genericTrouble">
@@ -2340,6 +2433,7 @@
               <details class="postmortem">
                 <summary>结果不对？做完后再看</summary>
                 <table class="param-table" id="genericTroubleTable"></table>
+                <button class="edit-action add generic-add-control" id="addGenericTrouble" type="button">＋ 添加问题</button>
               </details>
             </section>
           </div>
@@ -2349,6 +2443,14 @@
               <h2>这份菜谱的结构</h2>
               <p>共用基础骨架，再按分类显示专属参数。</p>
               <ul class="toc-list" id="genericStructureList"></ul>
+            </div>
+            <div class="data-card generic-recipe-actions">
+              <h2>菜谱数据</h2>
+              <p>导出可备份或带到另一台设备；导入会新增一份菜谱。</p>
+              <button class="ghost-btn" id="exportGenericRecipe" type="button"><i data-lucide="download"></i>导出这份菜谱</button>
+              <label class="ghost-btn"><i data-lucide="upload"></i>导入菜谱<input id="importGenericRecipe" type="file" accept="application/json,.json" aria-label="导入通用菜谱"></label>
+              <button class="ghost-btn generic-delete" id="deleteGenericRecipe" type="button"><i data-lucide="trash-2"></i>删除这份菜谱</button>
+              <p class="data-status" id="genericDataStatus" aria-live="polite"></p>
             </div>
           </aside>
         </div>
@@ -2376,6 +2478,40 @@
         <button class="primary-btn" id="followDialogNext" type="button">下一步<i data-lucide="arrow-right"></i></button>
       </div>
     </div>
+  </dialog>
+
+  <dialog class="recipe-create-dialog" id="recipeCreateDialog" aria-labelledby="recipeCreateTitle">
+    <form class="recipe-create-form" id="recipeCreateForm">
+      <div class="recipe-create-head">
+        <div>
+          <h2 id="recipeCreateTitle">添加菜谱</h2>
+          <p>先建立最小骨架，创建后再完善参数和步骤。</p>
+        </div>
+        <button class="follow-close" id="closeRecipeCreate" type="button" aria-label="关闭添加菜谱"><i data-lucide="x"></i></button>
+      </div>
+      <div class="recipe-create-fields">
+        <label class="recipe-create-field">类型
+          <select id="newRecipeType" required>
+            <option value="baking">烘焙</option>
+            <option value="drink">饮品</option>
+          </select>
+        </label>
+        <label class="recipe-create-field">菜谱名称
+          <input id="newRecipeTitle" maxlength="60" placeholder="例如：香蕉核桃磅蛋糕" required>
+        </label>
+        <label class="recipe-create-field">分类
+          <input id="newRecipeCategory" maxlength="80" placeholder="例如：烘焙 / 蛋糕" required>
+        </label>
+        <label class="recipe-create-field">第一步操作
+          <textarea id="newRecipeAction" maxlength="300" placeholder="例如：黄油切小块，室温软化到手指可以轻松按下。" required></textarea>
+        </label>
+      </div>
+      <p class="recipe-create-error" id="recipeCreateError" aria-live="polite"></p>
+      <div class="recipe-create-actions">
+        <button class="ghost-btn" id="cancelRecipeCreate" type="button">取消</button>
+        <button class="primary-btn" type="submit">创建并继续编辑<i data-lucide="arrow-right"></i></button>
+      </div>
+    </form>
   </dialog>
 
   <script>
@@ -2532,21 +2668,46 @@
       }
     ];
 
+    function escapeHTML(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&#39;"
+      })[character]);
+    }
+
+    function getRecipeCards() {
+      const customCards = Object.values(loadCustomRecipes()).map((recipe) => ({
+        id: recipe.id,
+        title: recipe.title,
+        category: recipe.category.join(" / "),
+        tags: recipe.tags || [recipe.type === "drink" ? "饮品" : "烘焙", "自建菜谱"],
+        meta: recipe.params.slice(0, 3).map((item) => item.value),
+        key: `第一步：${recipe.phases[0]?.steps[0]?.action || "待补充操作"}`,
+        img: recipe.image || "assets/recipes/kitchen-worktop.jpg",
+        color: recipe.type === "drink" ? "blue" : "red",
+        detailPage: "genericDetail"
+      }));
+      return [...recipes, ...customCards];
+    }
+
     function renderRecipes(targetId) {
       const target = document.getElementById(targetId);
-      target.innerHTML = recipes.map((recipe) => `
-        <article class="recipe-card" data-page="${recipe.detailPage || "recipes"}" data-recipe-id="${recipe.id || ""}" tabindex="0" role="button" aria-label="${recipe.detailPage ? `打开${recipe.title}详情` : recipe.title + "详情尚未完成"}">
-          <div class="recipe-img" style="background-image:url('${recipe.img}')"></div>
+      target.innerHTML = getRecipeCards().map((recipe) => `
+        <article class="recipe-card" data-page="${escapeHTML(recipe.detailPage || "recipes")}" data-recipe-id="${escapeHTML(recipe.id || "")}" tabindex="0" role="button" aria-label="${escapeHTML(recipe.detailPage ? `打开${recipe.title}详情` : recipe.title + "详情尚未完成")}">
+          <div class="recipe-img" style="background-image:url('${escapeHTML(recipe.img)}')"></div>
           <div class="recipe-body">
             <div class="tag-row">
-              ${recipe.tags.map((tag, index) => `<span class="tag ${index === 0 ? recipe.color : ""}">${tag}</span>`).join("")}
+              ${recipe.tags.map((tag, index) => `<span class="tag ${index === 0 ? escapeHTML(recipe.color) : ""}">${escapeHTML(tag)}</span>`).join("")}
             </div>
-            <h3 class="recipe-title">${recipe.title}</h3>
+            <h3 class="recipe-title">${escapeHTML(recipe.title)}</h3>
             <div class="recipe-meta">
-              <span>${recipe.category}</span>
-              ${recipe.meta.map((item) => `<span>${item}</span>`).join("")}
+              <span>${escapeHTML(recipe.category)}</span>
+              ${recipe.meta.map((item) => `<span>${escapeHTML(item)}</span>`).join("")}
             </div>
-            <p class="recipe-key">${recipe.key}</p>
+            <p class="recipe-key">${escapeHTML(recipe.key)}</p>
           </div>
         </article>
       `).join("");
@@ -2565,6 +2726,7 @@
     }
 
     const genericRecipeStorageKey = "brewBakeLab.genericRecipes.v1";
+    const customRecipeStorageKey = "brewBakeLab.customRecipes.v1";
     let activeGenericRecipeId = null;
     let genericDraft = null;
 
@@ -2580,8 +2742,76 @@
       }
     }
 
+    function loadCustomRecipes() {
+      try {
+        return JSON.parse(localStorage.getItem(customRecipeStorageKey)) || {};
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function persistCustomRecipes(recipesById) {
+      localStorage.setItem(customRecipeStorageKey, JSON.stringify(recipesById));
+    }
+
+    function isBuiltInGenericRecipe(recipeId) {
+      return Object.values(recipeSchemas).some((recipe) => recipe.id === recipeId);
+    }
+
+    function createRecipeId(title) {
+      const base = title.toLowerCase()
+        .replace(/[^a-z0-9\u4e00-\u9fff]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 36) || "recipe";
+      return `${base}-${Date.now().toString(36)}`;
+    }
+
+    function createRecipeTemplate({ type, title, category, action }) {
+      const isDrink = type === "drink";
+      return {
+        id: createRecipeId(title),
+        type,
+        typeLabel: isDrink ? "饮品配方" : "烘焙配方",
+        detailPage: "genericDetail",
+        category: category.split("/").map((item) => item.trim()).filter(Boolean),
+        title,
+        description: "这是一份新建菜谱。先补齐固定参数，再按真实动手顺序完善步骤、判断和注意。",
+        tags: [isDrink ? "饮品" : "烘焙", "自建菜谱"],
+        image: "assets/recipes/kitchen-worktop.jpg",
+        paramHint: isDrink
+          ? "饮品专属参数：比例、水温、器具与制作时间。"
+          : "烘焙专属参数：材料、烤箱与模具、烘烤与定型。",
+        params: isDrink
+          ? [
+              { type: "材料", value: "点击编辑，填写用量。" },
+              { type: "比例", value: "点击编辑，填写比例。" },
+              { type: "水温", value: "点击编辑，填写温度。" },
+              { type: "器具", value: "点击编辑，填写器具。" },
+              { type: "制作", value: "点击编辑，填写时间。" }
+            ]
+          : [
+              { type: "材料", value: "点击编辑，填写用量。" },
+              { type: "烤箱 & 烤盘", value: "点击编辑，填写尺寸与设备。" },
+              { type: "烘烤", value: "点击编辑，填写温度与时间。" },
+              { type: "定型", value: "点击编辑，填写冷却或定型方式。" }
+            ],
+        phases: [{
+          name: isDrink ? "制作" : "准备",
+          steps: [{ title: "第一步", action, check: "", note: "" }]
+        }],
+        states: [],
+        trouble: [],
+        sharedSections: ["基础信息", "材料与器具", "参数", "步骤", "关键状态", "失败排查", "版本"],
+        extensions: isDrink
+          ? ["比例", "水温", "器具", "制作时间"]
+          : ["烤箱与模具", "烘烤", "定型"],
+        custom: true
+      };
+    }
+
     function getGenericRecipe(recipeId) {
-      const base = Object.values(recipeSchemas).find((recipe) => recipe.id === recipeId);
+      const base = Object.values(recipeSchemas).find((recipe) => recipe.id === recipeId)
+        || loadCustomRecipes()[recipeId];
       if (!base) return null;
       return { ...cloneData(base), ...(loadGenericRecipes()[recipeId] || {}) };
     }
@@ -2594,7 +2824,7 @@
       document.getElementById("genericTitle").textContent = recipe.title;
       document.getElementById("genericDescription").textContent = recipe.description;
       document.getElementById("genericTags").innerHTML = recipe.tags.map((tag, index) =>
-        `<span class="tag ${index === 0 ? "blue" : ""}">${tag}</span>`
+        `<span class="tag ${index === 0 ? "blue" : ""}">${escapeHTML(tag)}</span>`
       ).join("");
       const photo = document.getElementById("genericPhoto");
       photo.style.backgroundImage = `linear-gradient(180deg, rgba(45,41,36,.04), rgba(45,41,36,.16)), url("${recipe.image}")`;
@@ -2602,22 +2832,27 @@
       document.getElementById("genericParamHint").textContent = recipe.paramHint;
       document.getElementById("genericTypeTag").textContent = recipe.typeLabel;
       document.getElementById("genericParamTable").innerHTML = recipe.params.map((item) =>
-        `<tr><th class="generic-editable">${item.type}</th><td class="generic-editable">${item.value}</td></tr>`
+        `<tr><th class="generic-editable">${escapeHTML(item.type)}</th><td class="generic-editable">${escapeHTML(item.value)}</td><td class="generic-row-controls"><button class="param-control delete" type="button" data-delete-generic-param aria-label="删除参数"><i data-lucide="trash-2"></i></button></td></tr>`
       ).join("");
 
       let stepNumber = 0;
       document.getElementById("genericStepList").innerHTML = recipe.phases.map((phase, phaseIndex) => `
-        <div class="phase-divider"><span>PHASE ${String(phaseIndex + 1).padStart(2, "0")}</span><b class="generic-editable">${phase.name}</b></div>
+        <div class="phase-divider"><span>PHASE ${String(phaseIndex + 1).padStart(2, "0")}</span><b class="generic-editable">${escapeHTML(phase.name)}</b></div>
         ${phase.steps.map((step) => {
           stepNumber += 1;
           return `<article class="step-card" data-generic-step>
             <div class="step-no">${stepNumber}</div>
             <div>
-              <h3 class="generic-editable">${step.title}</h3>
+              <h3 class="generic-editable">${escapeHTML(step.title)}</h3>
               <div class="step-grid">
-                <div class="step-note"><strong>操作</strong><span class="generic-editable" data-required-action>${step.action}</span></div>
-                ${step.check ? `<div class="step-note"><strong>判断</strong><span class="generic-editable">${step.check}</span></div>` : ""}
-                ${step.note ? `<div class="step-note"><strong>注意</strong><span class="generic-editable">${step.note}</span></div>` : ""}
+                <div class="step-note"><strong>操作</strong><span class="generic-editable" data-required-action>${escapeHTML(step.action)}</span></div>
+                <div class="step-note generic-optional"><strong>判断</strong><span class="generic-editable">${escapeHTML(step.check)}</span></div>
+                <div class="step-note generic-optional"><strong>注意</strong><span class="generic-editable">${escapeHTML(step.note)}</span></div>
+              </div>
+              <div class="generic-row-controls">
+                <button class="param-control" type="button" data-move-generic-step="up" aria-label="上移步骤"><i data-lucide="arrow-up"></i></button>
+                <button class="param-control" type="button" data-move-generic-step="down" aria-label="下移步骤"><i data-lucide="arrow-down"></i></button>
+                <button class="param-control delete" type="button" data-delete-generic-step aria-label="删除步骤"><i data-lucide="trash-2"></i></button>
               </div>
             </div>
           </article>`;
@@ -2628,18 +2863,20 @@
         <article class="state-tile">
           <div class="state-content">
             <span class="state-index">STATE ${String(index + 1).padStart(2, "0")}</span>
-            <strong class="generic-editable">${state.name}</strong>
-            <span class="state-description generic-editable">${state.description}</span>
+            <strong class="generic-editable">${escapeHTML(state.name)}</strong>
+            <span class="state-description generic-editable">${escapeHTML(state.description)}</span>
+            <div class="generic-row-controls"><button class="param-control delete" type="button" data-delete-generic-state aria-label="删除状态"><i data-lucide="trash-2"></i></button></div>
           </div>
         </article>
       `).join("");
       document.getElementById("genericTroubleTable").innerHTML = recipe.trouble.map((item) =>
-        `<tr><th class="generic-editable">${item.problem}</th><td class="generic-editable">${item.cause}</td></tr>`
+        `<tr><th class="generic-editable">${escapeHTML(item.problem)}</th><td class="generic-editable">${escapeHTML(item.cause)}</td><td class="generic-row-controls"><button class="param-control delete" type="button" data-delete-generic-trouble aria-label="删除问题"><i data-lucide="trash-2"></i></button></td></tr>`
       ).join("");
       document.getElementById("genericStructureList").innerHTML = [
-        ...recipe.sharedSections.map((item) => `<li><i data-lucide="check"></i>${item}</li>`),
-        ...recipe.extensions.map((item) => `<li><i data-lucide="plus"></i>${item}</li>`)
+        ...recipe.sharedSections.map((item) => `<li><i data-lucide="check"></i>${escapeHTML(item)}</li>`),
+        ...recipe.extensions.map((item) => `<li><i data-lucide="plus"></i>${escapeHTML(item)}</li>`)
       ].join("");
+      document.getElementById("deleteGenericRecipe").hidden = isBuiltInGenericRecipe(recipeId);
       setGenericEditing(false);
       lucide.createIcons();
     }
@@ -2650,7 +2887,88 @@
       });
       document.getElementById("genericEdit").hidden = isEditing;
       document.getElementById("genericEditActions").hidden = !isEditing;
+      document.getElementById("genericDetail").classList.toggle("is-editing", isEditing);
       if (!isEditing) genericDraft = null;
+    }
+
+    function refreshGenericStepNumbers() {
+      document.querySelectorAll("#genericStepList [data-generic-step]").forEach((card, index) => {
+        card.querySelector(".step-no").textContent = index + 1;
+      });
+    }
+
+    function addGenericParam() {
+      document.getElementById("genericParamTable").insertAdjacentHTML("beforeend",
+        `<tr><th class="generic-editable" contenteditable="true">其他</th><td class="generic-editable" contenteditable="true">填写参数。</td><td class="generic-row-controls"><button class="param-control delete" type="button" data-delete-generic-param aria-label="删除参数"><i data-lucide="trash-2"></i></button></td></tr>`
+      );
+      lucide.createIcons();
+    }
+
+    function addGenericStep() {
+      const list = document.getElementById("genericStepList");
+      if (!list.querySelector(".phase-divider")) {
+        list.insertAdjacentHTML("beforeend", `<div class="phase-divider"><span>PHASE 01</span><b class="generic-editable" contenteditable="true">制作</b></div>`);
+      }
+      list.insertAdjacentHTML("beforeend", `<article class="step-card" data-generic-step>
+        <div class="step-no"></div>
+        <div>
+          <h3 class="generic-editable" contenteditable="true">新步骤</h3>
+          <div class="step-grid">
+            <div class="step-note"><strong>操作</strong><span class="generic-editable" data-required-action contenteditable="true"></span></div>
+            <div class="step-note generic-optional"><strong>判断</strong><span class="generic-editable" contenteditable="true"></span></div>
+            <div class="step-note generic-optional"><strong>注意</strong><span class="generic-editable" contenteditable="true"></span></div>
+          </div>
+          <div class="generic-row-controls">
+            <button class="param-control" type="button" data-move-generic-step="up" aria-label="上移步骤"><i data-lucide="arrow-up"></i></button>
+            <button class="param-control" type="button" data-move-generic-step="down" aria-label="下移步骤"><i data-lucide="arrow-down"></i></button>
+            <button class="param-control delete" type="button" data-delete-generic-step aria-label="删除步骤"><i data-lucide="trash-2"></i></button>
+          </div>
+        </div>
+      </article>`);
+      refreshGenericStepNumbers();
+      lucide.createIcons();
+      list.querySelector("[data-generic-step]:last-child [data-required-action]")?.focus();
+    }
+
+    function deleteGenericStep(card) {
+      const cards = document.querySelectorAll("#genericStepList [data-generic-step]");
+      if (cards.length <= 1) {
+        document.getElementById("genericSaveStatus").textContent = "至少保留一个步骤。";
+        return;
+      }
+      card.remove();
+      refreshGenericStepNumbers();
+    }
+
+    function moveGenericStep(card, direction) {
+      const sibling = direction === "up" ? card.previousElementSibling : card.nextElementSibling;
+      if (!sibling || sibling.classList.contains("phase-divider")) return;
+      if (direction === "up") card.parentElement.insertBefore(card, sibling);
+      else card.parentElement.insertBefore(sibling, card);
+      refreshGenericStepNumbers();
+    }
+
+    function addGenericState() {
+      const index = document.querySelectorAll("#genericStateGrid .state-tile").length + 1;
+      document.getElementById("genericStateGrid").insertAdjacentHTML("beforeend", `
+        <article class="state-tile">
+          <div class="state-content">
+            <span class="state-index">STATE ${String(index).padStart(2, "0")}</span>
+            <strong class="generic-editable" contenteditable="true">新状态</strong>
+            <span class="state-description generic-editable" contenteditable="true">填写看得见、摸得到或尝得出的判断。</span>
+            <div class="generic-row-controls"><button class="param-control delete" type="button" data-delete-generic-state aria-label="删除状态"><i data-lucide="trash-2"></i></button></div>
+          </div>
+        </article>`);
+      lucide.createIcons();
+    }
+
+    function addGenericTrouble() {
+      const details = document.querySelector("#genericTrouble details");
+      details.open = true;
+      document.getElementById("genericTroubleTable").insertAdjacentHTML("beforeend",
+        `<tr><th class="generic-editable" contenteditable="true">新问题</th><td class="generic-editable" contenteditable="true">填写可能原因和下一次调整。</td><td class="generic-row-controls"><button class="param-control delete" type="button" data-delete-generic-trouble aria-label="删除问题"><i data-lucide="trash-2"></i></button></td></tr>`
+      );
+      lucide.createIcons();
     }
 
     function captureGenericRecipe() {
@@ -2699,8 +3017,147 @@
       const saved = loadGenericRecipes();
       saved[activeGenericRecipeId] = captureGenericRecipe();
       localStorage.setItem(genericRecipeStorageKey, JSON.stringify(saved));
+      if (!isBuiltInGenericRecipe(activeGenericRecipeId)) {
+        const customRecipes = loadCustomRecipes();
+        customRecipes[activeGenericRecipeId] = saved[activeGenericRecipeId];
+        persistCustomRecipes(customRecipes);
+        renderRecipes("homeRecipes");
+        renderRecipes("listRecipes");
+      }
       setGenericEditing(false);
       document.getElementById("genericSaveStatus").textContent = "已保存到当前设备。";
+    }
+
+    function openRecipeCreateDialog() {
+      const form = document.getElementById("recipeCreateForm");
+      form.reset();
+      document.getElementById("newRecipeCategory").value = "烘焙 / ";
+      document.getElementById("recipeCreateError").textContent = "";
+      document.getElementById("recipeCreateDialog").showModal();
+      requestAnimationFrame(() => document.getElementById("newRecipeTitle").focus());
+    }
+
+    function closeRecipeCreateDialog() {
+      document.getElementById("recipeCreateDialog").close();
+    }
+
+    function createCustomRecipe(event) {
+      event.preventDefault();
+      const type = document.getElementById("newRecipeType").value;
+      const title = document.getElementById("newRecipeTitle").value.trim();
+      const category = document.getElementById("newRecipeCategory").value.trim();
+      const action = document.getElementById("newRecipeAction").value.trim();
+      if (!title || !category || !action) {
+        document.getElementById("recipeCreateError").textContent = "名称、分类和第一步操作都需要填写。";
+        return;
+      }
+      if (Object.keys(loadCustomRecipes()).length >= 100) {
+        document.getElementById("recipeCreateError").textContent = "当前设备最多保存 100 份自建菜谱，请先导出并删除不常用的菜谱。";
+        return;
+      }
+      const recipe = createRecipeTemplate({ type, title, category, action });
+      const customRecipes = loadCustomRecipes();
+      customRecipes[recipe.id] = recipe;
+      persistCustomRecipes(customRecipes);
+      renderRecipes("homeRecipes");
+      renderRecipes("listRecipes");
+      closeRecipeCreateDialog();
+      renderGenericRecipe(recipe.id);
+      setPage("genericDetail");
+      setGenericEditing(true);
+      document.getElementById("genericSaveStatus").textContent = "菜谱已建立，请继续完善后保存。";
+    }
+
+    function exportGenericRecipe() {
+      const recipe = captureGenericRecipe();
+      const payload = {
+        format: "brew-bake-lab-generic-recipe",
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        recipe
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${recipe.title.replace(/[\\/:*?"<>|]/g, "-") || "菜谱"}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+      document.getElementById("genericDataStatus").textContent = "已导出 JSON 备份。";
+    }
+
+    async function importGenericRecipe(input) {
+      try {
+        if (input.files[0].size > 2 * 1024 * 1024) {
+          throw new Error("文件超过 2MB，请检查是否包含了不必要的大段数据。");
+        }
+        if (Object.keys(loadCustomRecipes()).length >= 100) {
+          throw new Error("当前设备最多保存 100 份自建菜谱。");
+        }
+        const payload = JSON.parse(await input.files[0].text());
+        const source = payload?.recipe;
+        const stepCount = Array.isArray(source?.phases)
+          ? source.phases.reduce((total, phase) => total + (Array.isArray(phase.steps) ? phase.steps.length : 0), 0)
+          : 0;
+        const hasValidSteps = Array.isArray(source?.phases)
+          && source.phases.some((phase) => Array.isArray(phase.steps)
+            && phase.steps.some((step) => typeof step.action === "string" && step.action.trim()));
+        if (
+          payload?.format !== "brew-bake-lab-generic-recipe"
+          || typeof source?.title !== "string"
+          || !Array.isArray(source?.params)
+          || !hasValidSteps
+          || source.params.length > 50
+          || source.phases.length > 20
+          || stepCount > 200
+          || (Array.isArray(source.states) && source.states.length > 50)
+          || (Array.isArray(source.trouble) && source.trouble.length > 50)
+        ) {
+          throw new Error("不是有效的 Brew & Bake Lab 菜谱文件。");
+        }
+        const recipe = cloneData(source);
+        recipe.id = createRecipeId(recipe.title);
+        recipe.type = recipe.type === "drink" ? "drink" : "baking";
+        recipe.typeLabel = recipe.type === "drink" ? "饮品配方" : "烘焙配方";
+        recipe.category = Array.isArray(recipe.category) && recipe.category.length
+          ? recipe.category.map((item) => String(item).slice(0, 80))
+          : [recipe.type === "drink" ? "饮品" : "烘焙"];
+        recipe.tags = Array.isArray(recipe.tags) ? recipe.tags.slice(0, 5).map((item) => String(item).slice(0, 30)) : ["导入菜谱"];
+        recipe.image = "assets/recipes/kitchen-worktop.jpg";
+        recipe.states = Array.isArray(recipe.states) ? recipe.states : [];
+        recipe.trouble = Array.isArray(recipe.trouble) ? recipe.trouble : [];
+        recipe.sharedSections = Array.isArray(recipe.sharedSections) ? recipe.sharedSections : ["基础信息", "参数", "步骤"];
+        recipe.extensions = Array.isArray(recipe.extensions) ? recipe.extensions : [];
+        recipe.custom = true;
+        const customRecipes = loadCustomRecipes();
+        customRecipes[recipe.id] = recipe;
+        persistCustomRecipes(customRecipes);
+        renderRecipes("homeRecipes");
+        renderRecipes("listRecipes");
+        renderGenericRecipe(recipe.id);
+        setPage("genericDetail");
+        document.getElementById("genericDataStatus").textContent = "已作为新菜谱导入。";
+      } catch (error) {
+        document.getElementById("genericDataStatus").textContent = error.message || "导入失败。";
+      } finally {
+        input.value = "";
+      }
+    }
+
+    function deleteGenericRecipe() {
+      if (isBuiltInGenericRecipe(activeGenericRecipeId)) return;
+      const recipe = getGenericRecipe(activeGenericRecipeId);
+      if (!recipe || !window.confirm(`删除“${recipe.title}”？此操作无法撤销，建议先导出备份。`)) return;
+      const customRecipes = loadCustomRecipes();
+      const savedRecipes = loadGenericRecipes();
+      delete customRecipes[activeGenericRecipeId];
+      delete savedRecipes[activeGenericRecipeId];
+      persistCustomRecipes(customRecipes);
+      localStorage.setItem(genericRecipeStorageKey, JSON.stringify(savedRecipes));
+      activeGenericRecipeId = null;
+      renderRecipes("homeRecipes");
+      renderRecipes("listRecipes");
+      setPage("recipes");
     }
 
     const sharedFollowSteps = [
@@ -4183,6 +4640,8 @@
     document.addEventListener("click", (event) => {
       const card = event.target.closest(".recipe-card[data-page]");
       if (card?.dataset.page === "genericDetail") renderGenericRecipe(card.dataset.recipeId);
+      if (event.target.closest("#openRecipeCreate")) openRecipeCreateDialog();
+      if (event.target.closest("#closeRecipeCreate, #cancelRecipeCreate")) closeRecipeCreateDialog();
       if (event.target.closest("#genericEdit")) {
         genericDraft = getGenericRecipe(activeGenericRecipeId);
         setGenericEditing(true);
@@ -4193,6 +4652,35 @@
         renderGenericRecipe(activeGenericRecipeId);
         document.getElementById("genericSaveStatus").textContent = "已取消，未保存更改。";
       }
+      if (event.target.closest("#exportGenericRecipe")) exportGenericRecipe();
+      if (event.target.closest("#deleteGenericRecipe")) deleteGenericRecipe();
+      if (event.target.closest("#addGenericParam")) addGenericParam();
+      if (event.target.closest("#addGenericStep")) addGenericStep();
+      if (event.target.closest("#addGenericState")) addGenericState();
+      if (event.target.closest("#addGenericTrouble")) addGenericTrouble();
+      const deleteParam = event.target.closest("[data-delete-generic-param]");
+      if (deleteParam) deleteParam.closest("tr")?.remove();
+      const deleteStep = event.target.closest("[data-delete-generic-step]");
+      if (deleteStep) deleteGenericStep(deleteStep.closest("[data-generic-step]"));
+      const moveStep = event.target.closest("[data-move-generic-step]");
+      if (moveStep) moveGenericStep(moveStep.closest("[data-generic-step]"), moveStep.dataset.moveGenericStep);
+      const deleteState = event.target.closest("[data-delete-generic-state]");
+      if (deleteState) deleteState.closest(".state-tile")?.remove();
+      const deleteTrouble = event.target.closest("[data-delete-generic-trouble]");
+      if (deleteTrouble) deleteTrouble.closest("tr")?.remove();
+    });
+
+    document.getElementById("recipeCreateForm").addEventListener("submit", createCustomRecipe);
+
+    document.getElementById("newRecipeType").addEventListener("change", (event) => {
+      const category = document.getElementById("newRecipeCategory");
+      if (!category.value || /^(烘焙|饮品)\s*\/?\s*$/.test(category.value)) {
+        category.value = event.target.value === "drink" ? "饮品 / " : "烘焙 / ";
+      }
+    });
+
+    document.getElementById("importGenericRecipe").addEventListener("change", (event) => {
+      if (event.target.files?.[0]) importGenericRecipe(event.target);
     });
 
     renderRecipes("homeRecipes");

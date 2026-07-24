@@ -144,6 +144,8 @@ Implemented in prototype:
 - Editable Swiss Roll detail page with classic, sugar-free/oil-free, and cocoa variants
 - Shared recipe schema with category extensions
 - Editable Pour-over Coffee detail page with drink-specific parameters
+- Local recipe creator with Baking and Drink starter templates
+- Custom recipe cards, editable parameters/steps/states/troubleshooting, and JSON backup
 - Before-start checklist
 - Parameter card
 - Step cards
