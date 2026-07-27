@@ -143,7 +143,7 @@ Implemented in prototype:
 - Banana Blueberry Muffin detail page sample
 - Editable Swiss Roll detail page with classic, sugar-free/oil-free, and cocoa variants
 - Shared recipe schema with category extensions
-- Editable Pour-over Coffee detail page with drink-specific parameters
+- Editable Pour-over Coffee detail page with drink-specific parameters and key-state process images
 - Local recipe creator with Baking and Drink starter templates
 - Custom recipe cards, editable parameters/steps/states/troubleshooting, compressed cover and step images, and JSON backup
 - Full-device backup and restore for all Brew & Bake Lab browser data

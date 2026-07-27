@@ -2531,6 +2531,7 @@
                 </div>
               </div>
               <div class="generic-step-list" id="genericStepList"></div>
+              <p class="image-credit" id="genericImageCredit" hidden></p>
               <button class="edit-action add generic-add-control" id="addGenericStep" type="button">＋ 添加步骤</button>
             </section>
 
@@ -2727,12 +2728,18 @@
                 title: "闷蒸至 30 秒",
                 action: "从中心开始缓慢绕圈注水至 30g，确认所有咖啡粉都被润湿；等待至计时 30 秒。",
                 check: "粉床均匀鼓起并释放气泡，没有明显干粉。",
-                note: "新鲜豆排气较多；只需浸透，不要在闷蒸阶段注入过多水。"
+                note: "新鲜豆排气较多；只需浸透，不要在闷蒸阶段注入过多水。",
+                image: "assets/pour-over/coffee-bloom.jpg",
+                imageAlt: "手冲咖啡闷蒸时粉床被均匀润湿并释放细密气泡",
+                imageCaption: "看气泡与湿润范围：粉床没有明显干区"
               },
               {
                 title: "第一段注水至 150g",
                 action: "从中心向外小圈稳定注水，再回到中心；水量到 150g 时停止。",
-                check: "水柱细而连续，液面稳定上升，没有冲到滤纸边缘。"
+                check: "水柱细而连续，液面稳定上升，没有冲到滤纸边缘。",
+                image: "assets/pour-over/circular-pour.jpg",
+                imageAlt: "细口壶以连续细水柱向滤杯中的咖啡粉注水",
+                imageCaption: "水柱保持细而连续，落点留在咖啡粉范围内"
               },
               {
                 title: "第二段注水至 240g",
@@ -2763,6 +2770,10 @@
           { problem: "尖酸、味道薄", cause: "萃取不足；研磨偏粗、流速过快或水温偏低。" },
           { problem: "苦涩、口腔发干", cause: "萃取过度；研磨偏细、流速过慢或水温偏高。" },
           { problem: "忽酸忽苦、不均匀", cause: "粉床没有润透，或注水水柱太大、反复冲刷边缘。" }
+        ],
+        imageCredits: [
+          { name: "Tolga Deniz Aran / Unsplash", url: "https://unsplash.com/photos/HcVt9E5DkjE" },
+          { name: "Sean Benesh / Unsplash", url: "https://unsplash.com/photos/R1zLaRmi-DE" }
         ],
         sharedSections: ["基础信息", "材料与器具", "参数", "步骤", "关键状态", "失败排查", "版本"],
         extensions: ["粉水比", "水温", "研磨度", "注水节奏"]
@@ -3080,6 +3091,24 @@
           </article>`;
         }).join("")}
       `).join("");
+      const imageCredit = document.getElementById("genericImageCredit");
+      imageCredit.replaceChildren();
+      const credits = Array.isArray(recipe.imageCredits) ? recipe.imageCredits : [];
+      if (credits.length) {
+        imageCredit.append("过程图：");
+        credits.forEach((credit, index) => {
+          if (index) imageCredit.append(" · ");
+          const link = document.createElement("a");
+          link.href = /^https:\/\/(?:www\.)?unsplash\.com\//.test(credit.url || "") ? credit.url : "#";
+          link.target = "_blank";
+          link.rel = "noreferrer";
+          link.textContent = String(credit.name || "图片来源").slice(0, 80);
+          imageCredit.appendChild(link);
+        });
+        imageCredit.hidden = false;
+      } else {
+        imageCredit.hidden = true;
+      }
 
       document.getElementById("genericStateGrid").innerHTML = recipe.states.map((state, index) => `
         <article class="state-tile">

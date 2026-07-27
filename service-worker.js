@@ -1,4 +1,4 @@
-const CACHE_NAME = "brew-bake-lab-v5";
+const CACHE_NAME = "brew-bake-lab-v6";
 const CORE_ASSETS = [
   "./",
   "./index.html",
@@ -9,7 +9,9 @@ const CORE_ASSETS = [
   "./assets/vendor/lucide.min.js",
   "./assets/recipes/kitchen-worktop.jpg",
   "./assets/recipes/swiss-roll.jpg",
-  "./assets/recipes/pour-over-coffee.jpg"
+  "./assets/recipes/pour-over-coffee.jpg",
+  "./assets/pour-over/coffee-bloom.jpg",
+  "./assets/pour-over/circular-pour.jpg"
 ];
 
 self.addEventListener("install", (event) => {
