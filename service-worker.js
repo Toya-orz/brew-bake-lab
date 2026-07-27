@@ -1,4 +1,4 @@
-const CACHE_NAME = "brew-bake-lab-v3";
+const CACHE_NAME = "brew-bake-lab-v4";
 const CORE_ASSETS = [
   "./",
   "./index.html",

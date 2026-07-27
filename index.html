@@ -1576,6 +1576,19 @@
       background-position: center;
     }
 
+    .generic-detail .overview-image-tools,
+    .generic-detail .step-image-tools,
+    .generic-detail .step-image-empty { display: none; }
+    .generic-detail.is-editing .overview-image-tools,
+    .generic-detail.is-editing .step-image-tools { display: flex; }
+    .generic-detail.is-editing .step-image-empty { display: flex; }
+    .generic-detail .step-media figcaption[contenteditable="true"] {
+      min-width: 110px;
+      outline: 0;
+      box-shadow: inset 0 -1px rgba(255,250,241,0.45);
+      cursor: text;
+    }
+
     .generic-editable[contenteditable="true"] {
       outline: 2px solid rgba(79, 100, 119, 0.24);
       outline-offset: 3px;
@@ -2457,7 +2470,7 @@
             <p class="generic-editable" id="genericDescription"></p>
             <p class="generic-save-status" id="genericSaveStatus" aria-live="polite"></p>
           </div>
-          <div class="detail-photo" id="genericPhoto" role="img"></div>
+          <div class="detail-photo" id="genericPhoto" role="img" data-generic-image="" data-generic-image-alt=""></div>
         </div>
 
         <div class="anchor-tabs">
@@ -2842,6 +2855,12 @@
       return JSON.parse(JSON.stringify(data));
     }
 
+    function isPortableRecipeImage(value) {
+      return typeof value === "string"
+        && /^data:image\/(?:jpeg|png|webp);base64,[a-z0-9+/=]+$/i.test(value)
+        && value.length <= 1_500_000;
+    }
+
     function loadGenericRecipes() {
       try {
         return JSON.parse(localStorage.getItem(genericRecipeStorageKey)) || {};
@@ -2924,6 +2943,69 @@
       return { ...cloneData(base), ...(loadGenericRecipes()[recipeId] || {}) };
     }
 
+    function createGenericImageInput(kind, labelText, ariaLabel) {
+      const choose = document.createElement("label");
+      choose.className = "state-image-action";
+      choose.textContent = labelText;
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/jpeg,image/png,image/webp";
+      input.dataset[kind] = "";
+      input.setAttribute("aria-label", ariaLabel);
+      choose.appendChild(input);
+      return choose;
+    }
+
+    function renderGenericPhoto(recipe) {
+      const photo = document.getElementById("genericPhoto");
+      const image = recipe.image || "";
+      photo.dataset.genericImage = image;
+      photo.dataset.genericImageAlt = recipe.imageAlt || "";
+      photo.style.backgroundImage = image
+        ? `linear-gradient(180deg, rgba(45,41,36,.04), rgba(45,41,36,.16)), url("${image}")`
+        : "";
+      photo.setAttribute("aria-label", recipe.imageAlt || `${recipe.title}成品图`);
+      photo.replaceChildren();
+      if (!image) {
+        const placeholder = document.createElement("span");
+        placeholder.innerHTML = "<strong>还没有成品图</strong><br>编辑时可从相册选择或直接拍摄";
+        photo.appendChild(placeholder);
+      }
+      const tools = document.createElement("div");
+      tools.className = "overview-image-tools";
+      tools.appendChild(createGenericImageInput(
+        "genericOverviewImageInput",
+        image ? "更换封面" : "添加封面",
+        "选择菜谱封面图片"
+      ));
+      if (image) {
+        const remove = document.createElement("button");
+        remove.className = "state-image-action remove";
+        remove.type = "button";
+        remove.dataset.removeGenericOverviewImage = "";
+        remove.textContent = "移除";
+        tools.appendChild(remove);
+      }
+      photo.appendChild(tools);
+    }
+
+    function genericStepMediaMarkup(step) {
+      const image = step.image || "";
+      if (image) {
+        return `<figure class="step-media">
+          <img src="${escapeHTML(image)}" loading="lazy" alt="${escapeHTML(step.imageAlt || `步骤图：${step.title}`)}">
+          <div class="step-image-tools">
+            <label class="state-image-action">更换图片<input type="file" accept="image/jpeg,image/png,image/webp" data-generic-step-image-input aria-label="${escapeHTML(step.title || "当前步骤")}选择图片"></label>
+            <button class="state-image-action remove" type="button" data-remove-generic-step-image>移除</button>
+          </div>
+          <figcaption class="generic-step-caption">${escapeHTML(step.imageCaption || "填写这张图要判断的状态")}</figcaption>
+        </figure>`;
+      }
+      return `<div class="step-image-empty">
+        <label class="state-image-action">＋ 添加步骤图<input type="file" accept="image/jpeg,image/png,image/webp" data-generic-step-image-input aria-label="${escapeHTML(step.title || "当前步骤")}选择图片"></label>
+      </div>`;
+    }
+
     function renderGenericRecipe(recipeId) {
       const recipe = getGenericRecipe(recipeId);
       if (!recipe) return;
@@ -2934,9 +3016,7 @@
       document.getElementById("genericTags").innerHTML = recipe.tags.map((tag, index) =>
         `<span class="tag ${index === 0 ? "blue" : ""}">${escapeHTML(tag)}</span>`
       ).join("");
-      const photo = document.getElementById("genericPhoto");
-      photo.style.backgroundImage = `linear-gradient(180deg, rgba(45,41,36,.04), rgba(45,41,36,.16)), url("${recipe.image}")`;
-      photo.setAttribute("aria-label", `${recipe.title}成品图`);
+      renderGenericPhoto(recipe);
       document.getElementById("genericParamHint").textContent = recipe.paramHint;
       document.getElementById("genericTypeTag").textContent = recipe.typeLabel;
       document.getElementById("genericParamTable").innerHTML = recipe.params.map((item) =>
@@ -2948,10 +3028,11 @@
         <div class="phase-divider"><span>PHASE ${String(phaseIndex + 1).padStart(2, "0")}</span><b class="generic-editable">${escapeHTML(phase.name)}</b></div>
         ${phase.steps.map((step) => {
           stepNumber += 1;
-          return `<article class="step-card" data-generic-step>
+          return `<article class="step-card${step.image ? " visual-step" : ""}" data-generic-step data-generic-step-image="${escapeHTML(step.image || "")}" data-generic-step-image-alt="${escapeHTML(step.imageAlt || "")}">
             <div class="step-no">${stepNumber}</div>
             <div>
               <h3 class="generic-editable">${escapeHTML(step.title)}</h3>
+              ${genericStepMediaMarkup(step)}
               <div class="step-grid">
                 <div class="step-note"><strong>操作</strong><span class="generic-editable" data-required-action>${escapeHTML(step.action)}</span></div>
                 <div class="step-note generic-optional"><strong>判断</strong><span class="generic-editable">${escapeHTML(step.check)}</span></div>
@@ -2996,6 +3077,9 @@
       document.getElementById("genericEdit").hidden = isEditing;
       document.getElementById("genericEditActions").hidden = !isEditing;
       document.getElementById("genericDetail").classList.toggle("is-editing", isEditing);
+      document.querySelectorAll("#genericStepList .generic-step-caption").forEach((node) => {
+        node.contentEditable = isEditing ? "true" : "false";
+      });
       if (!isEditing) genericDraft = null;
     }
 
@@ -3017,10 +3101,11 @@
       if (!list.querySelector(".phase-divider")) {
         list.insertAdjacentHTML("beforeend", `<div class="phase-divider"><span>PHASE 01</span><b class="generic-editable" contenteditable="true">制作</b></div>`);
       }
-      list.insertAdjacentHTML("beforeend", `<article class="step-card" data-generic-step>
+      list.insertAdjacentHTML("beforeend", `<article class="step-card" data-generic-step data-generic-step-image="" data-generic-step-image-alt="">
         <div class="step-no"></div>
         <div>
           <h3 class="generic-editable" contenteditable="true">新步骤</h3>
+          ${genericStepMediaMarkup({ title: "新步骤", image: "" })}
           <div class="step-grid">
             <div class="step-note"><strong>操作</strong><span class="generic-editable" data-required-action contenteditable="true"></span></div>
             <div class="step-note generic-optional"><strong>判断</strong><span class="generic-editable" contenteditable="true"></span></div>
@@ -3083,6 +3168,9 @@
       const recipe = getGenericRecipe(activeGenericRecipeId);
       recipe.title = document.getElementById("genericTitle").textContent.trim();
       recipe.description = document.getElementById("genericDescription").textContent.trim();
+      const genericPhoto = document.getElementById("genericPhoto");
+      recipe.image = genericPhoto.dataset.genericImage || "";
+      recipe.imageAlt = genericPhoto.dataset.genericImageAlt || "";
       recipe.params = [...document.querySelectorAll("#genericParamTable tr")].map((row) => ({
         type: row.querySelector("th").textContent.trim(),
         value: row.querySelector("td").textContent.trim()
@@ -3100,7 +3188,10 @@
           title: node.querySelector("h3").textContent.trim(),
           action: notes[0]?.textContent.trim() || "",
           check: notes.find((item) => item.parentElement.querySelector("strong")?.textContent === "判断")?.textContent.trim() || "",
-          note: notes.find((item) => item.parentElement.querySelector("strong")?.textContent === "注意")?.textContent.trim() || ""
+          note: notes.find((item) => item.parentElement.querySelector("strong")?.textContent === "注意")?.textContent.trim() || "",
+          image: node.dataset.genericStepImage || "",
+          imageAlt: node.dataset.genericStepImageAlt || "",
+          imageCaption: node.querySelector(".generic-step-caption")?.textContent.trim() || ""
         });
       });
       recipe.states = [...document.querySelectorAll("#genericStateGrid .state-tile")].map((tile) => ({
@@ -3122,13 +3213,25 @@
         document.getElementById("genericSaveStatus").textContent = "每个步骤都必须填写“操作”。";
         return;
       }
-      const saved = loadGenericRecipes();
-      saved[activeGenericRecipeId] = captureGenericRecipe();
-      localStorage.setItem(genericRecipeStorageKey, JSON.stringify(saved));
+      const recipe = captureGenericRecipe();
+      try {
+        if (isBuiltInGenericRecipe(activeGenericRecipeId)) {
+          const saved = loadGenericRecipes();
+          saved[activeGenericRecipeId] = recipe;
+          localStorage.setItem(genericRecipeStorageKey, JSON.stringify(saved));
+        } else {
+          const saved = loadGenericRecipes();
+          delete saved[activeGenericRecipeId];
+          localStorage.setItem(genericRecipeStorageKey, JSON.stringify(saved));
+          const customRecipes = loadCustomRecipes();
+          customRecipes[activeGenericRecipeId] = recipe;
+          persistCustomRecipes(customRecipes);
+        }
+      } catch (error) {
+        document.getElementById("genericSaveStatus").textContent = "设备存储空间不足。请移除部分图片，或先导出完整备份。";
+        return;
+      }
       if (!isBuiltInGenericRecipe(activeGenericRecipeId)) {
-        const customRecipes = loadCustomRecipes();
-        customRecipes[activeGenericRecipeId] = saved[activeGenericRecipeId];
-        persistCustomRecipes(customRecipes);
         renderRecipes("homeRecipes");
         renderRecipes("listRecipes");
       }
@@ -3196,8 +3299,8 @@
 
     async function importGenericRecipe(input) {
       try {
-        if (input.files[0].size > 2 * 1024 * 1024) {
-          throw new Error("文件超过 2MB，请检查是否包含了不必要的大段数据。");
+        if (input.files[0].size > 10 * 1024 * 1024) {
+          throw new Error("文件超过 10MB，请检查是否包含了过多图片。");
         }
         if (Object.keys(loadCustomRecipes()).length >= 100) {
           throw new Error("当前设备最多保存 100 份自建菜谱。");
@@ -3231,7 +3334,17 @@
           ? recipe.category.map((item) => String(item).slice(0, 80))
           : [recipe.type === "drink" ? "饮品" : "烘焙"];
         recipe.tags = Array.isArray(recipe.tags) ? recipe.tags.slice(0, 5).map((item) => String(item).slice(0, 30)) : ["导入菜谱"];
-        recipe.image = "assets/recipes/kitchen-worktop.jpg";
+        recipe.image = isPortableRecipeImage(recipe.image) ? recipe.image : "assets/recipes/kitchen-worktop.jpg";
+        recipe.imageAlt = typeof recipe.imageAlt === "string" ? recipe.imageAlt.slice(0, 160) : "";
+        recipe.phases = recipe.phases.map((phase) => ({
+          ...phase,
+          steps: phase.steps.map((step) => ({
+            ...step,
+            image: isPortableRecipeImage(step.image) ? step.image : "",
+            imageAlt: typeof step.imageAlt === "string" ? step.imageAlt.slice(0, 160) : "",
+            imageCaption: typeof step.imageCaption === "string" ? step.imageCaption.slice(0, 240) : ""
+          }))
+        }));
         recipe.states = Array.isArray(recipe.states) ? recipe.states : [];
         recipe.trouble = Array.isArray(recipe.trouble) ? recipe.trouble : [];
         recipe.sharedSections = Array.isArray(recipe.sharedSections) ? recipe.sharedSections : ["基础信息", "参数", "步骤"];
@@ -4287,6 +4400,69 @@
       setEditStatus("steps", "步骤图已移除，保存后生效。");
     }
 
+    function renderGenericStepMedia(card, step) {
+      card.querySelector(".step-media, .step-image-empty")?.remove();
+      card.dataset.genericStepImage = step.image || "";
+      card.dataset.genericStepImageAlt = step.imageAlt || "";
+      card.classList.toggle("visual-step", Boolean(step.image));
+      const template = document.createElement("template");
+      template.innerHTML = genericStepMediaMarkup(step).trim();
+      card.querySelector(".step-grid").before(template.content.firstElementChild);
+      const caption = card.querySelector(".generic-step-caption");
+      if (caption) caption.contentEditable = "true";
+    }
+
+    async function replaceGenericOverviewImage(input) {
+      if (!document.getElementById("genericDetail").classList.contains("is-editing") || !input.files?.[0]) return;
+      try {
+        document.getElementById("genericSaveStatus").textContent = "正在压缩封面…";
+        const image = await resizeStateImage(input.files[0]);
+        const recipe = captureGenericRecipe();
+        recipe.image = image;
+        recipe.imageAlt = `${recipe.title}成品图`;
+        renderGenericPhoto(recipe);
+        document.getElementById("genericSaveStatus").textContent = "封面已替换，保存后生效。";
+      } catch (error) {
+        document.getElementById("genericSaveStatus").textContent = error.message;
+        input.value = "";
+      }
+    }
+
+    function removeGenericOverviewImage() {
+      if (!document.getElementById("genericDetail").classList.contains("is-editing")) return;
+      const recipe = captureGenericRecipe();
+      recipe.image = "";
+      recipe.imageAlt = "";
+      renderGenericPhoto(recipe);
+      document.getElementById("genericSaveStatus").textContent = "封面已移除，保存后生效。";
+    }
+
+    async function replaceGenericStepImage(input) {
+      if (!document.getElementById("genericDetail").classList.contains("is-editing") || !input.files?.[0]) return;
+      const card = input.closest("[data-generic-step]");
+      try {
+        document.getElementById("genericSaveStatus").textContent = "正在压缩步骤图…";
+        const image = await resizeStateImage(input.files[0]);
+        const title = card.querySelector("h3").textContent.trim();
+        renderGenericStepMedia(card, {
+          title,
+          image,
+          imageAlt: `步骤图：${title}`,
+          imageCaption: card.querySelector(".generic-step-caption")?.textContent.trim() || "填写这张图要判断的状态"
+        });
+        document.getElementById("genericSaveStatus").textContent = "步骤图已添加，保存后生效。";
+      } catch (error) {
+        document.getElementById("genericSaveStatus").textContent = error.message;
+        input.value = "";
+      }
+    }
+
+    function removeGenericStepImage(card) {
+      if (!document.getElementById("genericDetail").classList.contains("is-editing")) return;
+      renderGenericStepMedia(card, { title: card.querySelector("h3").textContent.trim(), image: "" });
+      document.getElementById("genericSaveStatus").textContent = "步骤图已移除，保存后生效。";
+    }
+
     async function replaceStateImage(input) {
       if (editingSection !== "states" || !input.files?.[0]) return;
       const tile = input.closest(".state-tile");
@@ -4895,6 +5071,9 @@
       if (deleteState) deleteState.closest(".state-tile")?.remove();
       const deleteTrouble = event.target.closest("[data-delete-generic-trouble]");
       if (deleteTrouble) deleteTrouble.closest("tr")?.remove();
+      if (event.target.closest("[data-remove-generic-overview-image]")) removeGenericOverviewImage();
+      const removeGenericStepImageButton = event.target.closest("[data-remove-generic-step-image]");
+      if (removeGenericStepImageButton) removeGenericStepImage(removeGenericStepImageButton.closest("[data-generic-step]"));
     });
 
     document.getElementById("recipeCreateForm").addEventListener("submit", createCustomRecipe);
@@ -4912,6 +5091,13 @@
 
     document.getElementById("importAllData").addEventListener("change", (event) => {
       if (event.target.files?.[0]) importAllData(event.target);
+    });
+
+    document.addEventListener("change", (event) => {
+      const genericOverviewImageInput = event.target.closest("[data-generic-overview-image-input]");
+      if (genericOverviewImageInput) replaceGenericOverviewImage(genericOverviewImageInput);
+      const genericStepImageInput = event.target.closest("[data-generic-step-image-input]");
+      if (genericStepImageInput) replaceGenericStepImage(genericStepImageInput);
     });
 
     window.addEventListener("beforeinstallprompt", (event) => {

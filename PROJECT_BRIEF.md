@@ -145,7 +145,7 @@ Implemented in prototype:
 - Shared recipe schema with category extensions
 - Editable Pour-over Coffee detail page with drink-specific parameters
 - Local recipe creator with Baking and Drink starter templates
-- Custom recipe cards, editable parameters/steps/states/troubleshooting, and JSON backup
+- Custom recipe cards, editable parameters/steps/states/troubleshooting, compressed cover and step images, and JSON backup
 - Full-device backup and restore for all Brew & Bake Lab browser data
 - Installable PWA with offline access on previously opened pages
 - Before-start checklist
