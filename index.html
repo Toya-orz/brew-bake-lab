@@ -1644,6 +1644,36 @@
     .generic-detail.is-editing .generic-row-controls { display: inline-flex; }
     .generic-detail.is-editing .generic-add-control { display: inline-flex; }
     .generic-add-control { display: none; margin-top: 12px; }
+    .generic-param-type-editor {
+      display: grid;
+      gap: 6px;
+      min-width: 132px;
+    }
+    .generic-param-type-editor select,
+    .generic-param-type-editor input {
+      width: 100%;
+      min-width: 0;
+      padding: 7px 9px;
+      border: 1px solid rgba(79, 100, 119, 0.22);
+      border-radius: 7px;
+      background: #fffdf8;
+      color: var(--ink);
+      font: inherit;
+    }
+    .generic-param-type-editor select:focus,
+    .generic-param-type-editor input:focus {
+      border-color: rgba(79, 100, 119, 0.5);
+      outline: 2px solid rgba(79, 100, 119, 0.12);
+    }
+
+    @media (max-width: 520px) {
+      .generic-param-type-editor { min-width: 104px; }
+      .generic-detail.is-editing #genericParamTable th { width: 34%; }
+      .generic-detail.is-editing #genericParamTable .generic-row-controls {
+        display: grid;
+        grid-template-columns: repeat(2, 30px);
+      }
+    }
 
     .generic-empty {
       margin: 0;
@@ -3055,6 +3085,48 @@
       </div>`;
     }
 
+    const genericParamTypeOptions = {
+      baking: ["成品", "材料", "蛋糕糊", "夹馅", "装饰", "模具 / 器具", "烤箱 & 烤盘", "烘烤", "冷却", "卷制", "定型", "保存"],
+      drink: ["成品", "材料", "原料", "咖啡", "咖啡豆", "用水", "比例", "研磨", "水温", "器具", "萃取", "注水", "奶泡", "制作", "保存"]
+    };
+
+    function genericParamOptions(recipeType) {
+      return genericParamTypeOptions[recipeType === "drink" ? "drink" : "baking"];
+    }
+
+    function genericParamRowMarkup(item, recipeType, isEditing = false) {
+      const type = String(item.type || "材料").trim() || "材料";
+      if (!isEditing) {
+        return `<tr><th>${escapeHTML(type)}</th><td>${escapeHTML(item.value || "")}</td></tr>`;
+      }
+      const options = genericParamOptions(recipeType);
+      const isCustom = !options.includes(type);
+      const optionMarkup = [...options, "custom"].map((option) =>
+        `<option value="${escapeHTML(option)}"${option === (isCustom ? "custom" : type) ? " selected" : ""}>${option === "custom" ? "自定义…" : escapeHTML(option)}</option>`
+      ).join("");
+      return `<tr data-generic-param-row>
+        <th>
+          <div class="generic-param-type-editor">
+            <select data-generic-param-type aria-label="参数分类">${optionMarkup}</select>
+            ${isCustom ? `<input data-generic-param-custom value="${escapeHTML(type)}" aria-label="自定义参数分类">` : ""}
+          </div>
+        </th>
+        <td class="generic-editable" contenteditable="true">${escapeHTML(item.value || "")}</td>
+        <td class="generic-row-controls">
+          <button class="param-control" type="button" data-move-generic-param="up" aria-label="上移参数"><i data-lucide="arrow-up"></i></button>
+          <button class="param-control" type="button" data-move-generic-param="down" aria-label="下移参数"><i data-lucide="arrow-down"></i></button>
+          <button class="param-control delete" type="button" data-delete-generic-param aria-label="删除参数"><i data-lucide="trash-2"></i></button>
+        </td>
+      </tr>`;
+    }
+
+    function renderGenericParams(params, recipeType, isEditing = false) {
+      document.getElementById("genericParamTable").innerHTML = params
+        .map((item) => genericParamRowMarkup(item, recipeType, isEditing))
+        .join("");
+      lucide.createIcons();
+    }
+
     function renderGenericRecipe(recipeId) {
       const recipe = getGenericRecipe(recipeId);
       if (!recipe) return;
@@ -3068,9 +3140,7 @@
       renderGenericPhoto(recipe);
       document.getElementById("genericParamHint").textContent = recipe.paramHint;
       document.getElementById("genericTypeTag").textContent = recipe.typeLabel;
-      document.getElementById("genericParamTable").innerHTML = recipe.params.map((item) =>
-        `<tr><th class="generic-editable">${escapeHTML(item.type)}</th><td class="generic-editable">${escapeHTML(item.value)}</td><td class="generic-row-controls"><button class="param-control delete" type="button" data-delete-generic-param aria-label="删除参数"><i data-lucide="trash-2"></i></button></td></tr>`
-      ).join("");
+      renderGenericParams(recipe.params, recipe.type, false);
 
       let stepNumber = 0;
       document.getElementById("genericStepList").innerHTML = recipe.phases.map((phase, phaseIndex) => `
@@ -3158,10 +3228,44 @@
     }
 
     function addGenericParam() {
+      const recipe = getGenericRecipe(activeGenericRecipeId);
+      const usedTypes = new Set([...document.querySelectorAll("#genericParamTable tr")].map(getGenericParamType));
+      const type = genericParamOptions(recipe?.type).find((item) => !usedTypes.has(item)) || "自定义参数";
       document.getElementById("genericParamTable").insertAdjacentHTML("beforeend",
-        `<tr><th class="generic-editable" contenteditable="true">其他</th><td class="generic-editable" contenteditable="true">填写参数。</td><td class="generic-row-controls"><button class="param-control delete" type="button" data-delete-generic-param aria-label="删除参数"><i data-lucide="trash-2"></i></button></td></tr>`
+        genericParamRowMarkup({ type, value: "填写参数。" }, recipe?.type, true)
       );
       lucide.createIcons();
+    }
+
+    function getGenericParamType(row) {
+      const select = row?.querySelector("[data-generic-param-type]");
+      if (!select) return row?.querySelector("th")?.textContent.trim() || "";
+      if (select.value !== "custom") return select.value;
+      return row.querySelector("[data-generic-param-custom]")?.value.trim() || "自定义参数";
+    }
+
+    function updateGenericParamType(select) {
+      const editor = select.closest(".generic-param-type-editor");
+      const existing = editor.querySelector("[data-generic-param-custom]");
+      if (select.value !== "custom") {
+        existing?.remove();
+        return;
+      }
+      if (existing) return;
+      const input = document.createElement("input");
+      input.dataset.genericParamCustom = "";
+      input.setAttribute("aria-label", "自定义参数分类");
+      input.placeholder = "输入分类名称";
+      editor.appendChild(input);
+      input.focus();
+    }
+
+    function moveGenericParam(row, direction) {
+      if (!row) return;
+      const sibling = direction === "up" ? row.previousElementSibling : row.nextElementSibling;
+      if (!sibling) return;
+      if (direction === "up") row.parentElement.insertBefore(row, sibling);
+      else row.parentElement.insertBefore(sibling, row);
     }
 
     function addGenericStep() {
@@ -3240,7 +3344,7 @@
       recipe.image = genericPhoto.dataset.genericImage || "";
       recipe.imageAlt = genericPhoto.dataset.genericImageAlt || "";
       recipe.params = [...document.querySelectorAll("#genericParamTable tr")].map((row) => ({
-        type: row.querySelector("th").textContent.trim(),
+        type: getGenericParamType(row),
         value: row.querySelector("td").textContent.trim()
       }));
       let phaseIndex = -1;
@@ -3304,6 +3408,7 @@
         renderRecipes("homeRecipes");
         renderRecipes("listRecipes");
       }
+      renderGenericParams(recipe.params, recipe.type, false);
       setGenericEditing(false);
       document.getElementById("genericSaveStatus").textContent = "已保存到当前设备。";
     }
@@ -5181,6 +5286,7 @@
       if (event.target.closest("#installApp")) installPersonalApp();
       if (event.target.closest("#genericEdit")) {
         genericDraft = getGenericRecipe(activeGenericRecipeId);
+        renderGenericParams(genericDraft.params, genericDraft.type, true);
         setGenericEditing(true);
         document.getElementById("genericSaveStatus").textContent = "";
       }
@@ -5197,6 +5303,8 @@
       if (event.target.closest("#addGenericTrouble")) addGenericTrouble();
       const deleteParam = event.target.closest("[data-delete-generic-param]");
       if (deleteParam) deleteParam.closest("tr")?.remove();
+      const moveParam = event.target.closest("[data-move-generic-param]");
+      if (moveParam) moveGenericParam(moveParam.closest("tr"), moveParam.dataset.moveGenericParam);
       const deleteStep = event.target.closest("[data-delete-generic-step]");
       if (deleteStep) deleteGenericStep(deleteStep.closest("[data-generic-step]"));
       const moveStep = event.target.closest("[data-move-generic-step]");
@@ -5228,6 +5336,8 @@
     });
 
     document.addEventListener("change", (event) => {
+      const genericParamType = event.target.closest("[data-generic-param-type]");
+      if (genericParamType) updateGenericParamType(genericParamType);
       const genericOverviewImageInput = event.target.closest("[data-generic-overview-image-input]");
       if (genericOverviewImageInput) replaceGenericOverviewImage(genericOverviewImageInput);
       const genericStepImageInput = event.target.closest("[data-generic-step-image-input]");
