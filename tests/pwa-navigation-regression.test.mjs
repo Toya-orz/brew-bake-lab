@@ -9,5 +9,6 @@ assert.match(serviceWorker, /controller\.abort\(\)/);
 assert.match(serviceWorker, /caches\.match\("\.\/index\.html"\)/);
 assert.match(page, /updateViaCache:\s*"none"/);
 assert.match(page, /serviceWorker\.addEventListener\("controllerchange"/);
+assert.doesNotMatch(serviceWorker, /CORE_ASSETS\s*=\s*\[[\s\S]*?assets\/(?:recipes|pour-over)\//);
 
 console.log("PWA navigation fallback and update synchronization guards are present.");

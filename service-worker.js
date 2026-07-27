@@ -1,4 +1,4 @@
-const CACHE_NAME = "brew-bake-lab-v9";
+const CACHE_NAME = "brew-bake-lab-v10";
 const NAVIGATION_TIMEOUT_MS = 4000;
 const CORE_ASSETS = [
   "./",
@@ -7,12 +7,7 @@ const CORE_ASSETS = [
   "./assets/app/icon.svg",
   "./assets/app/icon-192.png",
   "./assets/app/icon-512.png",
-  "./assets/vendor/lucide.min.js",
-  "./assets/recipes/kitchen-worktop.jpg",
-  "./assets/recipes/swiss-roll.jpg",
-  "./assets/recipes/pour-over-coffee.jpg",
-  "./assets/pour-over/coffee-bloom.jpg",
-  "./assets/pour-over/circular-pour.jpg"
+  "./assets/vendor/lucide.min.js"
 ];
 
 self.addEventListener("install", (event) => {
