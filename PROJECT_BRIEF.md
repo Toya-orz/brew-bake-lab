@@ -148,12 +148,13 @@ Implemented in prototype:
 - Custom recipe cards, editable parameters/steps/states/troubleshooting, compressed cover and step images, and JSON backup
 - Full-device backup and restore for all Brew & Bake Lab browser data
 - Installable PWA with offline access on previously opened pages
+- Shared follow-along mode for Swiss Roll, Pour-over Coffee, and custom recipes, with per-recipe progress and screen wake lock where supported
 - Before-start checklist
 - Parameter card
 - Step cards
 - Key state placeholders
 - Troubleshooting
-- Follow-along mode placeholder
+- Follow-along mode
 
 ## Current Schema Direction
 
@@ -164,3 +165,18 @@ Use one shared recipe skeleton with category-specific extensions:
 - Drinks: ratio, water temperature, grind size, pouring rhythm
 
 Swiss Roll and Pour-over Coffee are the first two validation recipes.
+
+## Planned Work
+
+Complete the general recipe workflow before expanding the template system:
+
+1. Refine structured ingredients, tools, and category-specific parameters.
+2. Add faster import from personal notes.
+3. Design reusable recipe templates.
+
+The coffee templates should separate reusable bean information from brewing recipes:
+
+- Coffee bean profile: roaster, origin, variety, process, roast level, roast date, tasting notes, and recommended resting period.
+- Pour-over recipe: bean dose, water, ratio, grind setting, water temperature, brewer, filter, pouring stages, total time, and result notes.
+- Semi-automatic espresso recipe: bean dose, yield, ratio, grind setting, extraction time, temperature, pressure when relevant, basket, milk parameters, and result notes.
+- One coffee bean profile can link to multiple pour-over or espresso recipes so the bean information does not need to be entered repeatedly.

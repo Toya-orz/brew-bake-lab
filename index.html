@@ -986,6 +986,33 @@
       gap: 4px;
     }
 
+    .follow-focus-media {
+      position: relative;
+      margin: 0 0 18px;
+      overflow: hidden;
+      border: 5px solid #fffdf8;
+      border-radius: 5px;
+      background: #e7dccd;
+      box-shadow: 0 8px 22px rgba(82,56,35,0.14);
+    }
+
+    .follow-focus-media img {
+      display: block;
+      width: 100%;
+      max-height: 340px;
+      object-fit: cover;
+    }
+
+    .follow-focus-media figcaption {
+      position: absolute;
+      inset: auto 10px 10px;
+      padding: 7px 9px;
+      border-radius: 6px;
+      color: #fff8e9;
+      background: rgba(45,41,36,0.82);
+      font-size: 12px;
+    }
+
     .follow-focus-item {
       display: grid;
       grid-template-columns: 26px 52px minmax(0, 1fr);
@@ -2527,6 +2554,11 @@
 
           <aside class="aside-panel">
             <div class="follow-card">
+              <h2>跟做模式</h2>
+              <p>一次只看一个步骤，完成后自动进入下一步。</p>
+              <button class="primary-btn follow-start" id="genericFollowStart" type="button"><i data-lucide="maximize-2"></i>开始跟做</button>
+            </div>
+            <div class="follow-card">
               <h2>这份菜谱的结构</h2>
               <p>共用基础骨架，再按分类显示专属参数。</p>
               <ul class="toc-list" id="genericStructureList"></ul>
@@ -3026,9 +3058,10 @@
       let stepNumber = 0;
       document.getElementById("genericStepList").innerHTML = recipe.phases.map((phase, phaseIndex) => `
         <div class="phase-divider"><span>PHASE ${String(phaseIndex + 1).padStart(2, "0")}</span><b class="generic-editable">${escapeHTML(phase.name)}</b></div>
-        ${phase.steps.map((step) => {
+        ${phase.steps.map((step, stepIndex) => {
           stepNumber += 1;
-          return `<article class="step-card${step.image ? " visual-step" : ""}" data-generic-step data-generic-step-image="${escapeHTML(step.image || "")}" data-generic-step-image-alt="${escapeHTML(step.imageAlt || "")}">
+          const stepId = step.id || `generic-step-${phaseIndex + 1}-${stepIndex + 1}`;
+          return `<article class="step-card${step.image ? " visual-step" : ""}" data-generic-step data-generic-step-id="${escapeHTML(stepId)}" data-generic-step-image="${escapeHTML(step.image || "")}" data-generic-step-image-alt="${escapeHTML(step.imageAlt || "")}">
             <div class="step-no">${stepNumber}</div>
             <div>
               <h3 class="generic-editable">${escapeHTML(step.title)}</h3>
@@ -3101,7 +3134,7 @@
       if (!list.querySelector(".phase-divider")) {
         list.insertAdjacentHTML("beforeend", `<div class="phase-divider"><span>PHASE 01</span><b class="generic-editable" contenteditable="true">制作</b></div>`);
       }
-      list.insertAdjacentHTML("beforeend", `<article class="step-card" data-generic-step data-generic-step-image="" data-generic-step-image-alt="">
+      list.insertAdjacentHTML("beforeend", `<article class="step-card" data-generic-step data-generic-step-id="generic-step-${Date.now().toString(36)}" data-generic-step-image="" data-generic-step-image-alt="">
         <div class="step-no"></div>
         <div>
           <h3 class="generic-editable" contenteditable="true">新步骤</h3>
@@ -3185,6 +3218,7 @@
         }
         const notes = [...node.querySelectorAll(".step-note span")];
         recipe.phases[phaseIndex].steps.push({
+          id: node.dataset.genericStepId || `generic-step-${phaseIndex + 1}-${recipe.phases[phaseIndex].steps.length + 1}`,
           title: node.querySelector("h3").textContent.trim(),
           action: notes[0]?.textContent.trim() || "",
           check: notes.find((item) => item.parentElement.querySelector("strong")?.textContent === "判断")?.textContent.trim() || "",
@@ -3575,6 +3609,9 @@
     let followSteps = swissRollVariants[activeVariant].followSteps;
     let followIndex = 0;
     let followCompleted = new Set(savedFollowProgress[activeVariant] || []);
+    let followContext = "swiss";
+    let followProgressKey = activeVariant;
+    let followWakeLock = null;
     let editingSection = null;
     let editDraft = null;
 
@@ -3605,7 +3642,7 @@
 
     function persistFollowProgress() {
       try {
-        savedFollowProgress[activeVariant] = [...followCompleted];
+        savedFollowProgress[followProgressKey] = [...followCompleted];
         localStorage.setItem(followProgressStorageKey, JSON.stringify(savedFollowProgress));
         return true;
       } catch (error) {
@@ -4624,6 +4661,8 @@
       const variant = swissRollVariants[variantId];
       if (!variant || editingSection) return;
       activeVariant = variantId;
+      followContext = "swiss";
+      followProgressKey = variantId;
       followIndex = 0;
       followCompleted = new Set(savedFollowProgress[variantId] || []);
       renderRecipeContent(defaultRecipeContent[variantId]);
@@ -4751,6 +4790,14 @@
     function updateFollowStep(shouldScroll = false) {
       const step = followSteps[followIndex];
       if (!step) return;
+      if (followContext === "generic") {
+        const cards = document.querySelectorAll("#genericStepList [data-generic-step]");
+        cards.forEach((card) => card.classList.remove("current-step"));
+        cards[followIndex]?.classList.add("current-step");
+        if (shouldScroll) cards[followIndex]?.scrollIntoView({ behavior: "smooth", block: "center" });
+        updateFollowDialog();
+        return;
+      }
       const title = Array.isArray(step) ? step[0] : step.title;
       const action = Array.isArray(step) ? step[1] : step.action;
       const followStep = document.getElementById("followStep");
@@ -4775,7 +4822,9 @@
       const step = Array.isArray(rawStep)
         ? { title: rawStep[0], action: rawStep[1], check: "", note: "" }
         : rawStep;
-      document.getElementById("followDialogVariant").textContent = swissRollVariants[activeVariant].version;
+      document.getElementById("followDialogVariant").textContent = followContext === "generic"
+        ? document.getElementById("genericTitle").textContent.trim()
+        : swissRollVariants[activeVariant].version;
       const validStepIds = new Set(followSteps.map((item, index) => Array.isArray(item) ? `legacy-${index}` : item.id));
       followCompleted = new Set([...followCompleted].filter((id) => validStepIds.has(id)));
       const stepId = Array.isArray(rawStep) ? `legacy-${followIndex}` : rawStep.id;
@@ -4788,6 +4837,17 @@
       document.getElementById("followDialogProgress").style.transform = `scaleX(${completedCount / followSteps.length})`;
       const content = document.getElementById("followDialogContent");
       content.replaceChildren();
+      if (step.image) {
+        const figure = document.createElement("figure");
+        figure.className = "follow-focus-media";
+        const image = document.createElement("img");
+        image.src = step.image;
+        image.alt = step.imageAlt || `步骤图：${step.title}`;
+        const caption = document.createElement("figcaption");
+        caption.textContent = step.imageCaption || step.title;
+        figure.append(image, caption);
+        content.appendChild(figure);
+      }
       [
         ["action", "play", "操作", step.action],
         ["check", "circle-check", "判断", step.check],
@@ -4815,7 +4875,44 @@
 
     function openFollowDialog() {
       if (editingSection) return;
+      followContext = "swiss";
+      followProgressKey = activeVariant;
       syncFollowStepsFromPage();
+      followCompleted = new Set(savedFollowProgress[followProgressKey] || []);
+      openPreparedFollowDialog();
+    }
+
+    function openGenericFollowDialog() {
+      if (!activeGenericRecipeId || document.getElementById("genericDetail").classList.contains("is-editing")) return;
+      const recipe = captureGenericRecipe();
+      followContext = "generic";
+      followProgressKey = `generic:${activeGenericRecipeId}`;
+      followSteps = recipe.phases.flatMap((phase) => phase.steps);
+      followCompleted = new Set(savedFollowProgress[followProgressKey] || []);
+      openPreparedFollowDialog();
+    }
+
+    async function requestFollowWakeLock() {
+      if (followWakeLock || !("wakeLock" in navigator) || document.visibilityState !== "visible") return;
+      try {
+        followWakeLock = await navigator.wakeLock.request("screen");
+      } catch (error) {
+        followWakeLock = null;
+      }
+    }
+
+    async function releaseFollowWakeLock() {
+      if (!followWakeLock) return;
+      try {
+        await followWakeLock.release();
+      } catch (error) {
+        // The browser may release it automatically when the page is hidden.
+      }
+      followWakeLock = null;
+    }
+
+    function openPreparedFollowDialog() {
+      if (!followSteps.length) return;
       const firstIncomplete = followSteps.findIndex((step, index) => {
         const id = Array.isArray(step) ? `legacy-${index}` : step.id;
         return !followCompleted.has(id);
@@ -4823,6 +4920,7 @@
       followIndex = firstIncomplete === -1 ? Math.max(0, followSteps.length - 1) : firstIncomplete;
       document.getElementById("followDialog").showModal();
       updateFollowDialog();
+      requestFollowWakeLock();
     }
 
     function completeCurrentFollowStep() {
@@ -4974,6 +5072,7 @@
       if (removeStateImageButton) removeStateImage(removeStateImageButton.closest(".state-tile"));
 
       if (event.target.closest("#followStart")) openFollowDialog();
+      if (event.target.closest("#genericFollowStart")) openGenericFollowDialog();
       if (event.target.closest("#followClose")) document.getElementById("followDialog").close();
       if (event.target.closest("#followReset")) resetFollowProgress();
       if (event.target.closest("#followPrev")) moveFollow(-1, true);
@@ -5111,6 +5210,14 @@
       deferredInstallPrompt = null;
       document.getElementById("installApp").hidden = true;
       document.getElementById("installAppHint").textContent = "已安装到这台设备。";
+    });
+
+    document.getElementById("followDialog").addEventListener("close", releaseFollowWakeLock);
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && document.getElementById("followDialog").open) {
+        requestFollowWakeLock();
+      }
     });
 
     renderRecipes("homeRecipes");
