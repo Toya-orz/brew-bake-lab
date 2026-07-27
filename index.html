@@ -3042,7 +3042,7 @@
       const image = step.image || "";
       if (image) {
         return `<figure class="step-media">
-          <img src="${escapeHTML(image)}" loading="lazy" alt="${escapeHTML(step.imageAlt || `步骤图：${step.title}`)}">
+          <img src="${escapeHTML(image)}" loading="eager" alt="${escapeHTML(step.imageAlt || `步骤图：${step.title}`)}">
           <div class="step-image-tools">
             <label class="state-image-action">更换图片<input type="file" accept="image/jpeg,image/png,image/webp" data-generic-step-image-input aria-label="${escapeHTML(step.title || "当前步骤")}选择图片"></label>
             <button class="state-image-action remove" type="button" data-remove-generic-step-image>移除</button>
