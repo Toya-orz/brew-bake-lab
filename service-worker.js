@@ -1,4 +1,5 @@
-const CACHE_NAME = "brew-bake-lab-v6";
+const CACHE_NAME = "brew-bake-lab-v7";
+const NAVIGATION_TIMEOUT_MS = 4000;
 const CORE_ASSETS = [
   "./",
   "./index.html",
@@ -37,13 +38,22 @@ self.addEventListener("fetch", (event) => {
 
   if (event.request.mode === "navigate") {
     event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+      (async () => {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), NAVIGATION_TIMEOUT_MS);
+        try {
+          const response = await fetch(event.request, { signal: controller.signal });
+          if (response?.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put("./index.html", copy));
+          }
           return response;
-        })
-        .catch(() => caches.match("./index.html"))
+        } catch (error) {
+          return (await caches.match("./index.html")) || (await caches.match("./"));
+        } finally {
+          clearTimeout(timeout);
+        }
+      })()
     );
     return;
   }

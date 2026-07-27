@@ -147,7 +147,7 @@ Implemented in prototype:
 - Local recipe creator with Baking and Drink starter templates
 - Custom recipe cards, editable parameters/steps/states/troubleshooting, compressed cover and step images, and JSON backup
 - Full-device backup and restore for all Brew & Bake Lab browser data
-- Installable PWA with offline access on previously opened pages
+- Installable PWA with synchronized updates and a timed offline fallback for unstable mobile networks
 - Shared follow-along mode for Swiss Roll, Pour-over Coffee, and custom recipes, with per-recipe progress and screen wake lock where supported
 - Before-start checklist
 - Parameter card
