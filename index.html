@@ -4,7 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Brew & Bake Lab 是面向厨房实操的参数化饮品与烘焙手册，提供配方参数、步骤判断、状态图和失败排查。" />
-  <link rel="icon" href="data:," />
+  <meta name="theme-color" content="#3d2d23" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="assets/app/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="assets/app/icon-192.png" />
   <title>Brew & Bake Lab</title>
   <script src="assets/vendor/lucide.min.js"></script>
   <style>
@@ -1689,6 +1692,63 @@
       pointer-events: none;
     }
 
+    .backup-overview {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 20px 0;
+    }
+
+    .backup-stat {
+      padding: 13px;
+      border-radius: 8px;
+      background: #f4ecdf;
+    }
+
+    .backup-stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .backup-stat strong {
+      display: block;
+      margin-top: 5px;
+      color: var(--coffee-dark);
+      font-size: 15px;
+    }
+
+    .backup-warning {
+      padding: 12px 14px;
+      border-left: 3px solid var(--warn);
+      background: #fbf0e2;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    .backup-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .backup-actions > * { justify-content: center; }
+    .backup-actions input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+    .backup-install {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+    }
+
+    .backup-install p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+
     .follow-step {
       padding: 12px;
       background: #fbf7ef;
@@ -1792,6 +1852,7 @@
       .list-head { align-items: stretch; flex-direction: column; }
       .list-actions { align-items: stretch; flex-direction: column; }
       .list-actions > * { width: 100%; }
+      .backup-actions { grid-template-columns: 1fr; }
       .step-grid { grid-template-columns: 1fr; }
       .step-list { padding: 6px 12px 18px; }
       .step-card {
@@ -1877,7 +1938,7 @@
               <button class="ghost-btn" data-page="detail"><i data-lucide="play-circle"></i>进入跟做模式示例</button>
             </div>
           </div>
-          <div class="hero-visual" aria-label="厨房操作台照片">
+          <div class="hero-visual" role="img" aria-label="厨房操作台照片">
             <div class="mini-spec">
               <div><strong>5</strong><span>首批作品</span></div>
               <div><strong>7步</strong><span>统一详情模板</span></div>
@@ -1950,6 +2011,7 @@
           </div>
           <div class="list-actions">
             <button class="primary-btn" id="openRecipeCreate" type="button"><i data-lucide="plus"></i>添加菜谱</button>
+            <button class="ghost-btn" id="openBackupCenter" type="button"><i data-lucide="hard-drive-download"></i>备份与安装</button>
             <div class="sort-box">
               <span>排序</span>
               <select>
@@ -2512,6 +2574,34 @@
         <button class="primary-btn" type="submit">创建并继续编辑<i data-lucide="arrow-right"></i></button>
       </div>
     </form>
+  </dialog>
+
+  <dialog class="recipe-create-dialog" id="backupDialog" aria-labelledby="backupDialogTitle">
+    <div class="recipe-create-form">
+      <div class="recipe-create-head">
+        <div>
+          <h2 id="backupDialogTitle">备份与安装</h2>
+          <p>个人数据只保存在当前浏览器，请定期导出完整备份。</p>
+        </div>
+        <button class="follow-close" id="closeBackupCenter" type="button" aria-label="关闭备份中心"><i data-lucide="x"></i></button>
+      </div>
+      <div class="backup-overview">
+        <div class="backup-stat"><span>本地数据</span><strong id="backupStorageUsage">计算中</strong></div>
+        <div class="backup-stat"><span>上次备份</span><strong id="backupLastTime">从未备份</strong></div>
+      </div>
+      <div class="backup-warning">
+        恢复完整备份会覆盖当前设备上的菜谱、编辑内容和跟做进度。恢复前会再次确认；建议先导出当前数据。
+      </div>
+      <div class="backup-actions">
+        <button class="primary-btn" id="exportAllData" type="button"><i data-lucide="download"></i>导出完整备份</button>
+        <label class="ghost-btn"><i data-lucide="upload"></i>恢复完整备份<input id="importAllData" type="file" accept="application/json,.json" aria-label="恢复完整备份"></label>
+      </div>
+      <p class="data-status" id="backupDataStatus" aria-live="polite"></p>
+      <div class="backup-install">
+        <div><strong>添加到手机桌面</strong><p id="installAppHint">浏览器支持时会显示安装按钮。</p></div>
+        <button class="ghost-btn" id="installApp" type="button" hidden><i data-lucide="smartphone"></i>安装</button>
+      </div>
+    </div>
   </dialog>
 
   <script>
@@ -3158,6 +3248,96 @@
       renderRecipes("homeRecipes");
       renderRecipes("listRecipes");
       setPage("recipes");
+    }
+
+    const fullBackupFormat = "brew-bake-lab-full-backup";
+    const fullBackupTimeKey = "brewBakeLab.lastFullBackupAt";
+    let deferredInstallPrompt = null;
+
+    function collectBrewBakeData() {
+      const data = {};
+      for (let index = 0; index < localStorage.length; index += 1) {
+        const key = localStorage.key(index);
+        if (key?.startsWith("brewBakeLab.")) data[key] = localStorage.getItem(key);
+      }
+      return data;
+    }
+
+    function formatBytes(bytes) {
+      if (bytes < 1024) return `${bytes} B`;
+      if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+      return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+    }
+
+    function updateBackupOverview() {
+      const data = collectBrewBakeData();
+      const bytes = new TextEncoder().encode(JSON.stringify(data)).length;
+      document.getElementById("backupStorageUsage").textContent = `${formatBytes(bytes)} · ${Object.keys(data).length} 项`;
+      const lastBackup = localStorage.getItem(fullBackupTimeKey);
+      document.getElementById("backupLastTime").textContent = lastBackup
+        ? new Intl.DateTimeFormat("zh-CN", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(lastBackup))
+        : "从未备份";
+    }
+
+    function openBackupCenter() {
+      updateBackupOverview();
+      document.getElementById("backupDataStatus").textContent = "";
+      document.getElementById("backupDialog").showModal();
+    }
+
+    function exportAllData() {
+      const exportedAt = new Date().toISOString();
+      const payload = {
+        format: fullBackupFormat,
+        version: 1,
+        exportedAt,
+        data: collectBrewBakeData()
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `brew-bake-lab-backup-${exportedAt.slice(0, 10)}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+      localStorage.setItem(fullBackupTimeKey, exportedAt);
+      updateBackupOverview();
+      document.getElementById("backupDataStatus").textContent = "完整备份已导出，请保存到文件或云盘。";
+    }
+
+    async function importAllData(input) {
+      try {
+        const file = input.files[0];
+        if (!file || file.size > 10 * 1024 * 1024) throw new Error("备份文件不能超过 10MB。");
+        const payload = JSON.parse(await file.text());
+        const entries = Object.entries(payload?.data || {});
+        const isValid = payload?.format === fullBackupFormat
+          && payload?.version === 1
+          && entries.length <= 100
+          && entries.every(([key, value]) => key.startsWith("brewBakeLab.") && typeof value === "string");
+        if (!isValid) throw new Error("不是有效的 Brew & Bake Lab 完整备份。");
+        if (!window.confirm(`恢复后会覆盖当前设备的 ${Object.keys(collectBrewBakeData()).length} 项本地数据，是否继续？`)) {
+          document.getElementById("backupDataStatus").textContent = "已取消恢复。";
+          return;
+        }
+        Object.keys(collectBrewBakeData()).forEach((key) => localStorage.removeItem(key));
+        entries.forEach(([key, value]) => localStorage.setItem(key, value));
+        localStorage.setItem(fullBackupTimeKey, new Date().toISOString());
+        window.location.reload();
+      } catch (error) {
+        document.getElementById("backupDataStatus").textContent = error.message || "恢复失败，请检查文件。";
+      } finally {
+        input.value = "";
+      }
+    }
+
+    async function installPersonalApp() {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+      document.getElementById("installApp").hidden = true;
+      document.getElementById("installAppHint").textContent = "安装请求已完成；也可以使用浏览器菜单添加到主屏幕。";
     }
 
     const sharedFollowSteps = [
@@ -4642,6 +4822,10 @@
       if (card?.dataset.page === "genericDetail") renderGenericRecipe(card.dataset.recipeId);
       if (event.target.closest("#openRecipeCreate")) openRecipeCreateDialog();
       if (event.target.closest("#closeRecipeCreate, #cancelRecipeCreate")) closeRecipeCreateDialog();
+      if (event.target.closest("#openBackupCenter")) openBackupCenter();
+      if (event.target.closest("#closeBackupCenter")) document.getElementById("backupDialog").close();
+      if (event.target.closest("#exportAllData")) exportAllData();
+      if (event.target.closest("#installApp")) installPersonalApp();
       if (event.target.closest("#genericEdit")) {
         genericDraft = getGenericRecipe(activeGenericRecipeId);
         setGenericEditing(true);
@@ -4683,11 +4867,36 @@
       if (event.target.files?.[0]) importGenericRecipe(event.target);
     });
 
+    document.getElementById("importAllData").addEventListener("change", (event) => {
+      if (event.target.files?.[0]) importAllData(event.target);
+    });
+
+    window.addEventListener("beforeinstallprompt", (event) => {
+      event.preventDefault();
+      deferredInstallPrompt = event;
+      document.getElementById("installApp").hidden = false;
+      document.getElementById("installAppHint").textContent = "可以安装为独立应用，离线打开更方便。";
+    });
+
+    window.addEventListener("appinstalled", () => {
+      deferredInstallPrompt = null;
+      document.getElementById("installApp").hidden = true;
+      document.getElementById("installAppHint").textContent = "已安装到这台设备。";
+    });
+
     renderRecipes("homeRecipes");
     renderRecipes("listRecipes");
     buildDefaultRecipeContent();
     applyVariant("classic");
     lucide.createIcons();
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js").catch(() => {
+          document.getElementById("installAppHint").textContent = "离线功能暂未启用，请刷新后重试。";
+        });
+      });
+    }
   </script>
 </body>
 </html>
