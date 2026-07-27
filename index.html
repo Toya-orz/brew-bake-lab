@@ -1749,6 +1749,18 @@
 
     .backup-install p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
 
+    .ios-install-guide {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      background: #edf2f5;
+      color: var(--steel);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .ios-install-guide strong { color: var(--ink); }
+
     .follow-step {
       padding: 12px;
       background: #fbf7ef;
@@ -2601,6 +2613,12 @@
         <div><strong>添加到手机桌面</strong><p id="installAppHint">浏览器支持时会显示安装按钮。</p></div>
         <button class="ghost-btn" id="installApp" type="button" hidden><i data-lucide="smartphone"></i>安装</button>
       </div>
+      <div class="ios-install-guide" id="iosInstallGuide" hidden>
+        <strong>iPhone Safari 安装步骤</strong><br>
+        1. 点击 Safari 底部工具栏的“分享”图标（方框向上箭头）。<br>
+        2. 在菜单中向下滑，选择“添加到主屏幕”。<br>
+        3. 点击右上角“添加”。
+      </div>
     </div>
   </dialog>
 
@@ -3332,12 +3350,37 @@
     }
 
     async function installPersonalApp() {
-      if (!deferredInstallPrompt) return;
+      if (!deferredInstallPrompt) {
+        const guide = document.getElementById("iosInstallGuide");
+        guide.hidden = false;
+        document.getElementById("installAppHint").textContent = "Safari 需要通过分享菜单添加，具体步骤见下方。";
+        guide.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        return;
+      }
       deferredInstallPrompt.prompt();
       await deferredInstallPrompt.userChoice;
       deferredInstallPrompt = null;
       document.getElementById("installApp").hidden = true;
       document.getElementById("installAppHint").textContent = "安装请求已完成；也可以使用浏览器菜单添加到主屏幕。";
+    }
+
+    function configureInstallExperience() {
+      const userAgent = navigator.userAgent;
+      const isIos = /iPad|iPhone|iPod/.test(userAgent)
+        || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      const isStandalone = window.matchMedia("(display-mode: standalone)").matches
+        || window.navigator.standalone === true;
+      const button = document.getElementById("installApp");
+      const hint = document.getElementById("installAppHint");
+      if (isStandalone) {
+        button.hidden = true;
+        hint.textContent = "已安装到这台设备。";
+      } else if (isIos) {
+        button.hidden = false;
+        button.innerHTML = '<i data-lucide="share-2"></i>查看安装步骤';
+        hint.textContent = "iPhone 需要使用 Safari 的分享菜单添加到主屏幕。";
+        lucide.createIcons();
+      }
     }
 
     const sharedFollowSteps = [
@@ -4889,6 +4932,7 @@
     buildDefaultRecipeContent();
     applyVariant("classic");
     lucide.createIcons();
+    configureInstallExperience();
 
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
