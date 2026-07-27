@@ -147,6 +147,7 @@ Implemented in prototype:
 - Local recipe creator with Baking and Drink starter templates
 - Custom recipe cards, editable parameters/steps/states/troubleshooting, compressed cover and step images, and JSON backup
 - Category-aware parameter editing for custom recipes, with Baking/Drink presets, custom labels, and button-based ordering
+- Local note-to-recipe import with numbered-step parsing and a confirmation preview
 - Full-device backup and restore for all Brew & Bake Lab browser data
 - Installable PWA with synchronized updates, a timed offline fallback, and lightweight runtime image caching for unstable mobile networks
 - Shared follow-along mode for Swiss Roll, Pour-over Coffee, and custom recipes, with per-recipe progress and screen wake lock where supported

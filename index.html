@@ -1721,11 +1721,39 @@
     .recipe-create-head h2 { margin: 0; }
     .recipe-create-head p { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
 
+    .recipe-create-modes {
+      display: flex;
+      gap: 6px;
+      margin-top: 18px;
+      padding: 4px;
+      border-radius: 9px;
+      background: rgba(79, 100, 119, 0.08);
+    }
+
+    .recipe-create-mode {
+      flex: 1;
+      min-height: 38px;
+      border: 0;
+      border-radius: 7px;
+      color: var(--muted);
+      background: transparent;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .recipe-create-mode.active {
+      color: var(--coffee-dark);
+      background: var(--panel);
+      box-shadow: 0 1px 4px rgba(45, 32, 22, 0.1);
+    }
+
     .recipe-create-fields {
       display: grid;
       gap: 16px;
       margin-block: 22px;
     }
+    .recipe-create-fields[hidden] { display: none; }
 
     .recipe-create-field {
       display: grid;
@@ -1750,6 +1778,32 @@
     }
 
     .recipe-create-field textarea { min-height: 94px; resize: vertical; }
+    .recipe-note-input { min-height: 210px !important; }
+    .recipe-note-hint {
+      margin: -8px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .recipe-note-preview {
+      display: grid;
+      gap: 10px;
+      margin: 0 0 20px;
+      padding: 16px;
+      border-radius: 9px;
+      background: rgba(242, 233, 218, 0.55);
+    }
+    .recipe-note-preview[hidden] { display: none; }
+    .recipe-note-preview strong { font-size: 15px; }
+    .recipe-note-summary { color: var(--muted); font-size: 12px; }
+    .recipe-note-steps {
+      display: grid;
+      gap: 6px;
+      margin: 0;
+      padding-left: 22px;
+      color: var(--coffee-dark);
+      font-size: 13px;
+    }
     .recipe-create-error { min-height: 18px; margin: 0; color: var(--berry); font-size: 12px; }
 
     .generic-recipe-actions {
@@ -2645,7 +2699,11 @@
         </div>
         <button class="follow-close" id="closeRecipeCreate" type="button" aria-label="关闭添加菜谱"><i data-lucide="x"></i></button>
       </div>
-      <div class="recipe-create-fields">
+      <div class="recipe-create-modes" role="tablist" aria-label="添加方式">
+        <button class="recipe-create-mode active" type="button" role="tab" aria-selected="true" data-recipe-create-mode="manual">快速建立</button>
+        <button class="recipe-create-mode" type="button" role="tab" aria-selected="false" data-recipe-create-mode="note">粘贴笔记</button>
+      </div>
+      <div class="recipe-create-fields" id="recipeCreateManualFields">
         <label class="recipe-create-field">类型
           <select id="newRecipeType" required>
             <option value="baking">烘焙</option>
@@ -2662,10 +2720,27 @@
           <textarea id="newRecipeAction" maxlength="300" placeholder="例如：黄油切小块，室温软化到手指可以轻松按下。" required></textarea>
         </label>
       </div>
+      <div class="recipe-create-fields" id="recipeCreateNoteFields" hidden>
+        <label class="recipe-create-field">类型
+          <select id="noteRecipeType">
+            <option value="baking">烘焙</option>
+            <option value="drink">饮品</option>
+          </select>
+        </label>
+        <label class="recipe-create-field">制作笔记
+          <textarea class="recipe-note-input" id="recipeNoteInput" maxlength="12000" placeholder="直接粘贴原始笔记。支持【阶段标题】、1、2、3 编号步骤，以及材料克数。"></textarea>
+        </label>
+        <p class="recipe-note-hint">只在当前设备解析，不会上传。编号步骤识别最稳定；阶段标题可写成【蛋糊制作】。</p>
+      </div>
+      <section class="recipe-note-preview" id="recipeNotePreview" aria-live="polite" hidden>
+        <strong id="recipeNotePreviewTitle"></strong>
+        <span class="recipe-note-summary" id="recipeNotePreviewSummary"></span>
+        <ol class="recipe-note-steps" id="recipeNotePreviewSteps"></ol>
+      </section>
       <p class="recipe-create-error" id="recipeCreateError" aria-live="polite"></p>
       <div class="recipe-create-actions">
         <button class="ghost-btn" id="cancelRecipeCreate" type="button">取消</button>
-        <button class="primary-btn" type="submit">创建并继续编辑<i data-lucide="arrow-right"></i></button>
+        <button class="primary-btn" id="recipeCreateSubmit" type="submit"><span>创建并继续编辑</span><i data-lucide="arrow-right"></i></button>
       </div>
     </form>
   </dialog>
@@ -2929,6 +3004,8 @@
     const customRecipeStorageKey = "brewBakeLab.customRecipes.v1";
     let activeGenericRecipeId = null;
     let genericDraft = null;
+    let recipeCreateMode = "manual";
+    let parsedRecipeNote = null;
 
     function cloneData(data) {
       return JSON.parse(JSON.stringify(data));
@@ -3418,6 +3495,9 @@
       form.reset();
       document.getElementById("newRecipeCategory").value = "烘焙 / ";
       document.getElementById("recipeCreateError").textContent = "";
+      parsedRecipeNote = null;
+      setRecipeCreateMode("manual");
+      renderRecipeNotePreview(null);
       document.getElementById("recipeCreateDialog").showModal();
       requestAnimationFrame(() => document.getElementById("newRecipeTitle").focus());
     }
@@ -3426,8 +3506,165 @@
       document.getElementById("recipeCreateDialog").close();
     }
 
+    function setRecipeCreateMode(mode) {
+      recipeCreateMode = mode === "note" ? "note" : "manual";
+      document.getElementById("recipeCreateManualFields").hidden = recipeCreateMode !== "manual";
+      document.getElementById("recipeCreateNoteFields").hidden = recipeCreateMode !== "note";
+      document.querySelectorAll("#recipeCreateManualFields input, #recipeCreateManualFields select, #recipeCreateManualFields textarea")
+        .forEach((control) => { control.disabled = recipeCreateMode !== "manual"; });
+      document.querySelectorAll("#recipeCreateNoteFields input, #recipeCreateNoteFields select, #recipeCreateNoteFields textarea")
+        .forEach((control) => { control.disabled = recipeCreateMode !== "note"; });
+      document.querySelectorAll("[data-recipe-create-mode]").forEach((button) => {
+        const isActive = button.dataset.recipeCreateMode === recipeCreateMode;
+        button.classList.toggle("active", isActive);
+        button.setAttribute("aria-selected", String(isActive));
+      });
+      document.querySelector("#recipeCreateSubmit span").textContent =
+        recipeCreateMode === "note" && !parsedRecipeNote ? "识别笔记" : "创建并继续编辑";
+      document.getElementById("recipeCreateError").textContent = "";
+      if (recipeCreateMode === "note") requestAnimationFrame(() => document.getElementById("recipeNoteInput").focus());
+    }
+
+    function cleanRecipeNoteText(value) {
+      return String(value || "").replace(/\*\*/g, "").replace(/^[#>\s]+/, "").trim();
+    }
+
+    function extractRecipeNoteIngredients(note) {
+      const matches = [];
+      const pattern = /([\u4e00-\u9fffA-Za-z/]{1,12})\s*(?:[×*x]\s*(\d+(?:\.\d+)?)\s*(个|颗|只)?|(\d+(?:\.\d+)?)\s*(g|ml|克|毫升|个|颗|只|滴))/gi;
+      for (const match of String(note || "").matchAll(pattern)) {
+        const name = match[1].replace(/^(加入|倒入|筛入|加|至|和|或)/, "");
+        const amount = match[2] || match[4];
+        const unit = match[3] || match[5] || (/鸡蛋|蛋黄|蛋白/.test(name) ? "个" : "");
+        const ingredient = `${name} ${amount}${unit}`.trim();
+        if (name && !matches.includes(ingredient)) matches.push(ingredient);
+      }
+      return matches.slice(0, 18);
+    }
+
+    function parseRecipeNote(note, type) {
+      const lines = String(note || "").replace(/\r/g, "").split("\n").map(cleanRecipeNoteText).filter(Boolean);
+      if (!lines.length) return null;
+      let title = "";
+      let phase = type === "drink" ? "制作" : "准备";
+      const phases = [];
+      const ensurePhase = (name) => {
+        let current = phases[phases.length - 1];
+        if (!current || current.name !== name) {
+          current = { name, steps: [] };
+          phases.push(current);
+        }
+        return current;
+      };
+      lines.forEach((line) => {
+        const heading = line.match(/^【(.+?)】$/) || line.match(/^\[(.+?)\]$/);
+        if (heading) {
+          phase = heading[1].trim();
+          return;
+        }
+        const numbered = line.match(/^\s*(\d{1,2})\s*[、.．)）]\s*(.+)$/);
+        if (!numbered) {
+          if (!title && line.length <= 60) title = line.replace(/^原味[:：]?/, "原味").trim();
+          return;
+        }
+        const content = numbered[2].trim();
+        const parts = content.split(/[:：]/);
+        const stepTitle = parts.length > 1
+          ? parts.shift().trim()
+          : content.replace(/[，,；;。].*$/, "").slice(0, 18);
+        ensurePhase(phase).steps.push({
+          title: stepTitle || `步骤 ${numbered[1]}`,
+          action: parts.length ? parts.join("：").trim() : content,
+          check: "",
+          note: ""
+        });
+      });
+      const steps = phases.flatMap((item) => item.steps);
+      if (!steps.length) return { error: "没有识别到编号步骤。请使用“1、操作内容”的格式。" };
+      const ingredients = extractRecipeNoteIngredients(note);
+      return {
+        title: title || "从笔记导入的菜谱",
+        type,
+        ingredients,
+        phases,
+        stepCount: steps.length
+      };
+    }
+
+    function renderRecipeNotePreview(parsed) {
+      const preview = document.getElementById("recipeNotePreview");
+      preview.hidden = !parsed || Boolean(parsed.error);
+      if (!parsed || parsed.error) return;
+      document.getElementById("recipeNotePreviewTitle").textContent = parsed.title;
+      document.getElementById("recipeNotePreviewSummary").textContent =
+        `识别到 ${parsed.ingredients.length} 项材料 · ${parsed.phases.length} 个阶段 · ${parsed.stepCount} 个步骤`;
+      document.getElementById("recipeNotePreviewSteps").innerHTML = parsed.phases
+        .flatMap((phase) => phase.steps.map((step) => `<li>${escapeHTML(step.title)}</li>`))
+        .slice(0, 6)
+        .join("");
+    }
+
+    function buildRecipeFromNote(parsed) {
+      const category = parsed.type === "drink" ? "饮品 / 待分类" : "烘焙 / 待分类";
+      const recipe = createRecipeTemplate({
+        type: parsed.type,
+        title: parsed.title,
+        category,
+        action: parsed.phases[0].steps[0].action
+      });
+      recipe.description = "由个人制作笔记导入。材料和步骤已经初步整理，请按实际操作继续校对。";
+      recipe.params[0] = {
+        type: parsed.type === "drink" ? "原料" : "材料",
+        value: parsed.ingredients.length ? parsed.ingredients.join("；") : "请补充材料与用量。"
+      };
+      recipe.phases = parsed.phases.map((phase, phaseIndex) => ({
+        name: phase.name,
+        steps: phase.steps.map((step, stepIndex) => ({
+          ...step,
+          id: `generic-step-${phaseIndex + 1}-${stepIndex + 1}`
+        }))
+      }));
+      return recipe;
+    }
+
+    function persistNewCustomRecipe(recipe) {
+      const customRecipes = loadCustomRecipes();
+      customRecipes[recipe.id] = recipe;
+      persistCustomRecipes(customRecipes);
+      renderRecipes("homeRecipes");
+      renderRecipes("listRecipes");
+      closeRecipeCreateDialog();
+      renderGenericRecipe(recipe.id);
+      setPage("genericDetail");
+      setGenericEditing(true);
+    }
+
     function createCustomRecipe(event) {
       event.preventDefault();
+      if (recipeCreateMode === "note") {
+        if (!parsedRecipeNote) {
+          parsedRecipeNote = parseRecipeNote(
+            document.getElementById("recipeNoteInput").value,
+            document.getElementById("noteRecipeType").value
+          );
+          if (!parsedRecipeNote || parsedRecipeNote.error) {
+            document.getElementById("recipeCreateError").textContent =
+              parsedRecipeNote?.error || "请先粘贴制作笔记。";
+            parsedRecipeNote = null;
+            return;
+          }
+          renderRecipeNotePreview(parsedRecipeNote);
+          document.querySelector("#recipeCreateSubmit span").textContent = "确认创建";
+          return;
+        }
+        if (Object.keys(loadCustomRecipes()).length >= 100) {
+          document.getElementById("recipeCreateError").textContent = "当前设备最多保存 100 份自建菜谱，请先导出并删除不常用的菜谱。";
+          return;
+        }
+        persistNewCustomRecipe(buildRecipeFromNote(parsedRecipeNote));
+        document.getElementById("genericSaveStatus").textContent = "笔记已导入，请校对识别内容后保存。";
+        return;
+      }
       const type = document.getElementById("newRecipeType").value;
       const title = document.getElementById("newRecipeTitle").value.trim();
       const category = document.getElementById("newRecipeCategory").value.trim();
@@ -3441,15 +3678,7 @@
         return;
       }
       const recipe = createRecipeTemplate({ type, title, category, action });
-      const customRecipes = loadCustomRecipes();
-      customRecipes[recipe.id] = recipe;
-      persistCustomRecipes(customRecipes);
-      renderRecipes("homeRecipes");
-      renderRecipes("listRecipes");
-      closeRecipeCreateDialog();
-      renderGenericRecipe(recipe.id);
-      setPage("genericDetail");
-      setGenericEditing(true);
+      persistNewCustomRecipe(recipe);
       document.getElementById("genericSaveStatus").textContent = "菜谱已建立，请继续完善后保存。";
     }
 
@@ -5279,6 +5508,8 @@
       const card = event.target.closest(".recipe-card[data-page]");
       if (card?.dataset.page === "genericDetail") renderGenericRecipe(card.dataset.recipeId);
       if (event.target.closest("#openRecipeCreate")) openRecipeCreateDialog();
+      const recipeCreateModeButton = event.target.closest("[data-recipe-create-mode]");
+      if (recipeCreateModeButton) setRecipeCreateMode(recipeCreateModeButton.dataset.recipeCreateMode);
       if (event.target.closest("#closeRecipeCreate, #cancelRecipeCreate")) closeRecipeCreateDialog();
       if (event.target.closest("#openBackupCenter")) openBackupCenter();
       if (event.target.closest("#closeBackupCenter")) document.getElementById("backupDialog").close();
@@ -5325,6 +5556,20 @@
       if (!category.value || /^(烘焙|饮品)\s*\/?\s*$/.test(category.value)) {
         category.value = event.target.value === "drink" ? "饮品 / " : "烘焙 / ";
       }
+    });
+
+    document.getElementById("recipeNoteInput").addEventListener("input", () => {
+      if (!parsedRecipeNote) return;
+      parsedRecipeNote = null;
+      renderRecipeNotePreview(null);
+      document.querySelector("#recipeCreateSubmit span").textContent = "识别笔记";
+    });
+
+    document.getElementById("noteRecipeType").addEventListener("change", () => {
+      if (!parsedRecipeNote) return;
+      parsedRecipeNote = null;
+      renderRecipeNotePreview(null);
+      document.querySelector("#recipeCreateSubmit span").textContent = "识别笔记";
     });
 
     document.getElementById("importGenericRecipe").addEventListener("change", (event) => {
