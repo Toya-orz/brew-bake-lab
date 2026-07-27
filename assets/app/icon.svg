@@ -1,14 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <rect width="512" height="512" rx="112" fill="#f8f1e5"/>
-  <circle cx="256" cy="256" r="185" fill="none" stroke="#4b372b" stroke-width="13"/>
-  <circle cx="256" cy="256" r="160" fill="none" stroke="#aa3f4d" stroke-width="3.5" stroke-dasharray="3 16" stroke-linecap="round"/>
+  <circle cx="256" cy="256" r="220" fill="none" stroke="#4b372b" stroke-width="15"/>
+  <circle cx="256" cy="256" r="190" fill="none" stroke="#aa3f4d" stroke-width="4" stroke-dasharray="4 20" stroke-linecap="round"/>
   <g fill="#4b372b" font-family="Charter" font-weight="900">
-    <text x="191" y="287" text-anchor="middle" font-size="118">B</text>
-    <text x="256" y="277" text-anchor="middle" font-size="67">&amp;</text>
-    <text x="321" y="287" text-anchor="middle" font-size="118">B</text>
+    <text x="176" y="301" text-anchor="middle" font-size="148">B</text>
+    <text x="256" y="288" text-anchor="middle" font-size="78">&amp;</text>
+    <text x="336" y="301" text-anchor="middle" font-size="148">B</text>
   </g>
-  <path d="M150 331h212" stroke="#aa3f4d" stroke-width="8" stroke-linecap="round"/>
-  <text x="256" y="374" text-anchor="middle" fill="#7c6a5e"
+  <path d="M117 352h278" stroke="#aa3f4d" stroke-width="10" stroke-linecap="round"/>
+  <text x="256" y="405" text-anchor="middle" fill="#7c6a5e"
     font-family="'Avenir Next Rounded', 'Arial Rounded MT Bold', sans-serif"
-    font-size="24" font-weight="700" letter-spacing="8">LAB</text>
+    font-size="30" font-weight="700" letter-spacing="10">LAB</text>
 </svg>
