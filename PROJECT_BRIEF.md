@@ -152,9 +152,9 @@ Implemented in prototype:
 - A dedicated Coffee Bean Library navigation module with repeatable variety/process/blend-ratio rows
 - Coffee bean detail pages with linked brewing recipes and bean-aware shortcuts for creating pour-over or espresso methods
 - A full-height coffee bean editor with a scrollable field area and always-visible save actions on mobile and desktop
-- Reusable pour-over parameter cards that feed one fixed three-stage brewing guide
-- One-click switching between saved pour-over parameter cards without duplicating the brewing method
-- A reduced coffee parameter screen that hides recipe imagery, state galleries, troubleshooting, and structural metadata
+- Pour-over and espresso parameters stored directly inside each coffee bean profile
+- Fixed brewing guides that replace all displayed values when a different coffee bean is selected
+- Legacy coffee parameter cards remain accessible for data safety, but new coffee parameters are created only inside bean profiles
 - Full-device backup and restore for all Brew & Bake Lab browser data
 - Installable PWA with synchronized updates, a timed offline fallback, and lightweight runtime image caching for unstable mobile networks
 - Shared follow-along mode for Swiss Roll, Pour-over Coffee, and custom recipes, with per-recipe progress and screen wake lock where supported
@@ -186,6 +186,6 @@ Complete the general recipe workflow before expanding the template system:
 Coffee uses three separate layers so brewing instructions are not duplicated for every bean:
 
 - Coffee bean profile: roaster, origin, variety, process, roast level, roast date, tasting notes, and recommended resting period.
-- Parameter card: bean dose, water or yield, grind setting, temperature, equipment, three structured pour-stage rows (stage name, start time, cumulative water), target time, and optional result notes.
+- Bean-owned parameters: pour-over dose, water, grind, temperature and three pour stages; espresso dose, yield, grind, temperature and time.
 - Fixed method guide: one reusable workflow such as three-stage pour-over or standard espresso extraction. Its displayed weights are calculated from the selected parameter card.
 - One coffee bean profile can link to multiple parameter cards, while one fixed guide can instantly switch between those cards.

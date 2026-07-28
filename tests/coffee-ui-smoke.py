@@ -21,6 +21,21 @@ def seed(page):
               roastDate: "2026-07-20",
               rest: "10–20 天",
               notes: "白花、柑橘、红茶"
+            },
+            "bean-second": {
+              id: "bean-second",
+              name: "第二款豆",
+              brewParams: {
+                pour: {
+                  dose: "20g", water: "300g", grind: "中粗", temp: "90°C",
+                  stages: [
+                    { label: "闷蒸", time: "00:00", grams: "40g" },
+                    { label: "第二段", time: "00:40", grams: "180g" },
+                    { label: "第三段", time: "01:30", grams: "300g" }
+                  ]
+                },
+                espresso: { dose: "19g", yield: "40g", grind: "刻度 3", temp: "93°C", time: "28秒" }
+              }
             }
           }));
           const recipe = applyCoffeeTemplate(createRecipeTemplate({
@@ -29,24 +44,7 @@ def seed(page):
             category: "饮品 / 咖啡 / 手冲",
             action: "准备"
           }), "pour-over", "bean-smoke");
-          const second = applyCoffeeTemplate(createRecipeTemplate({
-            type: "drink",
-            title: "测试手冲 · 大杯",
-            category: "饮品 / 咖啡 / 手冲",
-            action: "准备"
-          }), "pour-over", "bean-smoke");
-          second.id = `${recipe.id}-large`;
-          second.params.find(item => item.type === "用水").value = "总水量 300g。";
-          second.pourStages = [
-            { label: "闷蒸", time: "00:00", grams: "40g" },
-            { label: "第二段", time: "00:35", grams: "180g" },
-            { label: "第三段", time: "01:20", grams: "300g" }
-          ];
-          localStorage.setItem("brewBakeLab.customRecipes.v1", JSON.stringify({
-            [recipe.id]: recipe,
-            [second.id]: second
-          }));
-          window.__smokeRecipeId = recipe.id;
+          localStorage.setItem("brewBakeLab.customRecipes.v1", JSON.stringify({ [recipe.id]: recipe }));
         }"""
     )
     migrated = page.evaluate(
@@ -66,45 +64,10 @@ def seed(page):
 def verify_viewport(browser, width, height, suffix):
     page = browser.new_page(viewport={"width": width, "height": height})
     seed(page)
-    recipe_id = page.evaluate("window.__smokeRecipeId")
-    page.evaluate(
-        """recipeId => {
-          renderGenericRecipe(recipeId);
-          setPage("genericDetail");
-        }""",
-        recipe_id,
-    )
-    assert page.locator("#genericPourPlan").is_visible()
-    assert page.locator("#genericPourPlanRows [data-pour-stage]").count() == 4
-    assert not page.locator("#genericStepList").is_visible()
-    assert not page.locator("#genericPhoto").is_visible()
-    assert not page.locator("#genericStates").is_visible()
-    assert not page.locator("#genericTrouble").is_visible()
-    assert page.locator("#genericEdit").inner_text() == "编辑参数"
-    assert "自动粉水比 1:16" in page.locator("#genericParamHint").inner_text()
-    assert page.locator("#pourPresetSelect option").count() == 2
+    page.evaluate("""() => { renderBeanDetail("bean-smoke"); setPage("beanDetail"); }""")
+    assert page.locator("#beanMethodGroups").get_by_text("15g · 240g").is_visible()
+    assert page.locator("#beanMethodGroups").get_by_text("30g").is_visible()
     page.screenshot(path=f"/tmp/brew-bake-pour-{suffix}.png", full_page=True)
-
-    page.click("#genericEdit")
-    water_value = page.locator("#genericParamTable tr").nth(1).locator("td").first
-    water_value.fill("总水量 300g。")
-    page.locator("[data-pour-stage-grams]").nth(0).fill("40g")
-    page.locator("[data-pour-stage-grams]").nth(1).fill("180g")
-    page.locator("[data-pour-stage-grams]").nth(2).fill("300g")
-    page.click("#genericSave")
-    assert page.locator(".pour-plan-grams").nth(2).inner_text() == "300g"
-    saved_water = page.evaluate(
-        """recipeId => JSON.parse(localStorage.getItem("brewBakeLab.customRecipes.v1"))[recipeId].params.find(item => item.type === "用水").value""",
-        recipe_id,
-    )
-    assert saved_water == "总水量 300g。"
-    saved_stages = page.evaluate(
-        """recipeId => JSON.parse(localStorage.getItem("brewBakeLab.customRecipes.v1"))[recipeId].pourStages.map(item => item.grams).join(",")""",
-        recipe_id,
-    )
-    assert saved_stages == "40g,180g,300g"
-    page.locator("#pourPresetSelect").select_option(f"{recipe_id}-large")
-    assert page.locator("#genericTitle").inner_text() == "测试手冲 · 大杯"
 
     page.evaluate('openBeanLibrary("bean-smoke")')
     dialog = page.locator("#beanLibraryDialog")
@@ -119,6 +82,9 @@ def verify_viewport(browser, width, height, suffix):
             "(node) => node.scrollHeight > node.clientHeight"
         )
     page.locator("#beanNotes").fill("白花、柑橘、红茶、蜂蜜")
+    page.locator("#beanPourWater").fill("260g")
+    page.locator(".bean-brew-editor").nth(1).locator("summary").click()
+    page.locator("#beanEspressoDose").fill("19g")
     page.locator("#beanForm button[type=submit]").click()
     assert (
         page.evaluate(
@@ -126,6 +92,15 @@ def verify_viewport(browser, width, height, suffix):
         )
         == "白花、柑橘、红茶、蜂蜜"
     )
+    assert page.evaluate(
+        """() => JSON.parse(localStorage.getItem("brewBakeLab.coffeeBeans.v1"))["bean-smoke"].brewParams.pour.water"""
+    ) == "260g"
+    page.evaluate("""() => { renderBeanDetail("bean-smoke"); setPage("beanDetail"); }""")
+    page.locator('[data-open-brew-guide="pour"]').click()
+    assert page.locator("#brewGuideSummary").get_by_text("260g").is_visible()
+    page.locator("#brewGuideBean").select_option("bean-second")
+    assert page.locator("#brewGuideSummary").get_by_text("300g").is_visible()
+    assert page.locator("#brewGuideSteps").get_by_text("40g").is_visible()
     page.close()
 
 
