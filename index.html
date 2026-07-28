@@ -1824,6 +1824,72 @@
       gap: 12px;
     }
     .bean-page-grid .bean-card { min-height: 112px; align-content: center; }
+    .bean-detail-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      margin: 20px 0;
+      padding: 24px;
+      border-radius: 12px;
+      background: rgba(242, 233, 218, 0.62);
+    }
+    .bean-detail-hero h1 { font-size: clamp(32px, 5vw, 54px); line-height: 1.05; }
+    .bean-detail-hero p { margin: 12px 0 0; color: var(--muted); line-height: 1.65; }
+    .bean-detail-actions { display: flex; align-items: flex-start; gap: 8px; flex-wrap: wrap; }
+    .bean-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .bean-detail-panel {
+      padding: 18px;
+      border-radius: 10px;
+      background: var(--panel);
+      box-shadow: 0 1px 4px rgba(45, 32, 22, 0.08);
+    }
+    .bean-detail-panel.wide { grid-column: 1 / -1; }
+    .bean-detail-panel h2 { margin: 0 0 12px; font-size: 18px; }
+    .bean-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .bean-fact span { display: block; color: var(--muted); font-size: 11px; }
+    .bean-fact strong { display: block; margin-top: 4px; color: var(--coffee-dark); font-size: 14px; }
+    .bean-detail-components { display: grid; gap: 8px; }
+    .bean-detail-component {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr .55fr;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 7px;
+      background: rgba(242, 233, 218, 0.55);
+      font-size: 13px;
+    }
+    .bean-method-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 28px 0 12px;
+    }
+    .bean-method-head h2 { margin: 0; font-size: 22px; }
+    .bean-method-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .bean-method-groups { display: grid; gap: 18px; }
+    .bean-method-group h3 { margin: 0 0 8px; color: var(--muted); font-size: 13px; }
+    .bean-method-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .bean-method-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 5px 10px;
+      padding: 16px;
+      border: 0;
+      border-radius: 9px;
+      color: var(--ink);
+      background: var(--panel);
+      box-shadow: 0 1px 4px rgba(45, 32, 22, 0.08);
+      text-align: left;
+      cursor: pointer;
+    }
+    .bean-method-card strong { font-size: 15px; }
+    .bean-method-card span { grid-column: 1; color: var(--muted); font-size: 12px; }
+    .bean-method-card > svg { grid-column: 2; grid-row: 1 / 3; align-self: center; width: 17px; }
     .bean-card {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
@@ -2152,6 +2218,16 @@
       .bean-form .wide,
       .bean-form-actions { grid-column: auto; }
       .bean-page-grid { grid-template-columns: 1fr; }
+      .bean-detail-hero { grid-template-columns: 1fr; padding: 20px; }
+      .bean-detail-actions > * { flex: 1; justify-content: center; }
+      .bean-detail-grid,
+      .bean-facts,
+      .bean-method-list { grid-template-columns: 1fr; }
+      .bean-detail-panel.wide { grid-column: auto; }
+      .bean-detail-component { grid-template-columns: 1fr; gap: 3px; }
+      .bean-method-head { align-items: flex-start; flex-direction: column; }
+      .bean-method-actions { width: 100%; }
+      .bean-method-actions > * { flex: 1; justify-content: center; }
       .bean-component-row {
         grid-template-columns: minmax(0, 1fr) 34px;
         padding: 10px;
@@ -2390,6 +2466,48 @@
           <p>产地与烘焙信息保留在主档案；拼配组成按“品种 + 处理法 + 占比”逐行记录。</p>
         </div>
         <div class="bean-page-grid" id="beanPageList"></div>
+      </section>
+
+      <section class="page" id="beanDetail">
+        <div class="breadcrumb">
+          <button class="chip" data-page="beans"><i data-lucide="arrow-left"></i> 返回咖啡豆仓库</button>
+          <span id="beanDetailBreadcrumb">咖啡豆档案</span>
+        </div>
+        <div class="bean-detail-hero">
+          <div>
+            <div class="tag-row" id="beanDetailTags"></div>
+            <h1 id="beanDetailName"></h1>
+            <p id="beanDetailSummary"></p>
+          </div>
+          <div class="bean-detail-actions">
+            <button class="ghost-btn" id="editBeanDetail" type="button"><i data-lucide="pencil"></i>编辑档案</button>
+          </div>
+        </div>
+        <div class="bean-detail-grid">
+          <section class="bean-detail-panel">
+            <h2>豆子信息</h2>
+            <div class="bean-facts" id="beanDetailFacts"></div>
+          </section>
+          <section class="bean-detail-panel">
+            <h2>品种与处理法</h2>
+            <div class="bean-detail-components" id="beanDetailComponents"></div>
+          </section>
+          <section class="bean-detail-panel wide">
+            <h2>风味与养豆</h2>
+            <div class="bean-facts" id="beanDetailTaste"></div>
+          </section>
+        </div>
+        <div class="bean-method-head">
+          <div>
+            <h2>这款豆子的做法</h2>
+            <p class="section-desc">具体粉量、研磨、水温与萃取参数保存在各自配方中。</p>
+          </div>
+          <div class="bean-method-actions">
+            <button class="ghost-btn" type="button" data-new-bean-method="pour-over"><i data-lucide="coffee"></i>新建手冲</button>
+            <button class="primary-btn" type="button" data-new-bean-method="espresso"><i data-lucide="gauge"></i>新建意式</button>
+          </div>
+        </div>
+        <div class="bean-method-groups" id="beanMethodGroups"></div>
       </section>
 
       <section class="page" id="detail">
@@ -3213,12 +3331,13 @@
 
     function setPage(pageId) {
       if (pageId === "beans") renderBeanPage();
+      const navPageId = pageId === "beanDetail" ? "beans" : pageId;
       document.querySelectorAll(".page").forEach((page) => {
         page.classList.toggle("active", page.id === pageId);
       });
       document.querySelectorAll("[data-page]").forEach((button) => {
         if (button.closest(".nav")) {
-          button.classList.toggle("active", button.dataset.page === pageId);
+          button.classList.toggle("active", button.dataset.page === navPageId);
         }
       });
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -3228,6 +3347,7 @@
     const customRecipeStorageKey = "brewBakeLab.customRecipes.v1";
     const coffeeBeanStorageKey = "brewBakeLab.coffeeBeans.v1";
     let activeGenericRecipeId = null;
+    let activeBeanId = null;
     let genericDraft = null;
     let recipeCreateMode = "manual";
     let parsedRecipeNote = null;
@@ -3319,13 +3439,82 @@
       const beans = Object.values(loadCoffeeBeans()).sort((a, b) => a.name.localeCompare(b.name, "zh-CN"));
       document.getElementById("beanPageCount").textContent = `${beans.length} 款`;
       document.getElementById("beanPageList").innerHTML = beans.length
-        ? beans.map((bean) => `<button class="bean-card" type="button" data-edit-coffee-bean="${escapeHTML(bean.id)}">
+        ? beans.map((bean) => `<button class="bean-card" type="button" data-open-bean-detail="${escapeHTML(bean.id)}">
             <strong>${escapeHTML(bean.name)}</strong>
             <span>${escapeHTML(coffeeBeanSummary(bean))}</span>
             <i data-lucide="chevron-right"></i>
           </button>`).join("")
         : `<div class="bean-empty">仓库还是空的。添加第一款豆子后，就能在手冲和意式配方里直接关联。</div>`;
       lucide.createIcons();
+    }
+
+    function beanFactMarkup(label, value) {
+      return `<div class="bean-fact"><span>${escapeHTML(label)}</span><strong>${escapeHTML(value || "未记录")}</strong></div>`;
+    }
+
+    function renderBeanDetail(beanId) {
+      const bean = loadCoffeeBeans()[beanId];
+      if (!bean) {
+        setPage("beans");
+        return;
+      }
+      activeBeanId = beanId;
+      document.getElementById("beanDetailBreadcrumb").textContent = bean.origin || "咖啡豆档案";
+      document.getElementById("beanDetailName").textContent = bean.name;
+      document.getElementById("beanDetailSummary").textContent = coffeeBeanSummary(bean);
+      const firstProcess = getBeanComponents(bean).find((item) => item.process)?.process;
+      document.getElementById("beanDetailTags").innerHTML = [bean.roastLevel, firstProcess, bean.origin]
+        .filter(Boolean)
+        .slice(0, 3)
+        .map((item, index) => `<span class="tag ${index === 0 ? "green" : ""}">${escapeHTML(item)}</span>`)
+        .join("");
+      document.getElementById("beanDetailFacts").innerHTML = [
+        beanFactMarkup("烘焙商", bean.roaster),
+        beanFactMarkup("产地", bean.origin),
+        beanFactMarkup("烘焙度", bean.roastLevel),
+        beanFactMarkup("烘焙日期", bean.roastDate)
+      ].join("");
+      const components = getBeanComponents(bean).filter((item) => item.variety || item.process || item.ratio);
+      document.getElementById("beanDetailComponents").innerHTML = components.length
+        ? components.map((item) => `<div class="bean-detail-component">
+            <strong>${escapeHTML(item.variety || "品种未记录")}</strong>
+            <span>${escapeHTML(item.process || "处理法未记录")}</span>
+            <span>${escapeHTML(item.ratio || "占比未记录")}</span>
+          </div>`).join("")
+        : `<span class="recipe-note-summary">尚未记录品种与处理法。</span>`;
+      document.getElementById("beanDetailTaste").innerHTML = [
+        beanFactMarkup("建议养豆", bean.rest),
+        beanFactMarkup("风味描述", bean.notes)
+      ].join("");
+      const recipes = Object.values(loadCustomRecipes()).filter((recipe) => recipe.coffeeBeanId === beanId);
+      const groups = [
+        { template: "pour-over", label: "手冲配方" },
+        { template: "espresso", label: "意式配方" }
+      ];
+      document.getElementById("beanMethodGroups").innerHTML = recipes.length
+        ? groups.map((group) => {
+            const items = recipes.filter((recipe) => recipe.template === group.template);
+            if (!items.length) return "";
+            return `<section class="bean-method-group">
+              <h3>${group.label} · ${items.length}</h3>
+              <div class="bean-method-list">${items.map((recipe) => `
+                <button class="bean-method-card" type="button" data-open-bean-recipe="${escapeHTML(recipe.id)}">
+                  <strong>${escapeHTML(recipe.title)}</strong>
+                  <span>${escapeHTML(recipe.params.slice(0, 3).map((item) => item.value).join(" · "))}</span>
+                  <i data-lucide="chevron-right"></i>
+                </button>`).join("")}</div>
+            </section>`;
+          }).join("")
+        : `<div class="bean-empty">还没有关联做法。可以从这款豆子直接新建手冲或意式配方。</div>`;
+      lucide.createIcons();
+    }
+
+    function openRecipeCreateForBean(template) {
+      if (!activeBeanId || !loadCoffeeBeans()[activeBeanId]) return;
+      openRecipeCreateDialog();
+      configureRecipeTemplate(template);
+      document.getElementById("newRecipeBean").value = activeBeanId;
+      requestAnimationFrame(() => document.getElementById("newRecipeTitle").focus());
     }
 
     function openBeanLibrary(beanId = "") {
@@ -3420,6 +3609,7 @@
       persistCoffeeBeans(beans);
       closeBeanEdit();
       renderBeanPage();
+      if (activeBeanId === id) renderBeanDetail(id);
     }
 
     function deleteCoffeeBean() {
@@ -3435,6 +3625,10 @@
       persistCustomRecipes(recipes);
       closeBeanEdit();
       renderBeanPage();
+      if (activeBeanId === id) {
+        activeBeanId = null;
+        setPage("beans");
+      }
       if (activeGenericRecipeId) renderGenericRecipe(activeGenericRecipeId);
     }
 
@@ -6029,6 +6223,19 @@
       if (event.target.closest("#addBeanComponent")) addBeanComponent();
       if (event.target.closest("#cancelBeanEdit")) closeBeanEdit();
       if (event.target.closest("#deleteCoffeeBean")) deleteCoffeeBean();
+      if (event.target.closest("#editBeanDetail") && activeBeanId) openBeanLibrary(activeBeanId);
+      const beanDetailCard = event.target.closest("[data-open-bean-detail]");
+      if (beanDetailCard) {
+        renderBeanDetail(beanDetailCard.dataset.openBeanDetail);
+        setPage("beanDetail");
+      }
+      const newBeanMethod = event.target.closest("[data-new-bean-method]");
+      if (newBeanMethod) openRecipeCreateForBean(newBeanMethod.dataset.newBeanMethod);
+      const beanRecipe = event.target.closest("[data-open-bean-recipe]");
+      if (beanRecipe) {
+        renderGenericRecipe(beanRecipe.dataset.openBeanRecipe);
+        setPage("genericDetail");
+      }
       const deleteBeanComponentButton = event.target.closest("[data-delete-bean-component]");
       if (deleteBeanComponentButton) deleteBeanComponent(deleteBeanComponentButton.closest("[data-bean-component]"));
       const editBean = event.target.closest("[data-edit-coffee-bean]");
@@ -6038,7 +6245,10 @@
         else openBeanLibrary(editBean.dataset.editCoffeeBean);
       }
       const linkedBean = event.target.closest("[data-open-linked-bean]");
-      if (linkedBean) openBeanLibrary(linkedBean.dataset.openLinkedBean);
+      if (linkedBean) {
+        renderBeanDetail(linkedBean.dataset.openLinkedBean);
+        setPage("beanDetail");
+      }
       const recipeCreateModeButton = event.target.closest("[data-recipe-create-mode]");
       if (recipeCreateModeButton) setRecipeCreateMode(recipeCreateModeButton.dataset.recipeCreateMode);
       if (event.target.closest("#closeRecipeCreate, #cancelRecipeCreate")) closeRecipeCreateDialog();
