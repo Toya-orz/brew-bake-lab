@@ -2021,7 +2021,7 @@
     }
     .bean-method-head h2 { margin: 0; font-size: 22px; }
     .bean-method-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    .bean-method-groups { display: grid; gap: 18px; }
+    .bean-method-groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
     .bean-method-group h3 { margin: 0 0 8px; color: var(--muted); font-size: 13px; }
     .bean-method-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
     .bean-method-card {
@@ -2140,15 +2140,35 @@
     }
     .bean-brew-parameter-card {
       display: grid;
-      gap: 12px;
-      padding: 16px;
+      gap: 10px;
+      padding: 14px;
       border-radius: 10px;
       background: var(--panel);
       box-shadow: 0 1px 4px rgba(45, 32, 22, 0.08);
     }
     .bean-brew-parameter-card header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
     .bean-brew-parameter-card h3 { margin: 0; font-size: 18px; }
-    .bean-brew-param-line { color: var(--muted); font-size: 13px; line-height: 1.6; }
+    .bean-brew-parameter-card header button { min-height: 36px; padding-inline: 11px; font-size: 12px; }
+    .bean-brew-metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 6px;
+    }
+    .bean-brew-metric {
+      min-width: 0;
+      padding: 8px 9px;
+      border-radius: 7px;
+      background: rgba(242, 233, 218, 0.52);
+    }
+    .bean-brew-metric span { display: block; color: var(--muted); font-size: 10px; }
+    .bean-brew-metric strong {
+      display: block;
+      margin-top: 3px;
+      overflow: hidden;
+      font-size: 13px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
     .bean-brew-stage {
       display: grid;
       grid-template-columns: minmax(0, 1fr) 74px 74px;
@@ -2464,12 +2484,14 @@
       .bean-detail-actions > * { flex: 1; justify-content: center; }
       .bean-detail-grid,
       .bean-facts,
-      .bean-method-list { grid-template-columns: 1fr; }
+      .bean-method-list,
+      .bean-method-groups { grid-template-columns: 1fr; }
       .bean-detail-panel.wide { grid-column: auto; }
       .bean-detail-component { grid-template-columns: 1fr; gap: 3px; }
       .bean-method-head { align-items: flex-start; flex-direction: column; }
       .bean-method-actions { width: 100%; }
       .bean-method-actions > * { flex: 1; justify-content: center; }
+      .bean-brew-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .bean-component-row {
         grid-template-columns: minmax(0, 1fr) 34px;
         padding: 10px;
@@ -3839,12 +3861,16 @@
       document.getElementById("beanMethodGroups").innerHTML = `
         <section class="bean-brew-parameter-card">
           <header><h3>手冲</h3><button class="primary-btn" type="button" data-open-brew-guide="pour"><i data-lucide="arrow-right"></i>带入三段式</button></header>
-          <div class="bean-brew-param-line">${escapeHTML([brew.pour.dose, brew.pour.water, brew.pour.grind, brew.pour.temp].filter(Boolean).join(" · "))}</div>
+          <div class="bean-brew-metrics">
+            ${[["粉量", brew.pour.dose], ["水量", brew.pour.water], ["研磨", brew.pour.grind], ["水温", brew.pour.temp]].map(([label, value]) => `<div class="bean-brew-metric"><span>${label}</span><strong>${escapeHTML(value || "未记录")}</strong></div>`).join("")}
+          </div>
           <div class="bean-detail-components">${brew.pour.stages.map((stage) => `<div class="bean-brew-stage"><strong>${escapeHTML(stage.label)}</strong><span>${escapeHTML(stage.time)}</span><span>${escapeHTML(stage.grams)}</span></div>`).join("")}</div>
         </section>
         <section class="bean-brew-parameter-card">
           <header><h3>意式</h3><button class="ghost-btn" type="button" data-open-brew-guide="espresso"><i data-lucide="arrow-right"></i>带入做法</button></header>
-          <div class="bean-brew-param-line">${escapeHTML([brew.espresso.dose, brew.espresso.yield, brew.espresso.grind, brew.espresso.temp, brew.espresso.time].filter(Boolean).join(" · "))}</div>
+          <div class="bean-brew-metrics">
+            ${[["粉量", brew.espresso.dose], ["液重", brew.espresso.yield], ["研磨", brew.espresso.grind], ["水温", brew.espresso.temp], ["时间", brew.espresso.time]].map(([label, value]) => `<div class="bean-brew-metric"><span>${label}</span><strong>${escapeHTML(value || "未记录")}</strong></div>`).join("")}
+          </div>
         </section>`;
       lucide.createIcons();
     }

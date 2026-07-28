@@ -65,7 +65,8 @@ def verify_viewport(browser, width, height, suffix):
     page = browser.new_page(viewport={"width": width, "height": height})
     seed(page)
     page.evaluate("""() => { renderBeanDetail("bean-smoke"); setPage("beanDetail"); }""")
-    assert page.locator("#beanMethodGroups").get_by_text("15g · 240g").is_visible()
+    assert page.locator("#beanMethodGroups").get_by_text("15g", exact=True).first.is_visible()
+    assert page.locator("#beanMethodGroups").get_by_text("240g", exact=True).first.is_visible()
     assert page.locator("#beanMethodGroups").get_by_text("30g").is_visible()
     page.screenshot(path=f"/tmp/brew-bake-pour-{suffix}.png", full_page=True)
 
