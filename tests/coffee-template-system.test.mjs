@@ -4,6 +4,12 @@ import { readFile } from "node:fs/promises";
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 
 assert.match(html, /brewBakeLab\.coffeeBeans\.v1/);
+assert.match(html, /data-page="beans"><i data-lucide="coffee"><\/i>咖啡豆仓库/);
+assert.match(html, /function getBeanComponents\(bean\)/);
+assert.match(html, /data-bean-variety/);
+assert.match(html, /data-bean-process/);
+assert.match(html, /data-bean-ratio/);
+assert.match(html, /if \(rows\.length <= 1\)/);
 assert.match(html, /function applyCoffeeTemplate\(recipe, template, coffeeBeanId = ""\)/);
 assert.match(html, /value="pour-over">手冲咖啡/);
 assert.match(html, /value="espresso">意式半自动/);

@@ -1806,6 +1806,24 @@
     }
     .bean-library { display: grid; gap: 16px; margin-block: 20px; }
     .bean-library-list { display: grid; gap: 10px; }
+    .bean-page-summary {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 3px 10px;
+      margin: 20px 0 16px;
+      padding: 16px 18px;
+      border-radius: 9px;
+      background: rgba(112, 143, 120, 0.1);
+    }
+    .bean-page-summary span { color: var(--muted); font-size: 12px; }
+    .bean-page-summary strong { color: var(--coffee-dark); }
+    .bean-page-summary p { grid-column: 1 / -1; margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+    .bean-page-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .bean-page-grid .bean-card { min-height: 112px; align-content: center; }
     .bean-card {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
@@ -1828,6 +1846,37 @@
     }
     .bean-form[hidden] { display: none; }
     .bean-form .wide { grid-column: 1 / -1; }
+    .bean-components {
+      display: grid;
+      gap: 8px;
+      grid-column: 1 / -1;
+    }
+    .bean-components-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .bean-components-head strong { color: var(--coffee-dark); font-size: 13px; }
+    .bean-components-head span { color: var(--muted); font-size: 11px; font-weight: 400; }
+    .bean-component-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(74px, .55fr) 34px;
+      gap: 7px;
+      align-items: center;
+    }
+    .bean-component-row input {
+      width: 100%;
+      min-width: 0;
+      min-height: 42px;
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      color: var(--ink);
+      background: #fffdf8;
+      font: inherit;
+    }
+    .bean-component-row .param-control { width: 34px; height: 34px; }
     .bean-form-actions {
       display: flex;
       grid-column: 1 / -1;
@@ -2102,6 +2151,15 @@
       .bean-form { grid-template-columns: 1fr; }
       .bean-form .wide,
       .bean-form-actions { grid-column: auto; }
+      .bean-page-grid { grid-template-columns: 1fr; }
+      .bean-component-row {
+        grid-template-columns: minmax(0, 1fr) 34px;
+        padding: 10px;
+        border-radius: 8px;
+        background: rgba(242, 233, 218, 0.5);
+      }
+      .bean-component-row input { grid-column: 1; }
+      .bean-component-row .param-control { grid-column: 2; grid-row: 1; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -2124,7 +2182,7 @@
         <button class="active" data-page="home"><i data-lucide="layout-dashboard"></i>首页</button>
         <button data-page="recipes"><i data-lucide="book-open"></i>作品库</button>
         <button><i data-lucide="wand-sparkles"></i>基础技巧</button>
-        <button><i data-lucide="clipboard-list"></i>参数笔记</button>
+        <button data-page="beans"><i data-lucide="coffee"></i>咖啡豆仓库</button>
       </nav>
 
       <div class="sidebar-note">
@@ -2227,7 +2285,6 @@
           </div>
           <div class="list-actions">
             <button class="primary-btn" id="openRecipeCreate" type="button"><i data-lucide="plus"></i>添加菜谱</button>
-            <button class="ghost-btn" id="openBeanLibrary" type="button"><i data-lucide="coffee"></i>咖啡豆档案</button>
             <button class="ghost-btn" id="openBackupCenter" type="button"><i data-lucide="hard-drive-download"></i>备份与安装</button>
             <div class="sort-box">
               <span>排序</span>
@@ -2314,6 +2371,25 @@
             </div>
           </div>
         </div>
+      </section>
+
+      <section class="page" id="beans">
+        <div class="list-head">
+          <div>
+            <h1>咖啡豆仓库</h1>
+            <p class="section-desc">保存正在使用和曾经喝过的豆子；同一档案可关联多个手冲或意式配方。</p>
+          </div>
+          <div class="list-actions">
+            <button class="primary-btn" id="addCoffeeBeanFromPage" type="button"><i data-lucide="plus"></i>添加咖啡豆</button>
+            <button class="ghost-btn" id="openBackupCenterFromBeans" type="button"><i data-lucide="hard-drive-download"></i>备份</button>
+          </div>
+        </div>
+        <div class="bean-page-summary">
+          <span>已记录</span>
+          <strong id="beanPageCount">0 款</strong>
+          <p>产地与烘焙信息保留在主档案；拼配组成按“品种 + 处理法 + 占比”逐行记录。</p>
+        </div>
+        <div class="bean-page-grid" id="beanPageList"></div>
       </section>
 
       <section class="page" id="detail">
@@ -2853,12 +2929,13 @@
           <label class="recipe-create-field">产地
             <input id="beanOrigin" maxlength="80">
           </label>
-          <label class="recipe-create-field">品种
-            <input id="beanVariety" maxlength="80">
-          </label>
-          <label class="recipe-create-field">处理法
-            <input id="beanProcess" maxlength="60">
-          </label>
+          <div class="bean-components">
+            <div class="bean-components-head">
+              <div><strong>品种与处理法</strong><br><span>拼配豆可逐行添加，占比未知时留空。</span></div>
+              <button class="ghost-btn" id="addBeanComponent" type="button"><i data-lucide="plus"></i>添加组成</button>
+            </div>
+            <div id="beanComponentRows"></div>
+          </div>
           <label class="recipe-create-field">烘焙度
             <select id="beanRoastLevel">
               <option value="">未记录</option>
@@ -3135,6 +3212,7 @@
     }
 
     function setPage(pageId) {
+      if (pageId === "beans") renderBeanPage();
       document.querySelectorAll(".page").forEach((page) => {
         page.classList.toggle("active", page.id === pageId);
       });
@@ -3196,8 +3274,25 @@
       localStorage.setItem(coffeeBeanStorageKey, JSON.stringify(beansById));
     }
 
+    function getBeanComponents(bean) {
+      if (Array.isArray(bean.components) && bean.components.length) return bean.components;
+      if (bean.variety || bean.process) {
+        return [{ variety: bean.variety || "", process: bean.process || "", ratio: "" }];
+      }
+      return [{ variety: "", process: "", ratio: "" }];
+    }
+
+    function beanComponentSummary(bean) {
+      return getBeanComponents(bean)
+        .filter((item) => item.variety || item.process)
+        .map((item) => [item.variety, item.process, item.ratio].filter(Boolean).join(" / "))
+        .slice(0, 2)
+        .join("；");
+    }
+
     function coffeeBeanSummary(bean) {
-      return [bean.roaster, bean.origin, bean.process, bean.roastLevel].filter(Boolean).join(" · ") || "等待补充产地与烘焙信息";
+      return [bean.roaster, bean.origin, beanComponentSummary(bean), bean.roastLevel].filter(Boolean).join(" · ")
+        || "等待补充产地与烘焙信息";
     }
 
     function renderCoffeeBeanOptions(select, selectedId = "") {
@@ -3220,6 +3315,19 @@
       lucide.createIcons();
     }
 
+    function renderBeanPage() {
+      const beans = Object.values(loadCoffeeBeans()).sort((a, b) => a.name.localeCompare(b.name, "zh-CN"));
+      document.getElementById("beanPageCount").textContent = `${beans.length} 款`;
+      document.getElementById("beanPageList").innerHTML = beans.length
+        ? beans.map((bean) => `<button class="bean-card" type="button" data-edit-coffee-bean="${escapeHTML(bean.id)}">
+            <strong>${escapeHTML(bean.name)}</strong>
+            <span>${escapeHTML(coffeeBeanSummary(bean))}</span>
+            <i data-lucide="chevron-right"></i>
+          </button>`).join("")
+        : `<div class="bean-empty">仓库还是空的。添加第一款豆子后，就能在手冲和意式配方里直接关联。</div>`;
+      lucide.createIcons();
+    }
+
     function openBeanLibrary(beanId = "") {
       renderBeanLibrary();
       document.getElementById("beanForm").hidden = true;
@@ -3236,8 +3344,7 @@
       document.getElementById("beanName").value = bean.name || "";
       document.getElementById("beanRoaster").value = bean.roaster || "";
       document.getElementById("beanOrigin").value = bean.origin || "";
-      document.getElementById("beanVariety").value = bean.variety || "";
-      document.getElementById("beanProcess").value = bean.process || "";
+      renderBeanComponentRows(getBeanComponents(bean));
       document.getElementById("beanRoastLevel").value = bean.roastLevel || "";
       document.getElementById("beanRoastDate").value = bean.roastDate || "";
       document.getElementById("beanRest").value = bean.rest || "";
@@ -3250,11 +3357,39 @@
       requestAnimationFrame(() => document.getElementById("beanName").focus());
     }
 
+    function beanComponentRowMarkup(component = {}) {
+      return `<div class="bean-component-row" data-bean-component>
+        <input data-bean-variety maxlength="80" value="${escapeHTML(component.variety || "")}" placeholder="品种，例如：瑰夏" aria-label="咖啡豆品种">
+        <input data-bean-process maxlength="60" value="${escapeHTML(component.process || "")}" placeholder="处理法，例如：水洗" aria-label="处理法">
+        <input data-bean-ratio maxlength="20" value="${escapeHTML(component.ratio || "")}" placeholder="占比" aria-label="拼配占比">
+        <button class="param-control delete" type="button" data-delete-bean-component aria-label="删除这个组成"><i data-lucide="trash-2"></i></button>
+      </div>`;
+    }
+
+    function renderBeanComponentRows(components) {
+      document.getElementById("beanComponentRows").innerHTML = components.map(beanComponentRowMarkup).join("");
+      lucide.createIcons();
+    }
+
+    function addBeanComponent() {
+      document.getElementById("beanComponentRows").insertAdjacentHTML("beforeend", beanComponentRowMarkup());
+      lucide.createIcons();
+      document.querySelector("#beanComponentRows [data-bean-component]:last-child [data-bean-variety]")?.focus();
+    }
+
+    function deleteBeanComponent(row) {
+      const rows = document.querySelectorAll("#beanComponentRows [data-bean-component]");
+      if (rows.length <= 1) {
+        row.querySelectorAll("input").forEach((input) => { input.value = ""; });
+        return;
+      }
+      row.remove();
+    }
+
     function closeBeanEdit() {
       document.getElementById("beanForm").hidden = true;
-      document.getElementById("beanLibraryToolbar").hidden = false;
-      document.getElementById("beanLibraryList").hidden = false;
-      renderBeanLibrary();
+      document.getElementById("beanLibraryDialog").close();
+      renderBeanPage();
     }
 
     function saveCoffeeBean(event) {
@@ -3271,8 +3406,11 @@
         name,
         roaster: document.getElementById("beanRoaster").value.trim(),
         origin: document.getElementById("beanOrigin").value.trim(),
-        variety: document.getElementById("beanVariety").value.trim(),
-        process: document.getElementById("beanProcess").value.trim(),
+        components: [...document.querySelectorAll("#beanComponentRows [data-bean-component]")].map((row) => ({
+          variety: row.querySelector("[data-bean-variety]").value.trim(),
+          process: row.querySelector("[data-bean-process]").value.trim(),
+          ratio: row.querySelector("[data-bean-ratio]").value.trim()
+        })).filter((item) => item.variety || item.process || item.ratio),
         roastLevel: document.getElementById("beanRoastLevel").value,
         roastDate: document.getElementById("beanRoastDate").value,
         rest: document.getElementById("beanRest").value.trim(),
@@ -3281,6 +3419,7 @@
       };
       persistCoffeeBeans(beans);
       closeBeanEdit();
+      renderBeanPage();
     }
 
     function deleteCoffeeBean() {
@@ -3295,6 +3434,7 @@
       });
       persistCustomRecipes(recipes);
       closeBeanEdit();
+      renderBeanPage();
       if (activeGenericRecipeId) renderGenericRecipe(activeGenericRecipeId);
     }
 
@@ -5882,12 +6022,21 @@
       if (card?.dataset.page === "genericDetail") renderGenericRecipe(card.dataset.recipeId);
       if (event.target.closest("#openRecipeCreate")) openRecipeCreateDialog();
       if (event.target.closest("#openBeanLibrary")) openBeanLibrary();
+      if (event.target.closest("#addCoffeeBeanFromPage")) openBeanLibrary("__new__");
+      if (event.target.closest("#openBackupCenterFromBeans")) openBackupCenter();
       if (event.target.closest("#closeBeanLibrary")) document.getElementById("beanLibraryDialog").close();
       if (event.target.closest("#addCoffeeBean")) startBeanEdit();
+      if (event.target.closest("#addBeanComponent")) addBeanComponent();
       if (event.target.closest("#cancelBeanEdit")) closeBeanEdit();
       if (event.target.closest("#deleteCoffeeBean")) deleteCoffeeBean();
+      const deleteBeanComponentButton = event.target.closest("[data-delete-bean-component]");
+      if (deleteBeanComponentButton) deleteBeanComponent(deleteBeanComponentButton.closest("[data-bean-component]"));
       const editBean = event.target.closest("[data-edit-coffee-bean]");
-      if (editBean) startBeanEdit(editBean.dataset.editCoffeeBean);
+      if (editBean) {
+        const dialog = document.getElementById("beanLibraryDialog");
+        if (dialog.open) startBeanEdit(editBean.dataset.editCoffeeBean);
+        else openBeanLibrary(editBean.dataset.editCoffeeBean);
+      }
       const linkedBean = event.target.closest("[data-open-linked-bean]");
       if (linkedBean) openBeanLibrary(linkedBean.dataset.openLinkedBean);
       const recipeCreateModeButton = event.target.closest("[data-recipe-create-mode]");
