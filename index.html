@@ -2148,6 +2148,7 @@
     }
     .bean-brew-parameter-card header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
     .bean-brew-parameter-card h3 { margin: 0; font-size: 18px; }
+    .bean-brew-parameter-card header span { display: block; margin-top: 2px; color: var(--muted); font-size: 10px; }
     .bean-brew-parameter-card header button { min-height: 36px; padding-inline: 11px; font-size: 12px; }
     .bean-brew-metrics {
       display: grid;
@@ -3365,7 +3366,7 @@
               </div>
             </details>
             <details class="bean-brew-editor wide">
-              <summary>意式参数</summary>
+              <summary>意式浓缩参数</summary>
               <div class="bean-brew-fields">
                 <label>粉量<input id="beanEspressoDose" placeholder="18g"></label>
                 <label>液重<input id="beanEspressoYield" placeholder="36g"></label>
@@ -3867,7 +3868,7 @@
           <div class="bean-detail-components">${brew.pour.stages.map((stage) => `<div class="bean-brew-stage"><strong>${escapeHTML(stage.label)}</strong><span>${escapeHTML(stage.time)}</span><span>${escapeHTML(stage.grams)}</span></div>`).join("")}</div>
         </section>
         <section class="bean-brew-parameter-card">
-          <header><h3>意式</h3><button class="ghost-btn" type="button" data-open-brew-guide="espresso"><i data-lucide="arrow-right"></i>带入做法</button></header>
+          <header><div><h3>意式浓缩</h3><span>美式 / 拿铁通用基底</span></div><button class="ghost-btn" type="button" data-open-brew-guide="espresso"><i data-lucide="arrow-right"></i>带入浓缩做法</button></header>
           <div class="bean-brew-metrics">
             ${[["粉量", brew.espresso.dose], ["液重", brew.espresso.yield], ["研磨", brew.espresso.grind], ["水温", brew.espresso.temp], ["时间", brew.espresso.time]].map(([label, value]) => `<div class="bean-brew-metric"><span>${label}</span><strong>${escapeHTML(value || "未记录")}</strong></div>`).join("")}
           </div>
@@ -3881,7 +3882,7 @@
       const brew = getBeanBrewParams(bean);
       const isPour = kind === "pour";
       document.getElementById("brewGuideDialog").dataset.kind = kind;
-      document.getElementById("brewGuideTitle").textContent = isPour ? "三段式手冲" : "意式萃取";
+      document.getElementById("brewGuideTitle").textContent = isPour ? "三段式手冲" : "意式浓缩";
       document.getElementById("brewGuideSummary").textContent = isPour
         ? `${bean.name} · ${brew.pour.dose} / ${brew.pour.water} · ${brew.pour.grind} · ${brew.pour.temp}`
         : `${bean.name} · ${brew.espresso.dose} → ${brew.espresso.yield} · ${brew.espresso.grind || "研磨待记录"} · ${brew.espresso.temp} · ${brew.espresso.time}`;
