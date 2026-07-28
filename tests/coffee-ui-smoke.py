@@ -37,6 +37,7 @@ def seed(page):
           }), "pour-over", "bean-smoke");
           second.id = `${recipe.id}-large`;
           second.params.find(item => item.type === "用水").value = "总水量 300g。";
+          second.params.find(item => item.type === "注水方案").value = "40g → 180g → 300g";
           localStorage.setItem("brewBakeLab.customRecipes.v1", JSON.stringify({
             [recipe.id]: recipe,
             [second.id]: second
@@ -67,6 +68,8 @@ def verify_viewport(browser, width, height, suffix):
     page.click("#genericEdit")
     water_value = page.locator("#genericParamTable tr").nth(1).locator("td").first
     water_value.fill("总水量 300g。")
+    pour_value = page.locator("#genericParamTable tr").nth(5).locator("td").first
+    pour_value.fill("40g → 180g → 300g")
     page.click("#genericSave")
     assert page.locator(".pour-plan-grams").nth(2).inner_text() == "300g"
     saved_water = page.evaluate(
@@ -74,6 +77,11 @@ def verify_viewport(browser, width, height, suffix):
         recipe_id,
     )
     assert saved_water == "总水量 300g。"
+    saved_stages = page.evaluate(
+        """recipeId => JSON.parse(localStorage.getItem("brewBakeLab.customRecipes.v1"))[recipeId].params.find(item => item.type === "注水方案").value""",
+        recipe_id,
+    )
+    assert saved_stages == "40g → 180g → 300g"
     page.locator("#pourPresetSelect").select_option(f"{recipe_id}-large")
     assert page.locator("#genericTitle").inner_text() == "测试手冲 · 大杯"
 

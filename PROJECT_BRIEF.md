@@ -185,6 +185,6 @@ Complete the general recipe workflow before expanding the template system:
 Coffee uses three separate layers so brewing instructions are not duplicated for every bean:
 
 - Coffee bean profile: roaster, origin, variety, process, roast level, roast date, tasting notes, and recommended resting period.
-- Parameter card: bean dose, water or yield, grind setting, temperature, equipment, target time, and optional result notes.
+- Parameter card: bean dose, water or yield, grind setting, temperature, equipment, a compact pour-stage field such as `30g → 150g → 240g`, target time, and optional result notes.
 - Fixed method guide: one reusable workflow such as three-stage pour-over or standard espresso extraction. Its displayed weights are calculated from the selected parameter card.
 - One coffee bean profile can link to multiple parameter cards, while one fixed guide can instantly switch between those cards.

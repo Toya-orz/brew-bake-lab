@@ -3836,7 +3836,7 @@
       recipe.tags = [template === "espresso" ? "意式" : "手冲", "咖啡", "自建菜谱"];
       recipe.paramHint = template === "espresso"
         ? "意式参数：粉量、液重、比例、研磨、时间与温度。"
-        : "开始前确认粉量、总水量、研磨、水温、器具与目标时间。";
+        : "开始前确认粉量、总水量、研磨、水温、器具、注水方案与目标时间。";
       if (template === "espresso") {
         recipe.params = [
           { type: "咖啡豆", value: "粉量 18g。" },
@@ -3866,6 +3866,7 @@
           { type: "研磨", value: "中细研磨，填写磨豆机刻度。" },
           { type: "水温", value: "92°C。" },
           { type: "器具", value: "滤杯、滤纸、分享壶、电子秤、细口壶。" },
+          { type: "注水方案", value: "30g → 150g → 240g" },
           { type: "萃取", value: "目标总时间 2:30–3:00。" }
         ];
         recipe.pourPlan = defaultPourPlan();
@@ -3898,26 +3899,36 @@
     function fixedPourPlan(recipe) {
       const doseText = recipe.params?.find((item) => item.type === "咖啡豆")?.value || "";
       const waterText = recipe.params?.find((item) => item.type === "用水")?.value || "";
+      const stagesText = recipe.params?.find((item) => item.type === "注水方案")?.value || "";
       const extractionText = recipe.params?.find((item) => item.type === "萃取")?.value || "";
       const dose = Number(doseText.match(/(\d+(?:\.\d+)?)\s*g/i)?.[1]) || 15;
       const water = Number(waterText.match(/(\d+(?:\.\d+)?)\s*g/i)?.[1]) || 240;
-      const bloom = Math.round(dose * 2);
-      const middle = Math.round(water * 0.625);
+      const automatic = [Math.round(dose * 2), Math.round(water * 0.625), Math.round(water)];
+      const custom = [...stagesText.matchAll(/(\d+(?:\.\d+)?)\s*g/gi)].map((match) => Number(match[1]));
+      const [bloom, middle, total] = custom.length >= 3 ? custom.slice(0, 3) : automatic;
       const finishTime = extractionText.match(/\d:\d{2}/)?.[0] || "02:30";
       return [
         { id: "pour-fixed-1", time: "00:00", grams: `${bloom}g`, method: "中心小圈注水，完全润湿咖啡粉。" },
         { id: "pour-fixed-2", time: "00:30", grams: `${middle}g`, method: "从中心向外稳定绕圈。" },
-        { id: "pour-fixed-3", time: "01:15", grams: `${Math.round(water)}g`, method: "小圈注水至目标总水量。" },
+        { id: "pour-fixed-3", time: "01:15", grams: `${total}g`, method: "小圈注水至目标总水量。" },
         { id: "pour-fixed-4", time: finishTime, grams: "完成", method: "滴滤结束后移走滤杯。" }
       ];
     }
 
     function preparePourRecipe(recipe) {
       if (recipe.template !== "pour-over") return recipe;
-      recipe.pourPlan = fixedPourPlan(recipe);
       const resultParam = recipe.params?.find((item) => item.type === "成品");
       if (!recipe.resultNotes) recipe.resultNotes = resultParam?.value || "记录香气、酸甜苦、口感与降温后的变化。";
       recipe.params = (recipe.params || []).filter((item) => item.type !== "比例" && item.type !== "成品");
+      if (!recipe.params.some((item) => item.type === "注水方案")) {
+        const automatic = fixedPourPlan(recipe).slice(0, 3).map((stage) => stage.grams).join(" → ");
+        const extractionIndex = recipe.params.findIndex((item) => item.type === "萃取");
+        recipe.params.splice(extractionIndex < 0 ? recipe.params.length : extractionIndex, 0, {
+          type: "注水方案",
+          value: automatic
+        });
+      }
+      recipe.pourPlan = fixedPourPlan(recipe);
       return recipe;
     }
 
@@ -3993,7 +4004,7 @@
 
     const genericParamTypeOptions = {
       baking: ["成品", "材料", "蛋糕糊", "夹馅", "装饰", "模具 / 器具", "烤箱 & 烤盘", "烘烤", "冷却", "卷制", "定型", "保存"],
-      drink: ["成品", "材料", "原料", "咖啡", "咖啡豆", "用水", "比例", "研磨", "水温", "器具", "萃取", "注水", "奶泡", "制作", "保存"]
+      drink: ["成品", "材料", "原料", "咖啡", "咖啡豆", "用水", "比例", "研磨", "水温", "器具", "注水方案", "萃取", "奶泡", "制作", "保存"]
     };
 
     function genericParamOptions(recipeType) {

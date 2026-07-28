@@ -24,6 +24,8 @@ assert.match(html, /function defaultPourPlan\(\)/);
 assert.match(html, /function renderPourPlan\(recipe, isEditing = false\)/);
 assert.match(html, /id="genericPourPlan"/);
 assert.match(html, /function fixedPourPlan\(recipe\)/);
+assert.match(html, /\{ type: "注水方案", value: "30g → 150g → 240g" \}/);
+assert.match(html, /stagesText\.matchAll/);
 assert.match(html, /id="pourPresetSelect"/);
 assert.match(html, /id="openPourGuide"/);
 assert.match(html, /固定做法，只替换当前参数/);
