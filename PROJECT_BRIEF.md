@@ -197,4 +197,5 @@ Coffee uses three separate layers so brewing instructions are not duplicated for
 - Coffee technique pages keep only the selected bean, compact parameters, executable steps, and collapsed troubleshooting; duplicate descriptions, key-state panels, and side notes are removed from the reading flow.
 - Coffee technique headers use a compact utility layout for method title, bean switching, archive access, and editing instead of a full recipe hero.
 - Coffee bean detail pages consolidate basic data, variety/process rows, flavor, and resting guidance into one scan-friendly profile panel.
+- Coffee bean library cards prioritize source, roast level, and flavor for quick selection; record count sits beside the page title and composition details stay in the profile.
 - The temporary combination does not overwrite either the coffee bean profile or the original method recipe.

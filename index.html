@@ -2073,18 +2073,20 @@
       overflow: hidden;
     }
     .bean-editor-shell > .bean-library:has(.bean-form:not([hidden])) { display: block; }
-    .bean-page-summary {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 3px 10px;
-      margin: 20px 0 16px;
-      padding: 16px 18px;
-      border-radius: 9px;
-      background: rgba(112, 143, 120, 0.1);
+    .bean-page-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
-    .bean-page-summary span { color: var(--muted); font-size: 12px; }
-    .bean-page-summary strong { color: var(--coffee-dark); }
-    .bean-page-summary p { grid-column: 1 / -1; margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+    .bean-page-title h1 { margin: 0; }
+    .bean-page-count {
+      padding: 4px 8px;
+      border-radius: 999px;
+      color: var(--ok);
+      background: rgba(112, 143, 120, 0.12);
+      font-size: 12px;
+      font-weight: 750;
+    }
     .bean-page-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2191,6 +2193,16 @@
     }
     .bean-card strong { grid-column: 1; grid-row: 1; min-width: 0; font-size: 15px; }
     .bean-card span { grid-column: 1; grid-row: 2; min-width: 0; color: var(--muted); font-size: 12px; }
+    .bean-card small {
+      grid-column: 1;
+      grid-row: 3;
+      min-width: 0;
+      overflow: hidden;
+      color: var(--coffee);
+      font-size: 11px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
     .bean-card > svg { grid-row: 1 / 3; grid-column: 2; align-self: center; width: 17px; }
     .bean-form { display: grid; grid-template-rows: minmax(0, 1fr) auto; height: 100%; min-height: 0; }
     .bean-form[hidden] { display: none; }
@@ -2924,18 +2936,15 @@
       <section class="page" id="beans">
         <div class="list-head">
           <div>
-            <h1>咖啡豆仓库</h1>
-            <p class="section-desc">保存正在使用和曾经喝过的豆子；同一档案可关联多个手冲或意式配方。</p>
+            <div class="bean-page-title">
+              <h1>咖啡豆仓库</h1>
+              <span class="bean-page-count" id="beanPageCount">0 款</span>
+            </div>
           </div>
           <div class="list-actions">
             <button class="primary-btn" id="addCoffeeBeanFromPage" type="button"><i data-lucide="plus"></i>添加咖啡豆</button>
             <button class="ghost-btn" id="openBackupCenterFromBeans" type="button"><i data-lucide="hard-drive-download"></i>备份</button>
           </div>
-        </div>
-        <div class="bean-page-summary">
-          <span>已记录</span>
-          <strong id="beanPageCount">0 款</strong>
-          <p>产地与烘焙信息保留在主档案；拼配组成按“品种 + 处理法 + 占比”逐行记录。</p>
         </div>
         <div class="bean-page-grid" id="beanPageList"></div>
       </section>
@@ -4190,7 +4199,8 @@
       document.getElementById("beanPageList").innerHTML = beans.length
         ? beans.map((bean) => `<button class="bean-card" type="button" data-open-bean-detail="${escapeHTML(bean.id)}">
             <strong>${escapeHTML(bean.name)}</strong>
-            <span>${escapeHTML(coffeeBeanSummary(bean))}</span>
+            <span>${escapeHTML([bean.roaster, bean.origin].filter(Boolean).join(" · ") || "未记录来源")}</span>
+            <small>${escapeHTML([bean.roastLevel, bean.flavorNotes].filter(Boolean).join(" · ") || "待补充烘焙度与风味")}</small>
             <i data-lucide="chevron-right"></i>
           </button>`).join("")
         : `<div class="bean-empty">仓库还是空的。添加第一款豆子后，就能在手冲和意式配方里直接关联。</div>`;
