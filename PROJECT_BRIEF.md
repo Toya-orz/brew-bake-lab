@@ -194,4 +194,5 @@ Coffee uses three separate layers so brewing instructions are not duplicated for
 - Pour-over follow progress is isolated per coffee bean, while edits to stage instructions remain attached to the shared technique template.
 - A reusable Espresso technique template for Americanos and milk drinks, with bean-owned dose, yield, grind, temperature, and extraction time.
 - Compact coffee technique parameter grids: two columns on mobile and three on desktop, returning to the full table layout while editing.
+- Coffee technique pages keep only the selected bean, compact parameters, executable steps, and collapsed troubleshooting; duplicate descriptions, key-state panels, and side notes are removed from the reading flow.
 - The temporary combination does not overwrite either the coffee bean profile or the original method recipe.

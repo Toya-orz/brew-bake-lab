@@ -68,6 +68,13 @@ def verify_viewport(browser, width, height, suffix):
     assert page.locator("#beanMethodGroups").get_by_text("15g", exact=True).first.is_visible()
     assert page.locator("#beanMethodGroups").get_by_text("240g", exact=True).first.is_visible()
     assert page.locator("#beanMethodGroups").get_by_text("30g").is_visible()
+    method_buttons = page.locator("#beanMethodGroups header button")
+    if width > 680:
+        first_button_box = method_buttons.nth(0).bounding_box()
+        second_button_box = method_buttons.nth(1).bounding_box()
+        assert first_button_box and second_button_box
+        assert abs(first_button_box["y"] - second_button_box["y"]) <= 1
+        assert abs(first_button_box["width"] - second_button_box["width"]) <= 1
     page.screenshot(path=f"/tmp/brew-bake-pour-{suffix}.png", full_page=True)
 
     page.evaluate('openBeanLibrary("bean-smoke")')
@@ -108,7 +115,7 @@ def verify_viewport(browser, width, height, suffix):
     assert page.locator("#genericPourPlanRows").get_by_text("注意", exact=True).first.is_visible()
     assert "不会覆盖原菜谱" in page.locator("#genericSaveStatus").inner_text()
     page.screenshot(path=f"/tmp/brew-bake-guide-{suffix}.png", full_page=True)
-    page.locator("#openPourGuide").click()
+    page.locator("#coffeeFollowStart").click()
     assert page.locator("#followDialog").is_visible()
     assert page.locator("#followDialogTitle").inner_text() == "闷蒸"
     assert page.locator("#followDialogContent").get_by_text("判断", exact=True).is_visible()
@@ -161,6 +168,7 @@ def verify_viewport(browser, width, height, suffix):
             "buffer": b"# Apple Cake\n1. Mix flour and eggs\n2. Bake until golden",
         }]
     )
+    page.wait_for_function("document.querySelector('#recipeNoteInput').value.includes('Apple Cake')")
     assert "Apple Cake" in page.locator("#recipeNoteInput").input_value()
     assert page.locator("#recipeNoteFileName").inner_text() == "my-recipe.md"
     page.locator("#cancelRecipeCreate").click()
