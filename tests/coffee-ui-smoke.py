@@ -147,6 +147,11 @@ def verify_viewport(browser, width, height, suffix):
     assert page.locator("#genericTitle").inner_text() == "意式浓缩"
     assert "19g → 40g" in page.locator("#genericParamTable").inner_text()
     assert page.locator("#genericStepList").get_by_role("heading", name="开始萃取并计时", exact=True).is_visible()
+    page.screenshot(path=f"/tmp/brew-bake-espresso-{suffix}.png", full_page=True)
+    expected_columns = 2 if width <= 680 else 3
+    assert page.locator("#genericParamTable tbody").evaluate(
+        "(node) => getComputedStyle(node).gridTemplateColumns.split(' ').length"
+    ) == expected_columns
     page.close()
 
 

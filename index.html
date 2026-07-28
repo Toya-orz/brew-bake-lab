@@ -1826,6 +1826,42 @@
     .generic-detail.coffee-parameter-view #genericPhoto { display: none; }
     .generic-detail.coffee-parameter-view .detail-shell { grid-template-columns: minmax(0, 1fr); }
     .generic-detail.coffee-parameter-view #genericParams { margin-top: 20px; }
+    .generic-detail.coffee-parameter-view:not(.is-editing) #genericParamTable {
+      display: block;
+      padding: 12px;
+      border-collapse: separate;
+    }
+    .generic-detail.coffee-parameter-view:not(.is-editing) #genericParamTable tbody {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .generic-detail.coffee-parameter-view:not(.is-editing) #genericParamTable tr {
+      min-width: 0;
+      display: block;
+      padding: 11px 12px;
+      border: 0;
+      border-radius: 7px;
+      background: rgba(242, 233, 218, 0.58);
+    }
+    .generic-detail.coffee-parameter-view:not(.is-editing) #genericParamTable th,
+    .generic-detail.coffee-parameter-view:not(.is-editing) #genericParamTable td {
+      width: auto;
+      display: block;
+      padding: 0;
+      border: 0;
+      background: transparent;
+    }
+    .generic-detail.coffee-parameter-view:not(.is-editing) #genericParamTable th {
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .generic-detail.coffee-parameter-view:not(.is-editing) #genericParamTable td {
+      color: var(--coffee-dark);
+      font-weight: 750;
+      line-height: 1.45;
+    }
 
     .list-actions {
       display: flex;
@@ -2493,6 +2529,9 @@
       .pour-plan-index { width: 32px; height: 32px; }
       .pour-plan-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .pour-plan-note { grid-template-columns: 38px minmax(0, 1fr); }
+      .generic-detail.coffee-parameter-view:not(.is-editing) #genericParamTable tbody {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
       .bean-page-grid { grid-template-columns: 1fr; }
       .bean-detail-hero { grid-template-columns: 1fr; padding: 20px; }
       .bean-detail-actions > * { flex: 1; justify-content: center; }
@@ -4588,16 +4627,17 @@
         : storedRecipe;
       activeCoffeeMethodContext = coffeeMethodContext;
       activeGenericRecipeId = recipeId;
-      const isCoffeeParameter = recipe.template === "pour-over";
-      document.getElementById("genericDetail").classList.toggle("coffee-parameter-view", isCoffeeParameter);
-      document.getElementById("genericEdit").textContent = coffeeMethodContext ? "编辑原菜谱" : (isCoffeeParameter ? "编辑参数" : "编辑");
+      const isPourOver = recipe.template === "pour-over";
+      const isCoffeeTechnique = isPourOver || recipe.template === "espresso";
+      document.getElementById("genericDetail").classList.toggle("coffee-parameter-view", isCoffeeTechnique);
+      document.getElementById("genericEdit").textContent = coffeeMethodContext ? "编辑原技巧" : (isCoffeeTechnique ? "编辑技巧" : "编辑");
       const back = document.getElementById("genericBack");
       const hasLinkedBean = Boolean(loadCoffeeBeans()[recipe.coffeeBeanId]);
       const isTechniqueEntry = [recipeSchemas.pourOver.id, recipeSchemas.espresso.id].includes(recipeId) && !coffeeMethodContext;
-      back.dataset.page = hasLinkedBean ? "beanDetail" : (isTechniqueEntry ? "techniques" : (isCoffeeParameter ? "beans" : "recipes"));
+      back.dataset.page = hasLinkedBean ? "beanDetail" : (isTechniqueEntry ? "techniques" : (isCoffeeTechnique ? "beans" : "recipes"));
       back.dataset.beanId = hasLinkedBean ? recipe.coffeeBeanId : "";
-      back.querySelector("span").textContent = hasLinkedBean ? "返回咖啡豆" : (isTechniqueEntry ? "返回基础技巧" : (isCoffeeParameter ? "返回咖啡豆仓库" : "返回作品库"));
-      document.getElementById("genericParamTitle").textContent = isCoffeeParameter ? "手冲参数" : "参数卡";
+      back.querySelector("span").textContent = hasLinkedBean ? "返回咖啡豆" : (isTechniqueEntry ? "返回基础技巧" : (isCoffeeTechnique ? "返回咖啡豆仓库" : "返回作品库"));
+      document.getElementById("genericParamTitle").textContent = isPourOver ? "手冲参数" : (recipe.template === "espresso" ? "意式参数" : "参数卡");
       document.getElementById("genericBreadcrumb").textContent = recipe.category.join(" / ");
       document.getElementById("genericTitle").textContent = recipe.title;
       document.getElementById("genericDescription").textContent = recipe.description;
@@ -4618,7 +4658,6 @@
         button.classList.toggle("active", button.dataset.page === (coffeeMethodContext ? "beans" : (isTechniqueEntry ? "techniques" : "recipes")));
       });
 
-      const isPourOver = recipe.template === "pour-over";
       document.getElementById("genericStepsTitle").textContent = isPourOver ? "注水步骤" : "步骤流程";
       document.getElementById("genericStepsHint").textContent = isPourOver
         ? "每一步都包含开始时间、累计注水、操作、判断和注意；切换豆子只替换时间与克重。"
