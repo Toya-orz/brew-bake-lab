@@ -4828,7 +4828,7 @@
         document.getElementById("genericSaveStatus").textContent = "每段注水都要填写时间、累计克重和手法。";
         return;
       }
-      const missingAction = [...document.querySelectorAll("#genericStepList [data-required-action]")]
+      const missingAction = [...document.querySelectorAll("#genericStepList [data-required-action], #genericPourPlanRows [data-required-action]")]
         .find((node) => !node.textContent.trim());
       if (missingAction) {
         missingAction.focus();
@@ -6658,7 +6658,7 @@
       if (!activeGenericRecipeId || document.getElementById("genericDetail").classList.contains("is-editing")) return;
       const recipe = captureGenericRecipe();
       followContext = "generic";
-      followProgressKey = `generic:${activeGenericRecipeId}`;
+      followProgressKey = `generic:${activeGenericRecipeId}${activeCoffeeMethodContext?.beanId ? `:${activeCoffeeMethodContext.beanId}` : ""}`;
       followSteps = recipe.phases.flatMap((phase) => phase.steps);
       followCompleted = new Set(savedFollowProgress[followProgressKey] || []);
       openPreparedFollowDialog();

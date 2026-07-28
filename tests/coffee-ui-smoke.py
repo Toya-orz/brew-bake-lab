@@ -129,6 +129,19 @@ def verify_viewport(browser, width, height, suffix):
     assert page.locator("#genericTitle").inner_text() == "三段式手冲"
     page.locator("[data-method-bean-switch]").select_option("bean-smoke")
     assert page.locator("#genericParamTable").get_by_text("260g").is_visible()
+    page.locator("#genericEdit").click()
+    first_method = page.locator("#genericPourPlanRows .pour-plan-method").first
+    first_method.fill("中心小圈注水，确保粉床全部润湿。")
+    page.locator("#genericSave").click()
+    assert "已保存" in page.locator("#genericSaveStatus").inner_text()
+    assert (
+        page.evaluate(
+            """() => JSON.parse(localStorage.getItem("brewBakeLab.genericRecipes.v1"))[
+              "pour-over-coffee"
+            ].pourPlan[0].method"""
+        )
+        == "中心小圈注水，确保粉床全部润湿。"
+    )
     page.close()
 
 
