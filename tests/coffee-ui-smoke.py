@@ -77,6 +77,11 @@ def verify_viewport(browser, width, height, suffix):
         assert abs(first_button_box["width"] - second_button_box["width"]) <= 1
     page.screenshot(path=f"/tmp/brew-bake-pour-{suffix}.png", full_page=True)
 
+    page.locator("#editBeanBrewParams").click()
+    assert page.locator("#beanForm").get_attribute("data-bean-edit-mode") == "brew"
+    assert page.locator("#beanPourWater").is_visible()
+    page.locator("#closeBeanLibrary").click()
+
     page.evaluate('openBeanLibrary("bean-smoke")')
     dialog = page.locator("#beanLibraryDialog")
     assert dialog.is_visible()
@@ -90,6 +95,10 @@ def verify_viewport(browser, width, height, suffix):
             "(node) => node.scrollHeight > node.clientHeight"
         )
     page.locator("#beanNotes").fill("白花、柑橘、红茶、蜂蜜")
+    page.locator('[data-bean-edit-mode="brew"]').click()
+    assert not page.locator("#beanPourWater").is_hidden()
+    assert page.locator("#beanName").is_hidden()
+    page.screenshot(path=f"/tmp/brew-bake-brew-editor-{suffix}.png", full_page=False)
     page.locator("#beanPourWater").fill("260g")
     page.locator(".bean-brew-editor").nth(1).locator("summary").click()
     page.locator("#beanEspressoDose").fill("19g")

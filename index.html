@@ -2216,6 +2216,29 @@
       overscroll-behavior: contain;
     }
     .bean-form-scroll .wide { grid-column: 1 / -1; }
+    .bean-editor-tabs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+      padding: 4px;
+      border-radius: 9px;
+      background: rgba(242, 233, 218, 0.65);
+    }
+    .bean-editor-tab {
+      min-height: 38px;
+      border: 0;
+      border-radius: 7px;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+    }
+    .bean-editor-tab.active {
+      color: #fffaf0;
+      background: var(--coffee-dark);
+      font-weight: 750;
+    }
+    .bean-form[data-bean-edit-mode="profile"] .bean-brew-editor,
+    .bean-form[data-bean-edit-mode="brew"] .bean-profile-field { display: none; }
     .bean-components {
       display: grid;
       gap: 8px;
@@ -3535,23 +3558,27 @@
         <form class="bean-form" id="beanForm" hidden>
           <div class="bean-form-scroll">
             <input id="beanId" type="hidden">
-            <label class="recipe-create-field wide">档案名称
+            <div class="bean-editor-tabs wide" role="tablist" aria-label="咖啡豆编辑区域">
+              <button class="bean-editor-tab active" type="button" role="tab" data-bean-edit-mode="profile" aria-selected="true">豆子档案</button>
+              <button class="bean-editor-tab" type="button" role="tab" data-bean-edit-mode="brew" aria-selected="false">冲煮参数</button>
+            </div>
+            <label class="recipe-create-field wide bean-profile-field">档案名称
               <input id="beanName" maxlength="60" placeholder="例如：埃塞俄比亚 花蝶" required>
             </label>
-            <label class="recipe-create-field">烘焙商
+            <label class="recipe-create-field bean-profile-field">烘焙商
               <input id="beanRoaster" maxlength="60">
             </label>
-            <label class="recipe-create-field">产地
+            <label class="recipe-create-field bean-profile-field">产地
               <input id="beanOrigin" maxlength="80">
             </label>
-            <div class="bean-components">
+            <div class="bean-components bean-profile-field">
               <div class="bean-components-head">
                 <div><strong>品种与处理法</strong><br><span>拼配豆可逐行添加，占比未知时留空。</span></div>
                 <button class="ghost-btn" id="addBeanComponent" type="button"><i data-lucide="plus"></i>添加组成</button>
               </div>
               <div id="beanComponentRows"></div>
             </div>
-            <label class="recipe-create-field">烘焙度
+            <label class="recipe-create-field bean-profile-field">烘焙度
               <select id="beanRoastLevel">
                 <option value="">未记录</option>
                 <option>浅烘焙</option>
@@ -3561,13 +3588,13 @@
                 <option>深烘焙</option>
               </select>
             </label>
-            <label class="recipe-create-field">烘焙日期
+            <label class="recipe-create-field bean-profile-field">烘焙日期
               <input id="beanRoastDate" type="date">
             </label>
-            <label class="recipe-create-field wide">建议养豆
+            <label class="recipe-create-field wide bean-profile-field">建议养豆
               <input id="beanRest" maxlength="100" placeholder="例如：烘焙后 10–20 天">
             </label>
-            <label class="recipe-create-field wide">风味描述
+            <label class="recipe-create-field wide bean-profile-field">风味描述
               <textarea id="beanNotes" maxlength="500" placeholder="例如：白花、柑橘、蜂蜜，降温后茶感明显。"></textarea>
             </label>
             <details class="bean-brew-editor wide" open>
@@ -4276,16 +4303,28 @@
       setPage("genericDetail");
     }
 
-    function openBeanLibrary(beanId = "") {
+    function openBeanLibrary(beanId = "", editMode = "profile") {
       renderBeanLibrary();
       document.getElementById("beanForm").hidden = true;
       document.getElementById("beanLibraryToolbar").hidden = false;
       document.getElementById("beanLibraryList").hidden = false;
       document.getElementById("beanLibraryDialog").showModal();
-      if (beanId) startBeanEdit(beanId);
+      if (beanId) startBeanEdit(beanId, editMode);
     }
 
-    function startBeanEdit(beanId = "") {
+    function setBeanEditMode(mode = "profile") {
+      const form = document.getElementById("beanForm");
+      const nextMode = mode === "brew" ? "brew" : "profile";
+      form.dataset.beanEditMode = nextMode;
+      form.querySelectorAll("[data-bean-edit-mode]").forEach((button) => {
+        const active = button.dataset.beanEditMode === nextMode;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-selected", String(active));
+      });
+      form.querySelector(".bean-form-scroll").scrollTop = 0;
+    }
+
+    function startBeanEdit(beanId = "", editMode = "profile") {
       const bean = loadCoffeeBeans()[beanId] || {};
       document.getElementById("beanForm").reset();
       document.getElementById("beanId").value = bean.id || "";
@@ -4316,7 +4355,11 @@
       document.getElementById("beanForm").hidden = false;
       document.getElementById("beanLibraryToolbar").hidden = true;
       document.getElementById("beanLibraryList").hidden = true;
-      requestAnimationFrame(() => document.getElementById("beanName").focus());
+      setBeanEditMode(editMode);
+      requestAnimationFrame(() => {
+        const focusTarget = editMode === "brew" ? document.getElementById("beanPourDose") : document.getElementById("beanName");
+        focusTarget.focus();
+      });
     }
 
     function beanComponentRowMarkup(component = {}) {
@@ -7327,8 +7370,10 @@
       if (event.target.closest("#addBeanComponent")) addBeanComponent();
       if (event.target.closest("#cancelBeanEdit")) closeBeanEdit();
       if (event.target.closest("#deleteCoffeeBean")) deleteCoffeeBean();
-      if (event.target.closest("#editBeanDetail") && activeBeanId) openBeanLibrary(activeBeanId);
-      if (event.target.closest("#editBeanBrewParams") && activeBeanId) openBeanLibrary(activeBeanId);
+      if (event.target.closest("#editBeanDetail") && activeBeanId) openBeanLibrary(activeBeanId, "profile");
+      if (event.target.closest("#editBeanBrewParams") && activeBeanId) openBeanLibrary(activeBeanId, "brew");
+      const beanEditMode = event.target.closest("[data-bean-edit-mode]");
+      if (beanEditMode) setBeanEditMode(beanEditMode.dataset.beanEditMode);
       const brewGuideButton = event.target.closest("[data-open-brew-guide]");
       if (brewGuideButton) openBrewGuide(brewGuideButton.dataset.openBrewGuide);
       const beanDetailCard = event.target.closest("[data-open-bean-detail]");
