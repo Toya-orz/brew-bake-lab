@@ -102,13 +102,20 @@ def verify_viewport(browser, width, height, suffix):
     assert page.locator("#genericTitle").inner_text() == "三段式手冲"
     assert page.locator("#genericBeanLink strong").get_by_text("测试咖啡豆", exact=True).is_visible()
     assert page.locator("#genericParamTable").get_by_text("260g").is_visible()
-    assert "30g" in page.locator("#pourStageParamRows").inner_text(), page.locator("#pourStageParamRows").inner_text()
-    assert page.locator("#genericStepList").get_by_text("烧水、称豆并折滤纸").is_visible()
+    assert page.locator("#genericPourPlanRows").get_by_text("30g", exact=True).is_visible()
+    assert page.locator("#genericPourPlanRows").get_by_text("操作", exact=True).first.is_visible()
+    assert page.locator("#genericPourPlanRows").get_by_text("判断", exact=True).first.is_visible()
+    assert page.locator("#genericPourPlanRows").get_by_text("注意", exact=True).first.is_visible()
     assert "不会覆盖原菜谱" in page.locator("#genericSaveStatus").inner_text()
     page.screenshot(path=f"/tmp/brew-bake-guide-{suffix}.png", full_page=True)
+    page.locator("#openPourGuide").click()
+    assert page.locator("#followDialog").is_visible()
+    assert page.locator("#followDialogTitle").inner_text() == "闷蒸"
+    assert page.locator("#followDialogContent").get_by_text("判断", exact=True).is_visible()
+    page.locator("#followClose").click()
     page.locator("[data-method-bean-switch]").select_option("bean-second")
     assert page.locator("#genericParamTable").get_by_text("300g").is_visible()
-    assert page.locator("#pourStageParamRows").get_by_text("40g").is_visible()
+    assert page.locator("#genericPourPlanRows").get_by_text("40g", exact=True).is_visible()
     assert page.evaluate(
         """() => JSON.parse(localStorage.getItem("brewBakeLab.customRecipes.v1"))[
           Object.keys(JSON.parse(localStorage.getItem("brewBakeLab.customRecipes.v1")))[0]

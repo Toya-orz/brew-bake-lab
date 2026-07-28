@@ -1643,28 +1643,46 @@
       background: rgba(255, 253, 248, 0.72);
     }
     .pour-plan[hidden] { display: none; }
-    .pour-plan-head,
     .pour-plan-row {
       display: grid;
-      grid-template-columns: 92px 110px minmax(0, 1fr) auto;
-      gap: 14px;
-      align-items: center;
-    }
-    .pour-plan-head {
-      padding: 14px 4px 9px;
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: .06em;
+      grid-template-columns: 48px minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
     }
     .pour-plan-row {
-      min-height: 62px;
-      padding: 12px 4px;
+      padding: 18px 4px;
       border-top: 1px solid rgba(82, 56, 35, 0.09);
     }
-    .pour-plan-time { color: var(--blue); font-weight: 800; }
-    .pour-plan-grams { color: var(--coffee-dark); font-size: 18px; font-weight: 900; }
-    .pour-plan-method { line-height: 1.55; }
+    .pour-plan-index {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #fffaf0;
+      background: var(--coffee-dark);
+      font-weight: 900;
+    }
+    .pour-plan-content { min-width: 0; }
+    .pour-plan-title { margin: 0 0 10px; color: var(--coffee-dark); font-size: 19px; }
+    .pour-plan-metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 150px));
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .pour-plan-metric {
+      padding: 9px 11px;
+      border-radius: 7px;
+      background: rgba(242, 233, 218, 0.64);
+    }
+    .pour-plan-metric span { display: block; color: var(--muted); font-size: 11px; }
+    .pour-plan-metric strong { display: block; margin-top: 3px; color: var(--coffee-dark); }
+    .pour-plan-notes { display: grid; gap: 8px; }
+    .pour-plan-note { display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 9px; line-height: 1.65; }
+    .pour-plan-note strong { color: var(--berry); font-size: 12px; }
+    .pour-plan-note.check strong { color: var(--ok); }
+    .pour-plan-note.caution strong { color: #98721f; }
     .pour-plan input {
       width: 100%;
       min-width: 0;
@@ -1805,13 +1823,8 @@
       font-size: 12px;
     }
     .generic-detail.coffee-parameter-view .detail-hero { grid-template-columns: minmax(0, 1fr); }
-    .generic-detail.coffee-parameter-view #genericPhoto,
-    .generic-detail.coffee-parameter-view #genericStates,
-    .generic-detail.coffee-parameter-view #genericTrouble,
-    .generic-detail.coffee-parameter-view .detail-shell > .aside-panel,
-    .generic-detail.coffee-parameter-view .anchor-tabs a:nth-child(n+3) { display: none; }
+    .generic-detail.coffee-parameter-view #genericPhoto { display: none; }
     .generic-detail.coffee-parameter-view .detail-shell { grid-template-columns: minmax(0, 1fr); }
-    .generic-detail.coffee-parameter-view .anchor-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .generic-detail.coffee-parameter-view #genericParams { margin-top: 20px; }
 
     .list-actions {
@@ -2473,13 +2486,13 @@
       .pour-stage-param-row { grid-template-columns: minmax(90px, 1fr) 76px 86px; gap: 7px; }
       .pour-guide-head { align-items: stretch; flex-direction: column; }
       .pour-guide-switch select { width: 100%; max-width: none; }
-      .pour-plan-head { display: none; }
       .pour-plan-row {
-        grid-template-columns: 76px 88px minmax(0, 1fr);
-        gap: 9px;
+        grid-template-columns: 38px minmax(0, 1fr);
+        gap: 8px;
       }
-      .pour-plan-row .generic-row-controls { grid-column: 1 / -1; justify-self: end; }
-      .pour-plan-grams { font-size: 16px; }
+      .pour-plan-index { width: 32px; height: 32px; }
+      .pour-plan-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .pour-plan-note { grid-template-columns: 38px minmax(0, 1fr); }
       .bean-page-grid { grid-template-columns: 1fr; }
       .bean-detail-hero { grid-template-columns: 1fr; padding: 20px; }
       .bean-detail-actions > * { flex: 1; justify-content: center; }
@@ -3189,13 +3202,11 @@
               <div class="generic-step-list" id="genericStepList"></div>
               <div class="pour-plan" id="genericPourPlan" hidden>
                 <div class="pour-guide-head">
-                  <div><strong>三段式手冲</strong><span>固定做法，只替换当前参数。</span></div>
+                  <div><strong>按阶段跟做</strong><span>时间与克重跟随咖啡豆；操作、判断和注意来自模板。</span></div>
                   <div class="pour-guide-switch">
-                    <select id="pourPresetSelect" aria-label="切换手冲参数卡"></select>
                     <button class="primary-btn" id="openPourGuide" type="button"><i data-lucide="play"></i>跟做</button>
                   </div>
                 </div>
-                <div class="pour-plan-head"><span>开始时间</span><span>累计克重</span><span>注水手法</span><span></span></div>
                 <div id="genericPourPlanRows"></div>
               </div>
               <p class="image-credit" id="genericImageCredit" hidden></p>
@@ -4185,12 +4196,40 @@
         ? recipe.pourStages.slice(0, 3)
         : automatic;
       const finishTime = extractionText.match(/\d:\d{2}/)?.[0] || "02:30";
-      return [
-        { id: "pour-fixed-1", time: stages[0].time, grams: stages[0].grams, method: "中心小圈注水，完全润湿咖啡粉。" },
-        { id: "pour-fixed-2", time: stages[1].time, grams: stages[1].grams, method: "从中心向外稳定绕圈。" },
-        { id: "pour-fixed-3", time: stages[2].time, grams: stages[2].grams, method: "小圈注水至目标总水量。" },
-        { id: "pour-fixed-4", time: finishTime, grams: "完成", method: "滴滤结束后移走滤杯。" }
+      const defaults = [
+        {
+          id: "pour-fixed-1", label: "闷蒸", time: stages[0].time, grams: stages[0].grams,
+          method: "从中心开始小圈注水，均匀润湿全部咖啡粉。",
+          check: "粉床均匀鼓起并持续释放气泡，没有明显干粉。",
+          note: "只需完全浸透；不要在闷蒸阶段注入过多水。"
+        },
+        {
+          id: "pour-fixed-2", label: "第二段", time: stages[1].time, grams: stages[1].grams,
+          method: "从中心向外稳定绕圈，再回到中心。",
+          check: "水柱细而连续，液面稳定上升。",
+          note: "落点保持在咖啡粉范围内，避免直接冲到滤纸。"
+        },
+        {
+          id: "pour-fixed-3", label: "第三段", time: stages[2].time, grams: stages[2].grams,
+          method: "液面略降后继续小圈注水，到目标总水量时停止。",
+          check: "粉床没有明显塌陷、偏流或被冲出深坑。",
+          note: "到累计目标克重立即停水，不要为追求平整大幅摇晃滤杯。"
+        },
+        {
+          id: "pour-fixed-4", label: "滴滤完成", time: finishTime, grams: "完成",
+          method: "等待咖啡液自然滴完，移走滤杯并轻晃分享壶。",
+          check: "总时间落在目标范围，粉床大致平整。",
+          note: "过快或超时优先在下一杯调整研磨，一次只改一个变量。"
+        }
       ];
+      const saved = Array.isArray(recipe.pourPlan) ? recipe.pourPlan : [];
+      return defaults.map((fallback, index) => ({
+        ...fallback,
+        label: saved[index]?.label || fallback.label,
+        method: saved[index]?.method || fallback.method,
+        check: saved[index]?.check || fallback.check,
+        note: saved[index]?.note || fallback.note
+      }));
     }
 
     function preparePourRecipe(recipe) {
@@ -4374,7 +4413,7 @@
     function renderPourStageParams(recipe, isEditing = false) {
       const container = document.getElementById("pourStageParams");
       const isPourOver = recipe.template === "pour-over";
-      container.hidden = !isPourOver;
+      container.hidden = true;
       if (!isPourOver) {
         document.getElementById("pourStageParamRows").replaceChildren();
         return;
@@ -4432,24 +4471,32 @@
       }
     }
 
-    function pourPlanRowMarkup(stage) {
+    function pourPlanRowMarkup(stage, index, isEditing = false) {
       return `<div class="pour-plan-row" data-pour-stage data-pour-stage-id="${escapeHTML(stage.id || "")}">
-        <span class="pour-plan-time">${escapeHTML(stage.time || "")}</span>
-        <strong class="pour-plan-grams">${escapeHTML(stage.grams || "")}</strong>
-        <span class="pour-plan-method">${escapeHTML(stage.method || "")}</span>
+        <span class="pour-plan-index">${index + 1}</span>
+        <div class="pour-plan-content">
+          <h3 class="pour-plan-title generic-editable">${escapeHTML(stage.label || `第 ${index + 1} 段`)}</h3>
+          <div class="pour-plan-metrics">
+            <label class="pour-plan-metric"><span>开始时间</span>${isEditing
+              ? `<input data-pour-time value="${escapeHTML(stage.time || "")}" aria-label="${escapeHTML(stage.label || "当前阶段")}开始时间">`
+              : `<strong class="pour-plan-time">${escapeHTML(stage.time || "")}</strong>`}</label>
+            <label class="pour-plan-metric"><span>累计注水</span>${isEditing
+              ? `<input data-pour-grams value="${escapeHTML(stage.grams || "")}" aria-label="${escapeHTML(stage.label || "当前阶段")}累计注水">`
+              : `<strong class="pour-plan-grams">${escapeHTML(stage.grams || "")}</strong>`}</label>
+          </div>
+          <div class="pour-plan-notes">
+            <div class="pour-plan-note"><strong>操作</strong><span class="pour-plan-method generic-editable" data-required-action>${escapeHTML(stage.method || "")}</span></div>
+            <div class="pour-plan-note check"><strong>判断</strong><span class="pour-plan-check generic-editable">${escapeHTML(stage.check || "")}</span></div>
+            <div class="pour-plan-note caution"><strong>注意</strong><span class="pour-plan-caution generic-editable">${escapeHTML(stage.note || "")}</span></div>
+          </div>
+        </div>
       </div>`;
     }
 
     function renderPourPlan(recipe, isEditing = false) {
       document.getElementById("genericPourPlanRows").innerHTML = recipe.pourPlan
-        .map((stage) => pourPlanRowMarkup(stage))
+        .map((stage, index) => pourPlanRowMarkup(stage, index, isEditing))
         .join("");
-      const presets = Object.values(loadCustomRecipes())
-        .filter((item) => item.template === "pour-over")
-        .sort((a, b) => a.title.localeCompare(b.title, "zh-CN"));
-      document.getElementById("pourPresetSelect").innerHTML = presets.map((item) =>
-        `<option value="${escapeHTML(item.id)}"${item.id === recipe.id ? " selected" : ""}>${escapeHTML(item.title)}</option>`
-      ).join("");
       lucide.createIcons();
     }
 
@@ -4486,22 +4533,23 @@
       document.getElementById("genericTypeTag").textContent = recipe.typeLabel;
       renderGenericParams(recipe.params, recipe.type, false);
       renderPourStageParams(recipe, false);
+      if (recipe.template === "pour-over") document.getElementById("pourStageParams").hidden = true;
       document.querySelectorAll(".nav [data-page]").forEach((button) => {
         button.classList.toggle("active", button.dataset.page === (coffeeMethodContext ? "beans" : (isTechniqueEntry ? "techniques" : "recipes")));
       });
 
       const isPourOver = recipe.template === "pour-over";
-      document.getElementById("genericStepsTitle").textContent = isPourOver ? "完整做法" : "步骤流程";
+      document.getElementById("genericStepsTitle").textContent = isPourOver ? "注水步骤" : "步骤流程";
       document.getElementById("genericStepsHint").textContent = isPourOver
-        ? "先按注水计划跟做，再用完整步骤核对准备、判断与调整。"
+        ? "每一步都包含开始时间、累计注水、操作、判断和注意；切换豆子只替换时间与克重。"
         : "按动手顺序排列；操作必填，判断和注意没有内容时不展示。";
       document.getElementById("genericPourPlan").hidden = !isPourOver;
-      document.getElementById("genericStepList").hidden = false;
+      document.getElementById("genericStepList").hidden = isPourOver;
       document.getElementById("addGenericStep").hidden = isPourOver;
       if (isPourOver) renderPourPlan(recipe, false);
 
       let stepNumber = 0;
-      document.getElementById("genericStepList").innerHTML = recipe.phases.map((phase, phaseIndex) => `
+      document.getElementById("genericStepList").innerHTML = isPourOver ? "" : recipe.phases.map((phase, phaseIndex) => `
         <div class="phase-divider"><span>PHASE ${String(phaseIndex + 1).padStart(2, "0")}</span><b class="generic-editable">${escapeHTML(phase.name)}</b></div>
         ${phase.steps.map((step, stepIndex) => {
           stepNumber += 1;
@@ -4708,25 +4756,28 @@
         value: row.querySelector("td").textContent.trim()
       }));
       if (recipe.template === "pour-over") {
-        recipe.pourStages = [...document.querySelectorAll("#pourStageParamRows [data-pour-param-stage]")].map((row) => ({
-          label: String(row.querySelector("[data-pour-stage-label]")?.value ?? row.querySelector("[data-pour-stage-label]")?.textContent ?? "").trim(),
-          time: String(row.querySelector("[data-pour-stage-time]")?.value ?? row.querySelector("[data-pour-stage-time]")?.textContent ?? "").trim(),
-          grams: String(row.querySelector("[data-pour-stage-grams]")?.value ?? row.querySelector("[data-pour-stage-grams]")?.textContent ?? "").trim()
-        }));
         recipe.pourPlan = [...document.querySelectorAll("#genericPourPlanRows [data-pour-stage]")].map((row) => ({
           id: row.dataset.pourStageId || `pour-${Date.now().toString(36)}`,
+          label: String(row.querySelector(".pour-plan-title")?.textContent || "").trim(),
           time: String(row.querySelector("[data-pour-time]")?.value ?? row.querySelector(".pour-plan-time")?.textContent ?? "").trim(),
           grams: String(row.querySelector("[data-pour-grams]")?.value ?? row.querySelector(".pour-plan-grams")?.textContent ?? "").trim(),
-          method: String(row.querySelector("[data-pour-method]")?.value ?? row.querySelector(".pour-plan-method")?.textContent ?? "").trim()
+          method: String(row.querySelector(".pour-plan-method")?.textContent || "").trim(),
+          check: String(row.querySelector(".pour-plan-check")?.textContent || "").trim(),
+          note: String(row.querySelector(".pour-plan-caution")?.textContent || "").trim()
+        }));
+        recipe.pourStages = recipe.pourPlan.slice(0, 3).map((stage) => ({
+          label: stage.label,
+          time: stage.time,
+          grams: stage.grams
         }));
         recipe.phases = [{
           name: "注水",
-          steps: recipe.pourPlan.map((stage, index) => ({
+          steps: recipe.pourPlan.map((stage) => ({
             id: stage.id,
-            title: `${stage.time} 开始`,
-            action: `${stage.grams} · ${stage.method}`,
-            check: "",
-            note: ""
+            title: stage.label,
+            action: stage.method,
+            check: stage.check,
+            note: stage.note
           }))
         }];
       } else {
@@ -6955,12 +7006,6 @@
     document.getElementById("beanForm").addEventListener("submit", saveCoffeeBean);
     document.getElementById("newRecipeTemplate").addEventListener("change", (event) => {
       configureRecipeTemplate(event.target.value);
-    });
-
-    document.getElementById("pourPresetSelect").addEventListener("change", (event) => {
-      if (!event.target.value) return;
-      renderGenericRecipe(event.target.value);
-      window.scrollTo({ top: document.getElementById("genericParams").offsetTop - 20, behavior: "smooth" });
     });
 
     document.getElementById("newRecipeType").addEventListener("change", (event) => {

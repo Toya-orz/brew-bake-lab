@@ -154,6 +154,7 @@ Implemented in prototype:
 - A full-height coffee bean editor with a scrollable field area and always-visible save actions on mobile and desktop
 - Pour-over and espresso parameters stored directly inside each coffee bean profile
 - Bean-to-method shortcuts that open the existing full recipe and temporarily apply the selected bean's parameters
+- A dedicated pour-over technique template organized by brew stage; every stage contains start time, cumulative water, action, check, and caution
 - Legacy coffee parameter cards remain accessible for data safety, but new coffee parameters are created only inside bean profiles
 - Full-device backup and restore for all Brew & Bake Lab browser data
 - Installable PWA with synchronized updates, a timed offline fallback, and lightweight runtime image caching for unstable mobile networks
@@ -188,4 +189,5 @@ Coffee uses three separate layers so brewing instructions are not duplicated for
 - Coffee bean profile: roaster, origin, variety, process, roast level, roast date, tasting notes, and recommended resting period.
 - Bean-owned parameters: pour-over dose, water, grind, temperature and three pour stages; espresso dose, yield, grind, temperature and time.
 - Fixed method recipe: one reusable full recipe such as three-stage pour-over or standard espresso extraction. Its parameter card can temporarily display values from the selected coffee bean profile.
+- Pour-over method ownership: the bean supplies each stage's time and cumulative water; the technique template supplies the action, check, caution, and follow-along structure.
 - The temporary combination does not overwrite either the coffee bean profile or the original method recipe.
