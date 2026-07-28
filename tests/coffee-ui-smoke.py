@@ -98,10 +98,18 @@ def verify_viewport(browser, width, height, suffix):
     ) == "260g"
     page.evaluate("""() => { renderBeanDetail("bean-smoke"); setPage("beanDetail"); }""")
     page.locator('[data-open-brew-guide="pour"]').click()
-    assert page.locator("#brewGuideSummary").get_by_text("260g").is_visible()
-    page.locator("#brewGuideBean").select_option("bean-second")
-    assert page.locator("#brewGuideSummary").get_by_text("300g").is_visible()
-    assert page.locator("#brewGuideSteps").get_by_text("40g").is_visible()
+    assert page.locator("#brewGuide").evaluate("(node) => node.classList.contains('active')")
+    assert page.locator("#brewGuidePageTitle").inner_text() == "三段式手冲"
+    assert page.locator("#brewGuidePageSummary").get_by_text("260g").is_visible()
+    page.screenshot(path=f"/tmp/brew-bake-guide-{suffix}.png", full_page=True)
+    page.locator("#brewGuidePageBean").select_option("bean-second")
+    assert page.locator("#brewGuidePageSummary").get_by_text("300g").is_visible()
+    assert page.locator("#brewGuidePageSteps").get_by_text("40g").is_visible()
+    page.locator("#brewGuideBack").click()
+    assert page.locator("#beanDetail").evaluate("(node) => node.classList.contains('active')")
+    assert page.locator("#beanDetailName").inner_text() == "第二款豆"
+    page.locator('[data-open-brew-guide="espresso"]').click()
+    assert page.locator("#brewGuidePageTitle").inner_text() == "意式浓缩"
     page.close()
 
 
