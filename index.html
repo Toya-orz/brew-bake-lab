@@ -2190,21 +2190,6 @@
       border-top: 1px solid rgba(82, 56, 35, 0.1);
     }
     .brew-guide-step strong { color: var(--coffee-dark); }
-    .brew-guide-page { max-width: 980px; }
-    .brew-guide-page-head {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(220px, 300px);
-      gap: 24px;
-      align-items: end;
-      margin: 26px 0 18px;
-      padding: 24px;
-      border-radius: 12px;
-      background: rgba(242, 233, 218, 0.62);
-    }
-    .brew-guide-page-head h1 { font-size: clamp(36px, 6vw, 60px); }
-    .brew-guide-page-head p { margin: 10px 0 0; color: var(--muted); }
-    .brew-guide-page .brew-guide-summary { margin-top: 0; }
-    .brew-guide-page .brew-guide-step { min-height: 62px; align-items: center; }
     .bean-empty {
       padding: 22px;
       border-radius: 9px;
@@ -2508,7 +2493,6 @@
       .bean-method-actions { width: 100%; }
       .bean-method-actions > * { flex: 1; justify-content: center; }
       .bean-brew-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .brew-guide-page-head { grid-template-columns: 1fr; padding: 20px; }
       .bean-component-row {
         grid-template-columns: minmax(0, 1fr) 34px;
         padding: 10px;
@@ -2538,7 +2522,7 @@
       <nav class="nav" aria-label="主导航">
         <button class="active" data-page="home"><i data-lucide="layout-dashboard"></i>首页</button>
         <button data-page="recipes"><i data-lucide="book-open"></i>作品库</button>
-        <button><i data-lucide="wand-sparkles"></i>基础技巧</button>
+        <button data-page="techniques"><i data-lucide="wand-sparkles"></i>基础技巧</button>
         <button data-page="beans"><i data-lucide="coffee"></i>咖啡豆仓库</button>
       </nav>
 
@@ -2632,6 +2616,34 @@
             <button class="scenario"><strong>做一杯饮品</strong><span>手冲、意式、抹茶拿铁</span></button>
           </div>
         </section>
+      </section>
+
+      <section class="page" id="techniques">
+        <div class="list-head">
+          <div>
+            <h1>基础技巧</h1>
+            <p class="section-desc">方法只维护一次；需要参数时，从原料档案直接带入。</p>
+          </div>
+        </div>
+        <div class="filter-group technique-filter">
+          <h3 class="filter-title">分类</h3>
+          <div class="filter-options">
+            <button class="chip active">全部</button>
+            <button class="chip">咖啡</button>
+            <button class="chip">烘焙</button>
+          </div>
+        </div>
+        <div class="recipe-grid technique-grid">
+          <article class="recipe-card" data-page="genericDetail" data-recipe-id="pour-over-coffee" tabindex="0" role="button" aria-label="打开三段式手冲基础技巧">
+            <div class="recipe-img"><img src="assets/recipes/pour-over-coffee.jpg" alt="三段式手冲" loading="eager" decoding="async"></div>
+            <div class="recipe-body">
+              <div class="tag-row"><span class="tag blue">咖啡</span><span class="tag">通用模板</span><span class="tag">约 3 分钟</span></div>
+              <h3 class="recipe-title">三段式手冲</h3>
+              <div class="recipe-meta"><span>闷蒸 · 两段注水</span><span>参数可从咖啡豆档案带入</span></div>
+              <p class="recipe-key">固定操作、判断和排查；粉量、水温、研磨与注水克重跟随咖啡豆。</p>
+            </div>
+          </article>
+        </div>
       </section>
 
       <section class="page" id="recipes">
@@ -2788,29 +2800,6 @@
           </div>
         </div>
         <div class="bean-method-groups" id="beanMethodGroups"></div>
-      </section>
-
-      <section class="page brew-guide-page" id="brewGuide">
-        <div class="breadcrumb">
-          <button class="chip" id="brewGuideBack" data-page="beanDetail"><i data-lucide="arrow-left"></i> 返回咖啡豆</button>
-          <span>咖啡 / 固定做法</span>
-        </div>
-        <div class="brew-guide-page-head">
-          <div>
-            <div class="tag-row"><span class="tag blue">固定做法</span><span class="tag">参数随豆替换</span></div>
-            <h1 id="brewGuidePageTitle">三段式手冲</h1>
-            <p id="brewGuidePageDescription">选择咖啡豆后，步骤里的参数会自动替换。</p>
-          </div>
-          <label class="recipe-create-field">当前咖啡豆
-            <select id="brewGuidePageBean"></select>
-          </label>
-        </div>
-        <section class="detail-section">
-          <div class="content-band">
-            <div class="brew-guide-summary" id="brewGuidePageSummary"></div>
-            <div class="brew-guide-steps" id="brewGuidePageSteps"></div>
-          </div>
-        </section>
       </section>
 
       <section class="page" id="detail">
@@ -3476,12 +3465,13 @@
       pourOver: {
         id: "pour-over-coffee",
         type: "drink",
+        template: "pour-over",
         typeLabel: "饮品配方",
         detailPage: "genericDetail",
         category: ["饮品", "咖啡", "手冲"],
-        title: "基础手冲咖啡",
-        description: "先固定粉量、水量和注水节奏，再只用研磨度校正流速。第一次不追求复杂手法，重点是让每一段注水都有清楚的目的和停止点。",
-        tags: ["新手友好", "约 5 分钟", "参数可调"],
+        title: "三段式手冲",
+        description: "一套通用的三段式手冲方法。操作、判断和排查保持不变；粉量、水量、研磨、水温与每段注水参数可从咖啡豆档案直接带入。",
+        tags: ["基础技巧", "约 3 分钟", "参数随豆替换"],
         image: "assets/recipes/pour-over-coffee.jpg",
         paramHint: "饮品专属参数：比例、水温、研磨度与注水节奏。",
         params: [
@@ -3612,30 +3602,6 @@
         key: "关键：鸡翅擦干，最后升温上色但不要离开烤箱。",
         img: "assets/recipes/roasted-chicken-wings.jpg",
         color: "blue"
-      },
-      {
-        id: "pour-over-coffee",
-        title: "三段式手冲",
-        category: "饮品 / 咖啡 / 手冲",
-        tags: ["固定做法", "参数随豆替换", "约3分钟"],
-        meta: ["15g粉", "240g水", "90-93°C"],
-        key: "选择咖啡豆，一次带入粉量、水温和三段注水参数。",
-        img: "assets/recipes/pour-over-coffee.jpg",
-        color: "blue",
-        detailPage: "brewGuide",
-        guideKind: "pour"
-      },
-      {
-        id: "espresso-base",
-        title: "意式浓缩",
-        category: "饮品 / 咖啡 / 意式",
-        tags: ["固定做法", "美式/拿铁基底", "约1分钟"],
-        meta: ["粉量", "液重", "萃取时间"],
-        key: "选择咖啡豆，一次带入粉量、液重、研磨和萃取时间。",
-        img: "assets/recipes/kitchen-worktop.jpg",
-        color: "blue",
-        detailPage: "brewGuide",
-        guideKind: "espresso"
       }
     ];
 
@@ -3667,7 +3633,7 @@
     function renderRecipes(targetId) {
       const target = document.getElementById(targetId);
       target.innerHTML = getRecipeCards().map((recipe, index) => `
-        <div class="recipe-card" data-page="${escapeHTML(recipe.detailPage || "recipes")}" data-recipe-id="${escapeHTML(recipe.id || "")}" data-guide-kind="${escapeHTML(recipe.guideKind || "")}" tabindex="0" role="button" aria-label="${escapeHTML(recipe.detailPage ? `打开${recipe.title}详情` : recipe.title + "详情尚未完成")}">
+        <div class="recipe-card" data-page="${escapeHTML(recipe.detailPage || "recipes")}" data-recipe-id="${escapeHTML(recipe.id || "")}" tabindex="0" role="button" aria-label="${escapeHTML(recipe.detailPage ? `打开${recipe.title}详情` : recipe.title + "详情尚未完成")}">
           <div class="recipe-img"><img src="${escapeHTML(recipe.img)}" alt="${escapeHTML(recipe.title)}成品图" loading="${index < 2 ? "eager" : "lazy"}" decoding="async"></div>
           <div class="recipe-body">
             <div class="tag-row">
@@ -3686,7 +3652,7 @@
 
     function setPage(pageId) {
       if (pageId === "beans") renderBeanPage();
-      const navPageId = pageId === "beanDetail" ? "beans" : pageId === "brewGuide" ? "recipes" : pageId;
+      const navPageId = pageId === "beanDetail" ? "beans" : pageId;
       document.querySelectorAll(".page").forEach((page) => {
         page.classList.toggle("active", page.id === pageId);
       });
@@ -3702,6 +3668,7 @@
     const customRecipeStorageKey = "brewBakeLab.customRecipes.v1";
     const coffeeBeanStorageKey = "brewBakeLab.coffeeBeans.v1";
     let activeGenericRecipeId = null;
+    let activeCoffeeMethodContext = null;
     let activeBeanId = null;
     let genericDraft = null;
     let recipeCreateMode = "manual";
@@ -3914,47 +3881,19 @@
       lucide.createIcons();
     }
 
-    function renderBrewGuidePage(beanId, kind = "pour") {
-      const bean = loadCoffeeBeans()[beanId];
-      const isPour = kind === "pour";
-      const page = document.getElementById("brewGuide");
-      page.dataset.kind = kind;
-      document.getElementById("brewGuidePageTitle").textContent = isPour ? "三段式手冲" : "意式浓缩";
-      document.getElementById("brewGuidePageDescription").textContent = isPour
-        ? "固定三段式做法；切换咖啡豆，粉量、水温与每段注水会一起替换。"
-        : "固定浓缩做法；切换咖啡豆，粉量、液重与萃取参数会一起替换。";
-      const back = document.getElementById("brewGuideBack");
-      back.dataset.page = bean ? "beanDetail" : "recipes";
-      back.dataset.beanId = bean?.id || "";
-      back.innerHTML = bean
-        ? `<i data-lucide="arrow-left"></i> 返回${escapeHTML(bean.name)}`
-        : `<i data-lucide="arrow-left"></i> 返回作品库`;
-      if (!bean) {
-        document.getElementById("brewGuidePageSummary").textContent = "先在咖啡豆仓库添加豆子和冲煮参数。";
-        document.getElementById("brewGuidePageSteps").innerHTML = "";
-        lucide.createIcons();
-        return;
-      }
-      const brew = getBeanBrewParams(bean);
-      document.getElementById("brewGuidePageSummary").textContent = isPour
-        ? `${bean.name} · ${brew.pour.dose} / ${brew.pour.water} · ${brew.pour.grind} · ${brew.pour.temp}`
-        : `${bean.name} · ${brew.espresso.dose} → ${brew.espresso.yield} · ${brew.espresso.grind || "研磨待记录"} · ${brew.espresso.temp} · ${brew.espresso.time}`;
-      document.getElementById("brewGuidePageSteps").innerHTML = isPour
-        ? brew.pour.stages.map((stage, index) => `<div class="brew-guide-step"><strong>${escapeHTML(stage.time)}</strong><strong>${escapeHTML(stage.grams)}</strong><span>${escapeHTML(["中心注水，完全润湿咖啡粉。", "从中心向外稳定绕圈。", "小圈注水至目标总水量。"][index])}</span></div>`).join("")
-        : [
-            ["准备", brew.espresso.dose, "磨豆、布粉并水平压粉。"],
-            ["萃取", brew.espresso.yield, `目标 ${brew.espresso.time}，到液重后停止。`]
-          ].map((step) => `<div class="brew-guide-step"><strong>${escapeHTML(step[0])}</strong><strong>${escapeHTML(step[1])}</strong><span>${escapeHTML(step[2])}</span></div>`).join("");
-      lucide.createIcons();
+    function findCoffeeMethodRecipe(kind = "pour") {
+      if (kind === "pour") return recipeSchemas.pourOver;
+      const custom = Object.values(loadCustomRecipes());
+      return custom.find((recipe) => recipe.title?.includes("意式浓缩"))
+        || custom.find((recipe) => recipe.template === "espresso")
+        || null;
     }
 
     function openBrewGuide(kind, beanId = activeBeanId) {
-      const select = document.getElementById("brewGuidePageBean");
-      renderCoffeeBeanOptions(select, beanId);
-      select.querySelector('option[value=""]')?.remove();
-      if (!select.value && select.options.length) select.value = select.options[0].value;
-      renderBrewGuidePage(select.value, kind);
-      setPage("brewGuide");
+      const method = findCoffeeMethodRecipe(kind);
+      if (!method || !beanId) return;
+      renderGenericRecipe(method.id, { beanId, kind });
+      setPage("genericDetail");
     }
 
     function openBeanLibrary(beanId = "") {
@@ -4293,6 +4232,40 @@
       return preparePourRecipe({ ...cloneData(base), ...(loadGenericRecipes()[recipeId] || {}) });
     }
 
+    function applyBeanParamsToMethod(recipe, beanId, kind = "pour") {
+      const bean = loadCoffeeBeans()[beanId];
+      if (!bean) return recipe;
+      const brew = getBeanBrewParams(bean);
+      const result = cloneData(recipe);
+      result.coffeeBeanId = bean.id;
+      const replaceParam = (types, value, fallbackType) => {
+        const item = result.params.find((param) => types.includes(param.type));
+        if (item) item.value = value;
+        else result.params.push({ type: fallbackType, value });
+      };
+      if (kind === "pour") {
+        replaceParam(["咖啡豆", "咖啡"], `${bean.name} · ${brew.pour.dose}`, "咖啡豆");
+        replaceParam(["用水"], `总水量 ${brew.pour.water}`, "用水");
+        const pourPlanParam = result.params.find((param) => param.type === "注水方案");
+        if (pourPlanParam) pourPlanParam.value = brew.pour.stages.map((stage) => stage.grams).join(" / ");
+        replaceParam(["研磨"], brew.pour.grind || "未记录", "研磨");
+        replaceParam(["水温"], brew.pour.temp, "水温");
+        result.pourStages = cloneData(brew.pour.stages);
+        result.pourPlan = fixedPourPlan({
+          ...result,
+          template: "pour-over",
+          pourStages: result.pourStages
+        });
+      } else {
+        replaceParam(["咖啡豆", "咖啡"], `${bean.name} · ${brew.espresso.dose}`, "咖啡豆");
+        replaceParam(["比例"], `${brew.espresso.dose} → ${brew.espresso.yield}`, "比例");
+        replaceParam(["研磨"], brew.espresso.grind || "未记录", "研磨");
+        replaceParam(["水温"], brew.espresso.temp, "水温");
+        replaceParam(["萃取"], `目标 ${brew.espresso.time}`, "萃取");
+      }
+      return result;
+    }
+
     function createGenericImageInput(kind, labelText, ariaLabel) {
       const choose = document.createElement("label");
       choose.className = "state-image-action";
@@ -4442,14 +4415,21 @@
       }
       const bean = loadCoffeeBeans()[recipe.coffeeBeanId];
       if (!bean) {
-        container.innerHTML = `<span>咖啡豆</span><strong>暂未关联豆档案</strong>`;
+        container.innerHTML = `<span>咖啡豆</span><strong>选择豆子后带入参数</strong><select data-method-bean-switch aria-label="选择咖啡豆"></select>`;
+        renderCoffeeBeanOptions(container.querySelector("[data-method-bean-switch]"), "");
         return;
       }
       container.innerHTML = `
         <span>咖啡豆档案</span>
         <strong>${escapeHTML(bean.name)}</strong>
         <span>${escapeHTML(coffeeBeanSummary(bean))}</span>
+        ${activeCoffeeMethodContext ? `<label>切换咖啡豆<select data-method-bean-switch aria-label="切换咖啡豆"></select></label>` : ""}
         <button type="button" data-open-linked-bean="${escapeHTML(bean.id)}">查看完整档案</button>`;
+      const switcher = container.querySelector("[data-method-bean-switch]");
+      if (switcher) {
+        renderCoffeeBeanOptions(switcher, bean.id);
+        switcher.querySelector('option[value=""]')?.remove();
+      }
     }
 
     function pourPlanRowMarkup(stage) {
@@ -4473,23 +4453,31 @@
       lucide.createIcons();
     }
 
-    function renderGenericRecipe(recipeId) {
-      const recipe = getGenericRecipe(recipeId);
-      if (!recipe) return;
+    function renderGenericRecipe(recipeId, coffeeMethodContext = null) {
+      const storedRecipe = getGenericRecipe(recipeId);
+      if (!storedRecipe) return;
+      const recipe = coffeeMethodContext
+        ? applyBeanParamsToMethod(storedRecipe, coffeeMethodContext.beanId, coffeeMethodContext.kind)
+        : storedRecipe;
+      activeCoffeeMethodContext = coffeeMethodContext;
       activeGenericRecipeId = recipeId;
       const isCoffeeParameter = recipe.template === "pour-over";
       document.getElementById("genericDetail").classList.toggle("coffee-parameter-view", isCoffeeParameter);
-      document.getElementById("genericEdit").textContent = isCoffeeParameter ? "编辑参数" : "编辑";
+      document.getElementById("genericEdit").textContent = coffeeMethodContext ? "编辑原菜谱" : (isCoffeeParameter ? "编辑参数" : "编辑");
       const back = document.getElementById("genericBack");
-      const hasLinkedBean = isCoffeeParameter && Boolean(loadCoffeeBeans()[recipe.coffeeBeanId]);
-      back.dataset.page = hasLinkedBean ? "beanDetail" : (isCoffeeParameter ? "beans" : "recipes");
+      const hasLinkedBean = Boolean(loadCoffeeBeans()[recipe.coffeeBeanId]);
+      const isTechniqueEntry = recipeId === recipeSchemas.pourOver.id && !coffeeMethodContext;
+      back.dataset.page = hasLinkedBean ? "beanDetail" : (isTechniqueEntry ? "techniques" : (isCoffeeParameter ? "beans" : "recipes"));
       back.dataset.beanId = hasLinkedBean ? recipe.coffeeBeanId : "";
-      back.querySelector("span").textContent = hasLinkedBean ? "返回咖啡豆" : (isCoffeeParameter ? "返回咖啡豆仓库" : "返回作品库");
+      back.querySelector("span").textContent = hasLinkedBean ? "返回咖啡豆" : (isTechniqueEntry ? "返回基础技巧" : (isCoffeeParameter ? "返回咖啡豆仓库" : "返回作品库"));
       document.getElementById("genericParamTitle").textContent = isCoffeeParameter ? "手冲参数" : "参数卡";
       document.getElementById("genericBreadcrumb").textContent = recipe.category.join(" / ");
       document.getElementById("genericTitle").textContent = recipe.title;
       document.getElementById("genericDescription").textContent = recipe.description;
       renderGenericBeanLink(recipe, false);
+      document.getElementById("genericSaveStatus").textContent = coffeeMethodContext
+        ? `已临时带入“${loadCoffeeBeans()[coffeeMethodContext.beanId]?.name || "当前咖啡豆"}”的参数，不会覆盖原菜谱。`
+        : "";
       document.getElementById("genericTags").innerHTML = recipe.tags.map((tag, index) =>
         `<span class="tag ${index === 0 ? "blue" : ""}">${escapeHTML(tag)}</span>`
       ).join("");
@@ -4498,19 +4486,22 @@
       document.getElementById("genericTypeTag").textContent = recipe.typeLabel;
       renderGenericParams(recipe.params, recipe.type, false);
       renderPourStageParams(recipe, false);
+      document.querySelectorAll(".nav [data-page]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.page === (coffeeMethodContext ? "beans" : (isTechniqueEntry ? "techniques" : "recipes")));
+      });
 
       const isPourOver = recipe.template === "pour-over";
-      document.getElementById("genericStepsTitle").textContent = isPourOver ? "对应做法" : "步骤流程";
+      document.getElementById("genericStepsTitle").textContent = isPourOver ? "完整做法" : "步骤流程";
       document.getElementById("genericStepsHint").textContent = isPourOver
-        ? "做法保持不变；切换参数卡即可替换粉量、水量、水温与研磨设置。"
+        ? "先按注水计划跟做，再用完整步骤核对准备、判断与调整。"
         : "按动手顺序排列；操作必填，判断和注意没有内容时不展示。";
       document.getElementById("genericPourPlan").hidden = !isPourOver;
-      document.getElementById("genericStepList").hidden = isPourOver;
+      document.getElementById("genericStepList").hidden = false;
       document.getElementById("addGenericStep").hidden = isPourOver;
       if (isPourOver) renderPourPlan(recipe, false);
 
       let stepNumber = 0;
-      document.getElementById("genericStepList").innerHTML = isPourOver ? "" : recipe.phases.map((phase, phaseIndex) => `
+      document.getElementById("genericStepList").innerHTML = recipe.phases.map((phase, phaseIndex) => `
         <div class="phase-divider"><span>PHASE ${String(phaseIndex + 1).padStart(2, "0")}</span><b class="generic-editable">${escapeHTML(phase.name)}</b></div>
         ${phase.steps.map((step, stepIndex) => {
           stepNumber += 1;
@@ -6755,7 +6746,6 @@
       const trigger = event.target.closest("[data-page]");
       if (trigger) {
         if (trigger.id === "genericBack" && trigger.dataset.beanId) renderBeanDetail(trigger.dataset.beanId);
-        if (trigger.id === "brewGuideBack" && trigger.dataset.beanId) renderBeanDetail(trigger.dataset.beanId);
         setPage(trigger.dataset.page);
       }
 
@@ -6817,6 +6807,13 @@
     });
 
     document.addEventListener("change", (event) => {
+      const methodBeanSwitcher = event.target.closest("[data-method-bean-switch]");
+      if (methodBeanSwitcher && methodBeanSwitcher.value) {
+        renderGenericRecipe(activeGenericRecipeId, {
+          beanId: methodBeanSwitcher.value,
+          kind: activeCoffeeMethodContext?.kind || "pour"
+        });
+      }
       const select = event.target.closest("select[data-param-type]");
       if (select) updateParamType(select);
       const phaseSelect = event.target.closest("select[data-step-phase]");
@@ -6865,15 +6862,13 @@
       if (card && (event.key === "Enter" || event.key === " ")) {
         event.preventDefault();
         if (card.dataset.page === "genericDetail") renderGenericRecipe(card.dataset.recipeId);
-        if (card.dataset.page === "brewGuide") openBrewGuide(card.dataset.guideKind || "pour", "");
-        else setPage(card.dataset.page);
+        setPage(card.dataset.page);
       }
     });
 
     document.addEventListener("click", (event) => {
       const card = event.target.closest(".recipe-card[data-page]");
       if (card?.dataset.page === "genericDetail") renderGenericRecipe(card.dataset.recipeId);
-      if (card?.dataset.page === "brewGuide") openBrewGuide(card.dataset.guideKind || "pour", "");
       if (event.target.closest("#openRecipeCreate")) openRecipeCreateDialog();
       if (event.target.closest("#openBeanLibrary")) openBeanLibrary();
       if (event.target.closest("#addCoffeeBeanFromPage")) openBeanLibrary("__new__");
@@ -6918,6 +6913,7 @@
       if (event.target.closest("#exportAllData")) exportAllData();
       if (event.target.closest("#installApp")) installPersonalApp();
       if (event.target.closest("#genericEdit")) {
+        activeCoffeeMethodContext = null;
         genericDraft = getGenericRecipe(activeGenericRecipeId);
         renderGenericParams(genericDraft.params, genericDraft.type, true);
         renderPourStageParams(genericDraft, true);
@@ -6965,10 +6961,6 @@
       if (!event.target.value) return;
       renderGenericRecipe(event.target.value);
       window.scrollTo({ top: document.getElementById("genericParams").offsetTop - 20, behavior: "smooth" });
-    });
-
-    document.getElementById("brewGuidePageBean").addEventListener("change", (event) => {
-      renderBrewGuidePage(event.target.value, document.getElementById("brewGuide").dataset.kind || "pour");
     });
 
     document.getElementById("newRecipeType").addEventListener("change", (event) => {
