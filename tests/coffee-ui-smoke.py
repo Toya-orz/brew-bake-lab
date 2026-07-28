@@ -113,7 +113,7 @@ def verify_viewport(browser, width, height, suffix):
     assert page.locator("#genericPourPlanRows").get_by_text("操作", exact=True).first.is_visible()
     assert page.locator("#genericPourPlanRows").get_by_text("判断", exact=True).first.is_visible()
     assert page.locator("#genericPourPlanRows").get_by_text("注意", exact=True).first.is_visible()
-    assert "不会覆盖原菜谱" in page.locator("#genericSaveStatus").inner_text()
+    assert page.locator("#genericSaveStatus").inner_text() == ""
     page.screenshot(path=f"/tmp/brew-bake-guide-{suffix}.png", full_page=True)
     page.locator("#coffeeFollowStart").click()
     assert page.locator("#followDialog").is_visible()

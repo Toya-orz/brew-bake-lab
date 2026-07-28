@@ -1822,6 +1822,7 @@
       color: var(--ok);
       font-size: 12px;
     }
+    .generic-save-status:empty { display: none; }
     .generic-detail.coffee-parameter-view .detail-hero { grid-template-columns: minmax(0, 1fr); }
     .generic-detail.coffee-parameter-view #genericPhoto { display: none; }
     .generic-detail.coffee-parameter-view #genericTags,
@@ -1831,6 +1832,47 @@
     .generic-detail.coffee-parameter-view .detail-shell > .aside-panel,
     .generic-detail.coffee-parameter-view .anchor-tabs a:nth-child(3) { display: none; }
     .generic-detail.coffee-parameter-view .detail-shell { grid-template-columns: minmax(0, 1fr); }
+    .generic-detail.coffee-parameter-view:not(.is-editing) .detail-hero { margin-bottom: 12px; }
+    .generic-detail.coffee-parameter-view:not(.is-editing) .detail-title {
+      min-height: 0;
+      padding: 16px 18px;
+      padding-right: 112px;
+    }
+    .generic-detail.coffee-parameter-view:not(.is-editing) .overview-head {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+    }
+    .generic-detail.coffee-parameter-view:not(.is-editing) .detail-title h1 {
+      font-size: clamp(28px, 4vw, 38px);
+      line-height: 1.08;
+    }
+    .generic-detail.coffee-parameter-view:not(.is-editing) .generic-bean-link {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 5px 10px;
+      margin-top: 12px;
+      padding: 10px 12px;
+    }
+    .generic-detail.coffee-parameter-view:not(.is-editing) .generic-bean-link button {
+      grid-column: 3;
+      grid-row: 1;
+      justify-self: end;
+      margin: 0;
+    }
+    .generic-detail.coffee-parameter-view:not(.is-editing) .generic-bean-link label {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .generic-detail.coffee-parameter-view:not(.is-editing) .generic-bean-link select {
+      min-height: 36px;
+      padding-block: 6px;
+    }
     .generic-detail.coffee-parameter-view .anchor-tabs {
       position: static;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2569,6 +2611,14 @@
       .pour-plan-note { grid-template-columns: 38px minmax(0, 1fr); }
       .generic-detail.coffee-parameter-view:not(.is-editing) #genericParamTable tbody {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .generic-detail.coffee-parameter-view:not(.is-editing) .detail-title {
+        padding: 14px;
+        padding-right: 100px;
+      }
+      .generic-detail.coffee-parameter-view:not(.is-editing) .overview-head {
+        top: 12px;
+        right: 12px;
       }
       .bean-page-grid { grid-template-columns: 1fr; }
       .bean-detail-hero { grid-template-columns: 1fr; padding: 20px; }
@@ -3740,20 +3790,20 @@
         detailPage: "genericDetail",
         category: ["烘焙", "面包", "酸奶餐包"],
         title: "五瓣酸奶花朵面包",
-        description: "为6寸五瓣加高模具调整的小份酸奶餐包。五颗主面团在模具里自然连成花形，余量做一个杯子餐包；面团柔软但容易整形，适合用厨师机练习完全扩展。",
+        description: "为6寸五瓣加高模具调整的小份酸奶餐包。配方刚好分成五颗主面团，在模具里自然连成完整花形；使用一整颗鸡蛋，不留多余蛋液。",
         tags: ["新手友好", "约 3 小时", "厨师机"],
         image: "assets/recipes/kitchen-worktop.jpg",
         imageAlt: "五瓣酸奶花朵面包制作台占位图",
         paramHint: "酸奶浓稠度会影响吸水；牛奶先保留5g，确认面团偏硬后再补。",
         params: [
-          { type: "成品", value: "6寸五瓣花朵面包 1个，杯子餐包 1个。" },
-          { type: "面粉", value: "高筋面粉 200g。" },
-          { type: "液体", value: "浓稠无糖酸奶 84g、全蛋液 25g、牛奶 35–40g。" },
-          { type: "调味", value: "细砂糖 28g、盐 2.2g。" },
-          { type: "酵母", value: "耐高糖即发干酵母 2.4g。" },
-          { type: "油脂", value: "无盐黄油 24g。" },
-          { type: "器具", value: "厨师机、6寸五瓣加高模具、杯子蛋糕模具、电子秤。" },
-          { type: "烘烤", value: "175°C，中下层；花朵20–25分钟，杯子餐包15–18分钟。" }
+          { type: "成品", value: "6寸五瓣花朵面包 1个，约342g面团。" },
+          { type: "面粉", value: "高筋面粉 165g。" },
+          { type: "液体", value: "浓稠无糖酸奶 69g、全蛋液 50g（约1颗）、牛奶5–10g。" },
+          { type: "调味", value: "细砂糖 26g、盐 1.8g。" },
+          { type: "酵母", value: "耐高糖即发干酵母 2g。" },
+          { type: "油脂", value: "无盐黄油 20g。" },
+          { type: "器具", value: "厨师机、6寸五瓣加高模具、电子秤。" },
+          { type: "烘烤", value: "175°C，中下层，约20–25分钟。" }
         ],
         phases: [
           {
@@ -3761,7 +3811,7 @@
             steps: [
               {
                 title: "混合基础面团",
-                action: "将高筋面粉、酸奶、全蛋液、细砂糖、盐、酵母和35g牛奶放入厨师机；低速混合至没有干粉。",
+                action: "将高筋面粉、酸奶、全蛋液、细砂糖、盐、酵母和5g牛奶放入厨师机；低速混合至没有干粉。",
                 check: "材料聚成一团，缸底没有散落干粉。",
                 note: "盐和酵母分开放入。先保留5g牛奶，避免酸奶偏稀导致面团过湿。"
               },
@@ -3783,15 +3833,15 @@
             name: "分割与造型",
             steps: [
               {
-                title: "分成五瓣和一个杯子餐包",
-                action: "轻压排气；称出5份各约68g作为花瓣，剩余约60g作为杯子餐包。分别滚圆并盖好松弛10–15分钟。",
+                title: "均分成五瓣",
+                action: "轻压排气并称量总面团，平均分成5份，每份约68g。分别滚圆并盖好松弛10–15分钟。",
                 check: "每份表面初步绷紧，分量接近，松弛后容易再次收圆。"
               },
               {
                 title: "放入模具",
-                action: "将五份面团再次收圆，分别放在五个花瓣中央；余下一份放入杯子蛋糕模具。",
+                action: "将五份面团再次收圆，分别放在五个花瓣中央。",
                 check: "面团收口朝下，五颗面团位置对称，中央留有自然膨胀空间。",
-                note: "不粘模第一次使用也建议薄刷一层黄油；硅胶杯模先放在烤盘上再装面团。"
+                note: "不粘模第一次使用也建议薄刷一层黄油。"
               },
               {
                 title: "最后发酵",
@@ -3811,10 +3861,10 @@
                 note: "撒粉割纹与刷蛋液二选一；想做质朴的图片效果就不要刷蛋液。"
               },
               {
-                title: "分别判断出炉时间",
-                action: "放入中下层烘烤。杯子餐包在15分钟后开始检查，花朵面包继续烤至20–25分钟；上色满意后盖锡纸。",
+                title: "判断出炉时间",
+                action: "放入中下层烘烤20–25分钟；上色满意后盖锡纸。",
                 check: "表面金黄、按压能够回弹；有温度计时中心达到93–95°C。",
-                note: "杯子餐包通常先熟，应单独提前取出。"
+                note: "模具中央连接处熟得最慢，应以中心状态判断是否出炉。"
               },
               {
                 title: "脱模冷却",
@@ -3885,8 +3935,8 @@
         title: "五瓣酸奶花朵面包",
         category: "烘焙 / 面包",
         tags: ["新手友好", "约3小时", "厨师机"],
-        meta: ["6寸五瓣模", "5+1个", "175°C"],
-        key: "关键：牛奶预留5g，五瓣各约68g，二发至八九分满。",
+        meta: ["6寸五瓣模", "5个", "175°C"],
+        key: "关键：约342g面团均分五瓣，每瓣约68g，二发至八九分满。",
         img: "assets/recipes/kitchen-worktop.jpg",
         color: "green",
         detailPage: recipeSchemas.yogurtFlowerBread.detailPage
@@ -4797,9 +4847,7 @@
       document.getElementById("genericTitle").textContent = recipe.title;
       document.getElementById("genericDescription").textContent = recipe.description;
       renderGenericBeanLink(recipe, false);
-      document.getElementById("genericSaveStatus").textContent = coffeeMethodContext
-        ? `已临时带入“${loadCoffeeBeans()[coffeeMethodContext.beanId]?.name || "当前咖啡豆"}”的参数，不会覆盖原菜谱。`
-        : "";
+      document.getElementById("genericSaveStatus").textContent = "";
       document.getElementById("genericTags").innerHTML = recipe.tags.map((tag, index) =>
         `<span class="tag ${index === 0 ? "blue" : ""}">${escapeHTML(tag)}</span>`
       ).join("");
