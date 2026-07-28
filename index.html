@@ -1960,6 +1960,21 @@
       font-size: 12px;
       line-height: 1.6;
     }
+    .recipe-note-file-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: -6px;
+    }
+    .recipe-note-file-row .ghost-btn { min-height: 38px; cursor: pointer; }
+    .recipe-note-file-row input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .recipe-note-file-name { color: var(--muted); font-size: 12px; }
     .recipe-note-preview {
       display: grid;
       gap: 10px;
@@ -3370,6 +3385,12 @@
         <label class="recipe-create-field">制作笔记
           <textarea class="recipe-note-input" id="recipeNoteInput" maxlength="12000" placeholder="直接粘贴原始笔记。支持【阶段标题】、1、2、3 编号步骤，以及材料克数。"></textarea>
         </label>
+        <div class="recipe-note-file-row">
+          <label class="ghost-btn"><i data-lucide="file-up"></i>读取文字文件
+            <input id="recipeNoteFile" type="file" accept=".txt,.md,.markdown,text/plain,text/markdown" aria-label="读取 TXT 或 Markdown 制作笔记">
+          </label>
+          <span class="recipe-note-file-name" id="recipeNoteFileName">支持 TXT / Markdown，最大 1MB</span>
+        </div>
         <p class="recipe-note-hint">只在当前设备解析，不会上传。编号步骤识别最稳定；阶段标题可写成【蛋糊制作】。</p>
       </div>
       <section class="recipe-note-preview" id="recipeNotePreview" aria-live="polite" hidden>
@@ -4989,6 +5010,7 @@
       form.reset();
       configureRecipeTemplate("baking");
       document.getElementById("recipeCreateError").textContent = "";
+      document.getElementById("recipeNoteFileName").textContent = "支持 TXT / Markdown，最大 1MB";
       parsedRecipeNote = null;
       setRecipeCreateMode("manual");
       renderRecipeNotePreview(null);
@@ -5017,6 +5039,35 @@
         recipeCreateMode === "note" && !parsedRecipeNote ? "识别笔记" : "创建并继续编辑";
       document.getElementById("recipeCreateError").textContent = "";
       if (recipeCreateMode === "note") requestAnimationFrame(() => document.getElementById("recipeNoteInput").focus());
+    }
+
+    async function readRecipeNoteFile(input) {
+      const file = input.files?.[0];
+      if (!file) return;
+      const name = document.getElementById("recipeNoteFileName");
+      const error = document.getElementById("recipeCreateError");
+      if (file.size > 1024 * 1024) {
+        error.textContent = "文字文件超过 1MB，请精简后再读取。";
+        input.value = "";
+        return;
+      }
+      if (!/\.(?:txt|md|markdown)$/i.test(file.name)) {
+        error.textContent = "请选择 TXT 或 Markdown 文件。";
+        input.value = "";
+        return;
+      }
+      try {
+        const text = await file.text();
+        document.getElementById("recipeNoteInput").value = text.slice(0, 12000);
+        document.getElementById("recipeNoteInput").dispatchEvent(new Event("input", { bubbles: true }));
+        name.textContent = file.name;
+        error.textContent = text.length > 12000 ? "内容较长，已读取前 12000 个字符。" : "";
+        document.getElementById("recipeNoteInput").focus();
+      } catch (readError) {
+        error.textContent = "无法读取这个文字文件，请尝试复制粘贴内容。";
+      } finally {
+        input.value = "";
+      }
     }
 
     function configureRecipeTemplate(template) {
@@ -7146,6 +7197,10 @@
       parsedRecipeNote = null;
       renderRecipeNotePreview(null);
       document.querySelector("#recipeCreateSubmit span").textContent = "识别笔记";
+    });
+
+    document.getElementById("recipeNoteFile").addEventListener("change", (event) => {
+      readRecipeNoteFile(event.target);
     });
 
     document.getElementById("importGenericRecipe").addEventListener("change", (event) => {

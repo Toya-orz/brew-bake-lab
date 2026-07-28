@@ -148,6 +148,7 @@ Implemented in prototype:
 - Custom recipe cards, editable parameters/steps/states/troubleshooting, compressed cover and step images, and JSON backup
 - Category-aware parameter editing for custom recipes, with Baking/Drink presets, custom labels, and button-based ordering
 - Local note-to-recipe import with numbered-step parsing and a confirmation preview
+- Local TXT and Markdown note-file loading into the recipe parser, with file-size and content-length guards
 - Reusable coffee bean profiles linked to dedicated pour-over and semi-automatic espresso recipe templates
 - A dedicated Coffee Bean Library navigation module with repeatable variety/process/blend-ratio rows
 - Coffee bean detail pages with linked brewing recipes and bean-aware shortcuts for creating pour-over or espresso methods

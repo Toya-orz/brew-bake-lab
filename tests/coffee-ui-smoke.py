@@ -152,6 +152,18 @@ def verify_viewport(browser, width, height, suffix):
     assert page.locator("#genericParamTable tbody").evaluate(
         "(node) => getComputedStyle(node).gridTemplateColumns.split(' ').length"
     ) == expected_columns
+    page.evaluate("openRecipeCreateDialog()")
+    page.locator('[data-recipe-create-mode="note"]').click()
+    page.locator("#recipeNoteFile").set_input_files(
+        files=[{
+            "name": "my-recipe.md",
+            "mimeType": "text/markdown",
+            "buffer": b"# Apple Cake\n1. Mix flour and eggs\n2. Bake until golden",
+        }]
+    )
+    assert "Apple Cake" in page.locator("#recipeNoteInput").input_value()
+    assert page.locator("#recipeNoteFileName").inner_text() == "my-recipe.md"
+    page.locator("#cancelRecipeCreate").click()
     page.close()
 
 
