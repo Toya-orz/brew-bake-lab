@@ -154,6 +154,7 @@ Implemented in prototype:
 - A full-height coffee bean editor with a scrollable field area and always-visible save actions on mobile and desktop
 - Reusable pour-over parameter cards that feed one fixed three-stage brewing guide
 - One-click switching between saved pour-over parameter cards without duplicating the brewing method
+- A reduced coffee parameter screen that hides recipe imagery, state galleries, troubleshooting, and structural metadata
 - Full-device backup and restore for all Brew & Bake Lab browser data
 - Installable PWA with synchronized updates, a timed offline fallback, and lightweight runtime image caching for unstable mobile networks
 - Shared follow-along mode for Swiss Roll, Pour-over Coffee, and custom recipes, with per-recipe progress and screen wake lock where supported

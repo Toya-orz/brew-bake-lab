@@ -77,6 +77,10 @@ def verify_viewport(browser, width, height, suffix):
     assert page.locator("#genericPourPlan").is_visible()
     assert page.locator("#genericPourPlanRows [data-pour-stage]").count() == 4
     assert not page.locator("#genericStepList").is_visible()
+    assert not page.locator("#genericPhoto").is_visible()
+    assert not page.locator("#genericStates").is_visible()
+    assert not page.locator("#genericTrouble").is_visible()
+    assert page.locator("#genericEdit").inner_text() == "编辑参数"
     assert "自动粉水比 1:16" in page.locator("#genericParamHint").inner_text()
     assert page.locator("#pourPresetSelect option").count() == 2
     page.screenshot(path=f"/tmp/brew-bake-pour-{suffix}.png", full_page=True)

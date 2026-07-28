@@ -1804,6 +1804,15 @@
       color: var(--ok);
       font-size: 12px;
     }
+    .generic-detail.coffee-parameter-view .detail-hero { grid-template-columns: minmax(0, 1fr); }
+    .generic-detail.coffee-parameter-view #genericPhoto,
+    .generic-detail.coffee-parameter-view #genericStates,
+    .generic-detail.coffee-parameter-view #genericTrouble,
+    .generic-detail.coffee-parameter-view .detail-shell > .aside-panel,
+    .generic-detail.coffee-parameter-view .anchor-tabs a:nth-child(n+3) { display: none; }
+    .generic-detail.coffee-parameter-view .detail-shell { grid-template-columns: minmax(0, 1fr); }
+    .generic-detail.coffee-parameter-view .anchor-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .generic-detail.coffee-parameter-view #genericParams { margin-top: 20px; }
 
     .list-actions {
       display: flex;
@@ -3004,7 +3013,7 @@
 
       <section class="page generic-detail" id="genericDetail">
         <div class="breadcrumb">
-          <button class="chip" data-page="recipes"><i data-lucide="arrow-left"></i> 返回作品库</button>
+          <button class="chip" id="genericBack" data-page="recipes"><i data-lucide="arrow-left"></i> <span>返回作品库</span></button>
           <span id="genericBreadcrumb"></span>
         </div>
 
@@ -3041,7 +3050,7 @@
               <div class="content-band">
                 <div class="band-head">
                   <div>
-                    <h2>参数卡</h2>
+                    <h2 id="genericParamTitle">参数卡</h2>
                     <p id="genericParamHint"></p>
                   </div>
                   <span class="tag blue" id="genericTypeTag"></span>
@@ -4188,6 +4197,15 @@
       const recipe = getGenericRecipe(recipeId);
       if (!recipe) return;
       activeGenericRecipeId = recipeId;
+      const isCoffeeParameter = recipe.template === "pour-over";
+      document.getElementById("genericDetail").classList.toggle("coffee-parameter-view", isCoffeeParameter);
+      document.getElementById("genericEdit").textContent = isCoffeeParameter ? "编辑参数" : "编辑";
+      const back = document.getElementById("genericBack");
+      const hasLinkedBean = isCoffeeParameter && Boolean(loadCoffeeBeans()[recipe.coffeeBeanId]);
+      back.dataset.page = hasLinkedBean ? "beanDetail" : (isCoffeeParameter ? "beans" : "recipes");
+      back.dataset.beanId = hasLinkedBean ? recipe.coffeeBeanId : "";
+      back.querySelector("span").textContent = hasLinkedBean ? "返回咖啡豆" : (isCoffeeParameter ? "返回咖啡豆仓库" : "返回作品库");
+      document.getElementById("genericParamTitle").textContent = isCoffeeParameter ? "手冲参数" : "参数卡";
       document.getElementById("genericBreadcrumb").textContent = recipe.category.join(" / ");
       document.getElementById("genericTitle").textContent = recipe.title;
       document.getElementById("genericDescription").textContent = recipe.description;
@@ -6455,7 +6473,10 @@
         event.preventDefault();
       }
       const trigger = event.target.closest("[data-page]");
-      if (trigger) setPage(trigger.dataset.page);
+      if (trigger) {
+        if (trigger.id === "genericBack" && trigger.dataset.beanId) renderBeanDetail(trigger.dataset.beanId);
+        setPage(trigger.dataset.page);
+      }
 
       const chip = event.target.closest(".chip");
       if (chip) chip.classList.toggle("active");

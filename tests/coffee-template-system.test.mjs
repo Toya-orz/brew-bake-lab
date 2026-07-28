@@ -26,6 +26,8 @@ assert.match(html, /id="genericPourPlan"/);
 assert.match(html, /function fixedPourPlan\(recipe\)/);
 assert.match(html, /recipe\.pourStages = \[/);
 assert.match(html, /function renderPourStageParams\(recipe, isEditing = false\)/);
+assert.match(html, /coffee-parameter-view/);
+assert.match(html, /编辑参数/);
 assert.match(html, /data-pour-stage-time/);
 assert.match(html, /data-pour-stage-grams/);
 assert.match(html, /id="pourPresetSelect"/);
