@@ -1804,6 +1804,77 @@
       color: var(--coffee-dark);
       font-size: 13px;
     }
+    .bean-library { display: grid; gap: 16px; margin-block: 20px; }
+    .bean-library-list { display: grid; gap: 10px; }
+    .bean-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 6px 12px;
+      padding: 14px 16px;
+      border: 0;
+      border-radius: 9px;
+      color: var(--ink);
+      background: rgba(242, 233, 218, 0.6);
+      text-align: left;
+      cursor: pointer;
+    }
+    .bean-card strong { font-size: 15px; }
+    .bean-card span { color: var(--muted); font-size: 12px; }
+    .bean-card i { grid-row: 1 / 3; grid-column: 2; align-self: center; width: 17px; }
+    .bean-form {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .bean-form[hidden] { display: none; }
+    .bean-form .wide { grid-column: 1 / -1; }
+    .bean-form-actions {
+      display: flex;
+      grid-column: 1 / -1;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .bean-empty {
+      padding: 22px;
+      border-radius: 9px;
+      color: var(--muted);
+      background: rgba(242, 233, 218, 0.45);
+      text-align: center;
+      font-size: 13px;
+    }
+    .generic-bean-link {
+      display: grid;
+      gap: 4px;
+      margin-top: 16px;
+      padding: 12px 14px;
+      border-radius: 9px;
+      background: rgba(112, 143, 120, 0.1);
+    }
+    .generic-bean-link[hidden] { display: none; }
+    .generic-bean-link span { color: var(--muted); font-size: 11px; }
+    .generic-bean-link strong { color: var(--coffee-dark); font-size: 14px; }
+    .generic-bean-link button {
+      justify-self: start;
+      margin-top: 3px;
+      padding: 0;
+      border: 0;
+      color: var(--blue);
+      background: transparent;
+      font: inherit;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .generic-bean-link select {
+      width: 100%;
+      min-height: 40px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      color: var(--ink);
+      background: #fffdf8;
+      font: inherit;
+    }
     .recipe-create-error { min-height: 18px; margin: 0; color: var(--berry); font-size: 12px; }
 
     .generic-recipe-actions {
@@ -2028,6 +2099,9 @@
       .follow-dialog-body,
       .follow-dialog-actions { padding-inline: 18px; }
       .follow-focus-item { grid-template-columns: 24px 44px minmax(0, 1fr); }
+      .bean-form { grid-template-columns: 1fr; }
+      .bean-form .wide,
+      .bean-form-actions { grid-column: auto; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -2153,6 +2227,7 @@
           </div>
           <div class="list-actions">
             <button class="primary-btn" id="openRecipeCreate" type="button"><i data-lucide="plus"></i>添加菜谱</button>
+            <button class="ghost-btn" id="openBeanLibrary" type="button"><i data-lucide="coffee"></i>咖啡豆档案</button>
             <button class="ghost-btn" id="openBackupCenter" type="button"><i data-lucide="hard-drive-download"></i>备份与安装</button>
             <div class="sort-box">
               <span>排序</span>
@@ -2585,6 +2660,7 @@
             </div>
             <h1 class="generic-editable" id="genericTitle"></h1>
             <p class="generic-editable" id="genericDescription"></p>
+            <div class="generic-bean-link" id="genericBeanLink" hidden></div>
             <p class="generic-save-status" id="genericSaveStatus" aria-live="polite"></p>
           </div>
           <div class="detail-photo" id="genericPhoto" role="img" data-generic-image="" data-generic-image-alt=""></div>
@@ -2704,12 +2780,15 @@
         <button class="recipe-create-mode" type="button" role="tab" aria-selected="false" data-recipe-create-mode="note">粘贴笔记</button>
       </div>
       <div class="recipe-create-fields" id="recipeCreateManualFields">
-        <label class="recipe-create-field">类型
-          <select id="newRecipeType" required>
-            <option value="baking">烘焙</option>
-            <option value="drink">饮品</option>
+        <label class="recipe-create-field">模板
+          <select id="newRecipeTemplate">
+            <option value="baking">通用烘焙</option>
+            <option value="drink">通用饮品</option>
+            <option value="pour-over">手冲咖啡</option>
+            <option value="espresso">意式半自动</option>
           </select>
         </label>
+        <input id="newRecipeType" type="hidden" value="baking">
         <label class="recipe-create-field">菜谱名称
           <input id="newRecipeTitle" maxlength="60" placeholder="例如：香蕉核桃磅蛋糕" required>
         </label>
@@ -2718,6 +2797,9 @@
         </label>
         <label class="recipe-create-field">第一步操作
           <textarea id="newRecipeAction" maxlength="300" placeholder="例如：黄油切小块，室温软化到手指可以轻松按下。" required></textarea>
+        </label>
+        <label class="recipe-create-field" id="newRecipeBeanField" hidden>关联咖啡豆
+          <select id="newRecipeBean"></select>
         </label>
       </div>
       <div class="recipe-create-fields" id="recipeCreateNoteFields" hidden>
@@ -2743,6 +2825,70 @@
         <button class="primary-btn" id="recipeCreateSubmit" type="submit"><span>创建并继续编辑</span><i data-lucide="arrow-right"></i></button>
       </div>
     </form>
+  </dialog>
+
+  <dialog class="recipe-create-dialog" id="beanLibraryDialog" aria-labelledby="beanLibraryTitle">
+    <div class="recipe-create-form">
+      <div class="recipe-create-head">
+        <div>
+          <h2 id="beanLibraryTitle">咖啡豆档案</h2>
+          <p>一款豆子只记录一次，可关联多个手冲或意式配方。</p>
+        </div>
+        <button class="follow-close" id="closeBeanLibrary" type="button" aria-label="关闭咖啡豆档案"><i data-lucide="x"></i></button>
+      </div>
+      <div class="bean-library">
+        <div class="recipe-create-actions" id="beanLibraryToolbar">
+          <span class="recipe-note-summary" id="beanLibraryCount"></span>
+          <button class="primary-btn" id="addCoffeeBean" type="button"><i data-lucide="plus"></i>添加豆子</button>
+        </div>
+        <div class="bean-library-list" id="beanLibraryList"></div>
+        <form class="bean-form" id="beanForm" hidden>
+          <input id="beanId" type="hidden">
+          <label class="recipe-create-field wide">档案名称
+            <input id="beanName" maxlength="60" placeholder="例如：埃塞俄比亚 花蝶" required>
+          </label>
+          <label class="recipe-create-field">烘焙商
+            <input id="beanRoaster" maxlength="60">
+          </label>
+          <label class="recipe-create-field">产地
+            <input id="beanOrigin" maxlength="80">
+          </label>
+          <label class="recipe-create-field">品种
+            <input id="beanVariety" maxlength="80">
+          </label>
+          <label class="recipe-create-field">处理法
+            <input id="beanProcess" maxlength="60">
+          </label>
+          <label class="recipe-create-field">烘焙度
+            <select id="beanRoastLevel">
+              <option value="">未记录</option>
+              <option>浅烘焙</option>
+              <option>中浅烘焙</option>
+              <option>中烘焙</option>
+              <option>中深烘焙</option>
+              <option>深烘焙</option>
+            </select>
+          </label>
+          <label class="recipe-create-field">烘焙日期
+            <input id="beanRoastDate" type="date">
+          </label>
+          <label class="recipe-create-field wide">建议养豆
+            <input id="beanRest" maxlength="100" placeholder="例如：烘焙后 10–20 天">
+          </label>
+          <label class="recipe-create-field wide">风味描述
+            <textarea id="beanNotes" maxlength="500" placeholder="例如：白花、柑橘、蜂蜜，降温后茶感明显。"></textarea>
+          </label>
+          <p class="recipe-create-error wide" id="beanFormError" aria-live="polite"></p>
+          <div class="bean-form-actions">
+            <button class="ghost-btn generic-delete" id="deleteCoffeeBean" type="button">删除</button>
+            <div class="recipe-create-actions">
+              <button class="ghost-btn" id="cancelBeanEdit" type="button">取消</button>
+              <button class="primary-btn" type="submit">保存豆档案</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
   </dialog>
 
   <dialog class="recipe-create-dialog" id="backupDialog" aria-labelledby="backupDialogTitle">
@@ -3002,6 +3148,7 @@
 
     const genericRecipeStorageKey = "brewBakeLab.genericRecipes.v1";
     const customRecipeStorageKey = "brewBakeLab.customRecipes.v1";
+    const coffeeBeanStorageKey = "brewBakeLab.coffeeBeans.v1";
     let activeGenericRecipeId = null;
     let genericDraft = null;
     let recipeCreateMode = "manual";
@@ -3035,6 +3182,120 @@
 
     function persistCustomRecipes(recipesById) {
       localStorage.setItem(customRecipeStorageKey, JSON.stringify(recipesById));
+    }
+
+    function loadCoffeeBeans() {
+      try {
+        return JSON.parse(localStorage.getItem(coffeeBeanStorageKey)) || {};
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function persistCoffeeBeans(beansById) {
+      localStorage.setItem(coffeeBeanStorageKey, JSON.stringify(beansById));
+    }
+
+    function coffeeBeanSummary(bean) {
+      return [bean.roaster, bean.origin, bean.process, bean.roastLevel].filter(Boolean).join(" · ") || "等待补充产地与烘焙信息";
+    }
+
+    function renderCoffeeBeanOptions(select, selectedId = "") {
+      const beans = Object.values(loadCoffeeBeans()).sort((a, b) => a.name.localeCompare(b.name, "zh-CN"));
+      select.innerHTML = `<option value="">暂不关联</option>${beans.map((bean) =>
+        `<option value="${escapeHTML(bean.id)}"${bean.id === selectedId ? " selected" : ""}>${escapeHTML(bean.name)}</option>`
+      ).join("")}`;
+    }
+
+    function renderBeanLibrary() {
+      const beans = Object.values(loadCoffeeBeans()).sort((a, b) => a.name.localeCompare(b.name, "zh-CN"));
+      document.getElementById("beanLibraryCount").textContent = `${beans.length} 款咖啡豆`;
+      document.getElementById("beanLibraryList").innerHTML = beans.length
+        ? beans.map((bean) => `<button class="bean-card" type="button" data-edit-coffee-bean="${escapeHTML(bean.id)}">
+            <strong>${escapeHTML(bean.name)}</strong>
+            <span>${escapeHTML(coffeeBeanSummary(bean))}</span>
+            <i data-lucide="chevron-right"></i>
+          </button>`).join("")
+        : `<div class="bean-empty">还没有咖啡豆档案。先添加一款正在使用的豆子。</div>`;
+      lucide.createIcons();
+    }
+
+    function openBeanLibrary(beanId = "") {
+      renderBeanLibrary();
+      document.getElementById("beanForm").hidden = true;
+      document.getElementById("beanLibraryToolbar").hidden = false;
+      document.getElementById("beanLibraryList").hidden = false;
+      document.getElementById("beanLibraryDialog").showModal();
+      if (beanId) startBeanEdit(beanId);
+    }
+
+    function startBeanEdit(beanId = "") {
+      const bean = loadCoffeeBeans()[beanId] || {};
+      document.getElementById("beanForm").reset();
+      document.getElementById("beanId").value = bean.id || "";
+      document.getElementById("beanName").value = bean.name || "";
+      document.getElementById("beanRoaster").value = bean.roaster || "";
+      document.getElementById("beanOrigin").value = bean.origin || "";
+      document.getElementById("beanVariety").value = bean.variety || "";
+      document.getElementById("beanProcess").value = bean.process || "";
+      document.getElementById("beanRoastLevel").value = bean.roastLevel || "";
+      document.getElementById("beanRoastDate").value = bean.roastDate || "";
+      document.getElementById("beanRest").value = bean.rest || "";
+      document.getElementById("beanNotes").value = bean.notes || "";
+      document.getElementById("beanFormError").textContent = "";
+      document.getElementById("deleteCoffeeBean").hidden = !bean.id;
+      document.getElementById("beanForm").hidden = false;
+      document.getElementById("beanLibraryToolbar").hidden = true;
+      document.getElementById("beanLibraryList").hidden = true;
+      requestAnimationFrame(() => document.getElementById("beanName").focus());
+    }
+
+    function closeBeanEdit() {
+      document.getElementById("beanForm").hidden = true;
+      document.getElementById("beanLibraryToolbar").hidden = false;
+      document.getElementById("beanLibraryList").hidden = false;
+      renderBeanLibrary();
+    }
+
+    function saveCoffeeBean(event) {
+      event.preventDefault();
+      const name = document.getElementById("beanName").value.trim();
+      if (!name) {
+        document.getElementById("beanFormError").textContent = "请填写档案名称。";
+        return;
+      }
+      const beans = loadCoffeeBeans();
+      const id = document.getElementById("beanId").value || `bean-${Date.now().toString(36)}`;
+      beans[id] = {
+        id,
+        name,
+        roaster: document.getElementById("beanRoaster").value.trim(),
+        origin: document.getElementById("beanOrigin").value.trim(),
+        variety: document.getElementById("beanVariety").value.trim(),
+        process: document.getElementById("beanProcess").value.trim(),
+        roastLevel: document.getElementById("beanRoastLevel").value,
+        roastDate: document.getElementById("beanRoastDate").value,
+        rest: document.getElementById("beanRest").value.trim(),
+        notes: document.getElementById("beanNotes").value.trim(),
+        updatedAt: new Date().toISOString()
+      };
+      persistCoffeeBeans(beans);
+      closeBeanEdit();
+    }
+
+    function deleteCoffeeBean() {
+      const id = document.getElementById("beanId").value;
+      if (!id || !window.confirm("删除豆档案后，关联配方会保留，但不再显示这款豆子。是否继续？")) return;
+      const beans = loadCoffeeBeans();
+      delete beans[id];
+      persistCoffeeBeans(beans);
+      const recipes = loadCustomRecipes();
+      Object.values(recipes).forEach((recipe) => {
+        if (recipe.coffeeBeanId === id) recipe.coffeeBeanId = "";
+      });
+      persistCustomRecipes(recipes);
+      closeBeanEdit();
+      if (activeGenericRecipeId) renderGenericRecipe(activeGenericRecipeId);
     }
 
     function isBuiltInGenericRecipe(recipeId) {
@@ -3090,6 +3351,62 @@
           : ["烤箱与模具", "烘烤", "定型"],
         custom: true
       };
+    }
+
+    function applyCoffeeTemplate(recipe, template, coffeeBeanId = "") {
+      recipe.template = template;
+      recipe.coffeeBeanId = coffeeBeanId;
+      recipe.tags = [template === "espresso" ? "意式" : "手冲", "咖啡", "自建菜谱"];
+      recipe.paramHint = template === "espresso"
+        ? "意式参数：粉量、液重、比例、研磨、时间与温度。"
+        : "手冲参数：粉量、水量、比例、研磨、水温与总时间。";
+      if (template === "espresso") {
+        recipe.params = [
+          { type: "咖啡豆", value: "粉量 18g。" },
+          { type: "比例", value: "液重 36g，粉液比 1:2。" },
+          { type: "研磨", value: "填写磨豆机刻度。" },
+          { type: "萃取", value: "目标 25–30 秒。" },
+          { type: "水温", value: "92°C。" },
+          { type: "器具", value: "半自动咖啡机、双份粉碗、电子秤。" },
+          { type: "奶泡", value: "纯意式可留空；奶咖填写牛奶量与温度。" },
+          { type: "成品", value: "记录甜感、酸苦平衡、醇厚度与下一杯调整。" }
+        ];
+        recipe.phases = [
+          { name: "准备", steps: [
+            { id: "generic-step-1-1", title: "预热并擦干粉碗", action: "充分预热咖啡机与手柄，擦干粉碗后称取咖啡粉。", check: "", note: "" },
+            { id: "generic-step-1-2", title: "布粉与压粉", action: "把咖啡粉均匀分布后水平压粉，清理粉碗边缘。", check: "", note: "" }
+          ] },
+          { name: "萃取", steps: [
+            { id: "generic-step-2-1", title: "萃取并计时", action: "锁上手柄后立即开始萃取并计时，到目标液重时停止。", check: "", note: "" },
+            { id: "generic-step-2-2", title: "品尝并校正", action: "搅匀后品尝；下一杯优先只调整研磨度。", check: "", note: "" }
+          ] }
+        ];
+        recipe.extensions = ["粉液比", "研磨刻度", "萃取时间", "粉碗", "奶泡"];
+      } else {
+        recipe.params = [
+          { type: "咖啡豆", value: "咖啡豆 15g。" },
+          { type: "用水", value: "过滤水 240g。" },
+          { type: "比例", value: "粉水比 1:16。" },
+          { type: "研磨", value: "中细研磨，填写磨豆机刻度。" },
+          { type: "水温", value: "92°C。" },
+          { type: "器具", value: "滤杯、滤纸、分享壶、电子秤、细口壶。" },
+          { type: "萃取", value: "闷蒸 30 秒；总时间 2:30–3:00。" },
+          { type: "成品", value: "记录香气、酸甜苦、口感与降温后的变化。" }
+        ];
+        recipe.phases = [
+          { name: "准备", steps: [
+            { id: "generic-step-1-1", title: "称豆、烧水并润洗", action: "称取咖啡豆，烧水；润洗滤纸并预热器具。", check: "", note: "" },
+            { id: "generic-step-1-2", title: "研磨并归零", action: "研磨咖啡豆，倒入滤纸并轻拍平整，放到秤上归零。", check: "", note: "" }
+          ] },
+          { name: "冲煮", steps: [
+            { id: "generic-step-2-1", title: "闷蒸", action: "从中心注水至咖啡粉完全湿润，等待至目标闷蒸时间。", check: "", note: "" },
+            { id: "generic-step-2-2", title: "分段注水", action: "按计划分段绕圈注水，到目标总水量后等待滴滤完成。", check: "", note: "" },
+            { id: "generic-step-2-3", title: "品尝并校正", action: "摇匀并稍微降温后品尝；下一杯优先只调整研磨度。", check: "", note: "" }
+          ] }
+        ];
+        recipe.extensions = ["粉水比", "研磨刻度", "水温", "注水节奏", "总时间"];
+      }
+      return recipe;
     }
 
     function getGenericRecipe(recipeId) {
@@ -3204,6 +3521,31 @@
       lucide.createIcons();
     }
 
+    function renderGenericBeanLink(recipe, isEditing = false) {
+      const container = document.getElementById("genericBeanLink");
+      const isCoffeeRecipe = recipe.template === "pour-over" || recipe.template === "espresso" || Boolean(recipe.coffeeBeanId);
+      container.hidden = !isCoffeeRecipe;
+      if (!isCoffeeRecipe) {
+        container.replaceChildren();
+        return;
+      }
+      if (isEditing) {
+        container.innerHTML = `<span>关联咖啡豆</span><select id="genericBeanSelect" aria-label="关联咖啡豆"></select>`;
+        renderCoffeeBeanOptions(document.getElementById("genericBeanSelect"), recipe.coffeeBeanId || "");
+        return;
+      }
+      const bean = loadCoffeeBeans()[recipe.coffeeBeanId];
+      if (!bean) {
+        container.innerHTML = `<span>咖啡豆</span><strong>暂未关联豆档案</strong>`;
+        return;
+      }
+      container.innerHTML = `
+        <span>咖啡豆档案</span>
+        <strong>${escapeHTML(bean.name)}</strong>
+        <span>${escapeHTML(coffeeBeanSummary(bean))}</span>
+        <button type="button" data-open-linked-bean="${escapeHTML(bean.id)}">查看完整档案</button>`;
+    }
+
     function renderGenericRecipe(recipeId) {
       const recipe = getGenericRecipe(recipeId);
       if (!recipe) return;
@@ -3211,6 +3553,7 @@
       document.getElementById("genericBreadcrumb").textContent = recipe.category.join(" / ");
       document.getElementById("genericTitle").textContent = recipe.title;
       document.getElementById("genericDescription").textContent = recipe.description;
+      renderGenericBeanLink(recipe, false);
       document.getElementById("genericTags").innerHTML = recipe.tags.map((tag, index) =>
         `<span class="tag ${index === 0 ? "blue" : ""}">${escapeHTML(tag)}</span>`
       ).join("");
@@ -3420,6 +3763,8 @@
       const genericPhoto = document.getElementById("genericPhoto");
       recipe.image = genericPhoto.dataset.genericImage || "";
       recipe.imageAlt = genericPhoto.dataset.genericImageAlt || "";
+      const beanSelect = document.getElementById("genericBeanSelect");
+      if (beanSelect) recipe.coffeeBeanId = beanSelect.value;
       recipe.params = [...document.querySelectorAll("#genericParamTable tr")].map((row) => ({
         type: getGenericParamType(row),
         value: row.querySelector("td").textContent.trim()
@@ -3486,6 +3831,7 @@
         renderRecipes("listRecipes");
       }
       renderGenericParams(recipe.params, recipe.type, false);
+      renderGenericBeanLink(recipe, false);
       setGenericEditing(false);
       document.getElementById("genericSaveStatus").textContent = "已保存到当前设备。";
     }
@@ -3493,7 +3839,7 @@
     function openRecipeCreateDialog() {
       const form = document.getElementById("recipeCreateForm");
       form.reset();
-      document.getElementById("newRecipeCategory").value = "烘焙 / ";
+      configureRecipeTemplate("baking");
       document.getElementById("recipeCreateError").textContent = "";
       parsedRecipeNote = null;
       setRecipeCreateMode("manual");
@@ -3523,6 +3869,27 @@
         recipeCreateMode === "note" && !parsedRecipeNote ? "识别笔记" : "创建并继续编辑";
       document.getElementById("recipeCreateError").textContent = "";
       if (recipeCreateMode === "note") requestAnimationFrame(() => document.getElementById("recipeNoteInput").focus());
+    }
+
+    function configureRecipeTemplate(template) {
+      const isCoffee = template === "pour-over" || template === "espresso";
+      const type = template === "baking" ? "baking" : "drink";
+      document.getElementById("newRecipeTemplate").value = template;
+      document.getElementById("newRecipeType").value = type;
+      document.getElementById("newRecipeBeanField").hidden = !isCoffee;
+      renderCoffeeBeanOptions(document.getElementById("newRecipeBean"));
+      const category = document.getElementById("newRecipeCategory");
+      const action = document.getElementById("newRecipeAction");
+      if (template === "pour-over") {
+        category.value = "饮品 / 咖啡 / 手冲";
+        action.value = "称取咖啡豆，烧水；润洗滤纸并预热器具。";
+      } else if (template === "espresso") {
+        category.value = "饮品 / 咖啡 / 意式";
+        action.value = "充分预热咖啡机与手柄，擦干粉碗后称取咖啡粉。";
+      } else {
+        category.value = type === "drink" ? "饮品 / " : "烘焙 / ";
+        action.value = "";
+      }
     }
 
     function cleanRecipeNoteText(value) {
@@ -3636,6 +4003,8 @@
       closeRecipeCreateDialog();
       renderGenericRecipe(recipe.id);
       setPage("genericDetail");
+      renderGenericParams(recipe.params, recipe.type, true);
+      renderGenericBeanLink(recipe, true);
       setGenericEditing(true);
     }
 
@@ -3666,6 +4035,7 @@
         return;
       }
       const type = document.getElementById("newRecipeType").value;
+      const template = document.getElementById("newRecipeTemplate").value;
       const title = document.getElementById("newRecipeTitle").value.trim();
       const category = document.getElementById("newRecipeCategory").value.trim();
       const action = document.getElementById("newRecipeAction").value.trim();
@@ -3677,7 +4047,10 @@
         document.getElementById("recipeCreateError").textContent = "当前设备最多保存 100 份自建菜谱，请先导出并删除不常用的菜谱。";
         return;
       }
-      const recipe = createRecipeTemplate({ type, title, category, action });
+      let recipe = createRecipeTemplate({ type, title, category, action });
+      if (template === "pour-over" || template === "espresso") {
+        recipe = applyCoffeeTemplate(recipe, template, document.getElementById("newRecipeBean").value);
+      }
       persistNewCustomRecipe(recipe);
       document.getElementById("genericSaveStatus").textContent = "菜谱已建立，请继续完善后保存。";
     }
@@ -5508,6 +5881,15 @@
       const card = event.target.closest(".recipe-card[data-page]");
       if (card?.dataset.page === "genericDetail") renderGenericRecipe(card.dataset.recipeId);
       if (event.target.closest("#openRecipeCreate")) openRecipeCreateDialog();
+      if (event.target.closest("#openBeanLibrary")) openBeanLibrary();
+      if (event.target.closest("#closeBeanLibrary")) document.getElementById("beanLibraryDialog").close();
+      if (event.target.closest("#addCoffeeBean")) startBeanEdit();
+      if (event.target.closest("#cancelBeanEdit")) closeBeanEdit();
+      if (event.target.closest("#deleteCoffeeBean")) deleteCoffeeBean();
+      const editBean = event.target.closest("[data-edit-coffee-bean]");
+      if (editBean) startBeanEdit(editBean.dataset.editCoffeeBean);
+      const linkedBean = event.target.closest("[data-open-linked-bean]");
+      if (linkedBean) openBeanLibrary(linkedBean.dataset.openLinkedBean);
       const recipeCreateModeButton = event.target.closest("[data-recipe-create-mode]");
       if (recipeCreateModeButton) setRecipeCreateMode(recipeCreateModeButton.dataset.recipeCreateMode);
       if (event.target.closest("#closeRecipeCreate, #cancelRecipeCreate")) closeRecipeCreateDialog();
@@ -5518,6 +5900,7 @@
       if (event.target.closest("#genericEdit")) {
         genericDraft = getGenericRecipe(activeGenericRecipeId);
         renderGenericParams(genericDraft.params, genericDraft.type, true);
+        renderGenericBeanLink(genericDraft, true);
         setGenericEditing(true);
         document.getElementById("genericSaveStatus").textContent = "";
       }
@@ -5550,6 +5933,10 @@
     });
 
     document.getElementById("recipeCreateForm").addEventListener("submit", createCustomRecipe);
+    document.getElementById("beanForm").addEventListener("submit", saveCoffeeBean);
+    document.getElementById("newRecipeTemplate").addEventListener("change", (event) => {
+      configureRecipeTemplate(event.target.value);
+    });
 
     document.getElementById("newRecipeType").addEventListener("change", (event) => {
       const category = document.getElementById("newRecipeCategory");

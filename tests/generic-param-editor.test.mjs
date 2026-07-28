@@ -9,6 +9,9 @@ assert.match(html, /data-generic-param-custom/);
 assert.match(html, /data-move-generic-param="up"/);
 assert.match(html, /data-move-generic-param="down"/);
 assert.match(html, /type: getGenericParamType\(row\)/);
-assert.match(html, /renderGenericParams\(recipe\.params, recipe\.type, false\);\s*setGenericEditing\(false\)/);
+assert.match(
+  html,
+  /renderGenericParams\(recipe\.params, recipe\.type, false\);\s*renderGenericBeanLink\(recipe, false\);\s*setGenericEditing\(false\)/
+);
 
 console.log("Generic parameter categories, custom labels, ordering, and save-state rendering guards are present.");
