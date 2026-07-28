@@ -1690,6 +1690,42 @@
       resize: vertical;
     }
     .pour-plan-result p { margin: 0; color: var(--muted); line-height: 1.65; }
+    .pour-stage-params {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 9px;
+      background: rgba(79, 100, 119, 0.06);
+    }
+    .pour-stage-params[hidden] { display: none; }
+    .pour-stage-param-head,
+    .pour-stage-param-row {
+      display: grid;
+      grid-template-columns: minmax(110px, 1fr) 100px 120px;
+      gap: 10px;
+      align-items: center;
+    }
+    .pour-stage-param-head {
+      padding: 2px 0 8px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .pour-stage-param-row {
+      min-height: 46px;
+      border-top: 1px solid rgba(79, 100, 119, 0.1);
+    }
+    .pour-stage-param-row strong { color: var(--coffee-dark); }
+    .pour-stage-param-row input {
+      width: 100%;
+      min-width: 0;
+      min-height: 38px;
+      padding: 7px 9px;
+      border: 1px solid rgba(79, 100, 119, 0.22);
+      border-radius: 7px;
+      color: var(--ink);
+      background: #fffdf8;
+      font: inherit;
+    }
     .pour-guide-head {
       display: flex;
       align-items: center;
@@ -2338,6 +2374,8 @@
       .bean-form-scroll .wide { grid-column: auto; }
       .bean-form-actions { padding-top: 12px; }
       .pour-plan { padding-inline: 12px; }
+      .pour-stage-param-head,
+      .pour-stage-param-row { grid-template-columns: minmax(90px, 1fr) 76px 86px; gap: 7px; }
       .pour-guide-head { align-items: stretch; flex-direction: column; }
       .pour-guide-switch select { width: 100%; max-width: none; }
       .pour-plan-head { display: none; }
@@ -3009,6 +3047,10 @@
                   <span class="tag blue" id="genericTypeTag"></span>
                 </div>
                 <table class="param-table" id="genericParamTable"></table>
+                <div class="pour-stage-params" id="pourStageParams" hidden>
+                  <div class="pour-stage-param-head"><span>注水阶段</span><span>开始时间</span><span>累计注水</span></div>
+                  <div id="pourStageParamRows"></div>
+                </div>
                 <button class="edit-action add generic-add-control" id="addGenericParam" type="button">＋ 添加参数</button>
               </div>
             </section>
@@ -3866,8 +3908,12 @@
           { type: "研磨", value: "中细研磨，填写磨豆机刻度。" },
           { type: "水温", value: "92°C。" },
           { type: "器具", value: "滤杯、滤纸、分享壶、电子秤、细口壶。" },
-          { type: "注水方案", value: "30g → 150g → 240g" },
           { type: "萃取", value: "目标总时间 2:30–3:00。" }
+        ];
+        recipe.pourStages = [
+          { label: "闷蒸", time: "00:00", grams: "30g" },
+          { label: "第二段", time: "00:30", grams: "150g" },
+          { label: "第三段", time: "01:15", grams: "240g" }
         ];
         recipe.pourPlan = defaultPourPlan();
         recipe.resultNotes = "记录香气、酸甜苦、口感与降温后的变化。";
@@ -3899,18 +3945,22 @@
     function fixedPourPlan(recipe) {
       const doseText = recipe.params?.find((item) => item.type === "咖啡豆")?.value || "";
       const waterText = recipe.params?.find((item) => item.type === "用水")?.value || "";
-      const stagesText = recipe.params?.find((item) => item.type === "注水方案")?.value || "";
       const extractionText = recipe.params?.find((item) => item.type === "萃取")?.value || "";
       const dose = Number(doseText.match(/(\d+(?:\.\d+)?)\s*g/i)?.[1]) || 15;
       const water = Number(waterText.match(/(\d+(?:\.\d+)?)\s*g/i)?.[1]) || 240;
-      const automatic = [Math.round(dose * 2), Math.round(water * 0.625), Math.round(water)];
-      const custom = [...stagesText.matchAll(/(\d+(?:\.\d+)?)\s*g/gi)].map((match) => Number(match[1]));
-      const [bloom, middle, total] = custom.length >= 3 ? custom.slice(0, 3) : automatic;
+      const automatic = [
+        { label: "闷蒸", time: "00:00", grams: `${Math.round(dose * 2)}g` },
+        { label: "第二段", time: "00:30", grams: `${Math.round(water * 0.625)}g` },
+        { label: "第三段", time: "01:15", grams: `${Math.round(water)}g` }
+      ];
+      const stages = Array.isArray(recipe.pourStages) && recipe.pourStages.length >= 3
+        ? recipe.pourStages.slice(0, 3)
+        : automatic;
       const finishTime = extractionText.match(/\d:\d{2}/)?.[0] || "02:30";
       return [
-        { id: "pour-fixed-1", time: "00:00", grams: `${bloom}g`, method: "中心小圈注水，完全润湿咖啡粉。" },
-        { id: "pour-fixed-2", time: "00:30", grams: `${middle}g`, method: "从中心向外稳定绕圈。" },
-        { id: "pour-fixed-3", time: "01:15", grams: `${total}g`, method: "小圈注水至目标总水量。" },
+        { id: "pour-fixed-1", time: stages[0].time, grams: stages[0].grams, method: "中心小圈注水，完全润湿咖啡粉。" },
+        { id: "pour-fixed-2", time: stages[1].time, grams: stages[1].grams, method: "从中心向外稳定绕圈。" },
+        { id: "pour-fixed-3", time: stages[2].time, grams: stages[2].grams, method: "小圈注水至目标总水量。" },
         { id: "pour-fixed-4", time: finishTime, grams: "完成", method: "滴滤结束后移走滤杯。" }
       ];
     }
@@ -3918,16 +3968,31 @@
     function preparePourRecipe(recipe) {
       if (recipe.template !== "pour-over") return recipe;
       const resultParam = recipe.params?.find((item) => item.type === "成品");
+      const legacyPourParam = recipe.params?.find((item) => item.type === "注水方案");
       if (!recipe.resultNotes) recipe.resultNotes = resultParam?.value || "记录香气、酸甜苦、口感与降温后的变化。";
-      recipe.params = (recipe.params || []).filter((item) => item.type !== "比例" && item.type !== "成品");
-      if (!recipe.params.some((item) => item.type === "注水方案")) {
-        const automatic = fixedPourPlan(recipe).slice(0, 3).map((stage) => stage.grams).join(" → ");
-        const extractionIndex = recipe.params.findIndex((item) => item.type === "萃取");
-        recipe.params.splice(extractionIndex < 0 ? recipe.params.length : extractionIndex, 0, {
-          type: "注水方案",
-          value: automatic
-        });
+      let legacyGrams = [...String(legacyPourParam?.value || "").matchAll(/(\d+(?:\.\d+)?)\s*(?:g|克)/gi)]
+        .map((match) => `${match[1]}g`);
+      if (legacyGrams.length < 3 && legacyPourParam?.value) {
+        legacyGrams = String(legacyPourParam.value).split(/[→>/,，、;；]+/)
+          .map((part) => [...part.matchAll(/\d+(?:\.\d+)?/g)].at(-1)?.[0])
+          .filter(Boolean)
+          .map((value) => `${value}g`);
       }
+      const shouldKeepLegacyParam = Boolean(legacyPourParam) && legacyGrams.length < 3;
+      recipe.params = (recipe.params || []).filter((item) =>
+        item.type !== "比例" && item.type !== "成品" && (item.type !== "注水方案" || shouldKeepLegacyParam)
+      );
+      const automatic = fixedPourPlan({ ...recipe, pourStages: [] }).slice(0, 3);
+      const incomingStages = Array.isArray(recipe.pourStages) ? recipe.pourStages.slice(0, 3) : [];
+      recipe.pourStages = ["闷蒸", "第二段", "第三段"].map((label, index) => {
+        const stage = incomingStages[index];
+        const safeStage = stage && typeof stage === "object" ? stage : {};
+        return {
+          label: String(safeStage.label || label).slice(0, 30),
+          time: String(safeStage.time || automatic[index].time).slice(0, 12),
+          grams: String(safeStage.grams || legacyGrams[index] || automatic[index].grams).slice(0, 20)
+        };
+      });
       recipe.pourPlan = fixedPourPlan(recipe);
       return recipe;
     }
@@ -4004,7 +4069,7 @@
 
     const genericParamTypeOptions = {
       baking: ["成品", "材料", "蛋糕糊", "夹馅", "装饰", "模具 / 器具", "烤箱 & 烤盘", "烘烤", "冷却", "卷制", "定型", "保存"],
-      drink: ["成品", "材料", "原料", "咖啡", "咖啡豆", "用水", "比例", "研磨", "水温", "器具", "注水方案", "萃取", "奶泡", "制作", "保存"]
+      drink: ["成品", "材料", "原料", "咖啡", "咖啡豆", "用水", "比例", "研磨", "水温", "器具", "萃取", "奶泡", "制作", "保存"]
     };
 
     function genericParamOptions(recipeType) {
@@ -4042,6 +4107,28 @@
         .map((item) => genericParamRowMarkup(item, recipeType, isEditing))
         .join("");
       lucide.createIcons();
+    }
+
+    function renderPourStageParams(recipe, isEditing = false) {
+      const container = document.getElementById("pourStageParams");
+      const isPourOver = recipe.template === "pour-over";
+      container.hidden = !isPourOver;
+      if (!isPourOver) {
+        document.getElementById("pourStageParamRows").replaceChildren();
+        return;
+      }
+      document.getElementById("pourStageParamRows").innerHTML = recipe.pourStages.map((stage, index) => `
+        <div class="pour-stage-param-row" data-pour-param-stage>
+          ${isEditing
+            ? `<input data-pour-stage-label value="${escapeHTML(stage.label || `第 ${index + 1} 段`)}" aria-label="注水阶段名称">`
+            : `<strong data-pour-stage-label>${escapeHTML(stage.label || `第 ${index + 1} 段`)}</strong>`}
+          ${isEditing
+            ? `<input data-pour-stage-time value="${escapeHTML(stage.time || "")}" aria-label="${escapeHTML(stage.label || "注水阶段")}开始时间" placeholder="00:30">`
+            : `<span data-pour-stage-time>${escapeHTML(stage.time || "")}</span>`}
+          ${isEditing
+            ? `<input data-pour-stage-grams value="${escapeHTML(stage.grams || "")}" aria-label="${escapeHTML(stage.label || "注水阶段")}累计注水" placeholder="150g">`
+            : `<span data-pour-stage-grams>${escapeHTML(stage.grams || "")}</span>`}
+        </div>`).join("");
     }
 
     function pourRatioLabel(recipe) {
@@ -4112,6 +4199,7 @@
       document.getElementById("genericParamHint").textContent = `${recipe.paramHint}${pourRatioLabel(recipe)}`;
       document.getElementById("genericTypeTag").textContent = recipe.typeLabel;
       renderGenericParams(recipe.params, recipe.type, false);
+      renderPourStageParams(recipe, false);
 
       const isPourOver = recipe.template === "pour-over";
       document.getElementById("genericStepsTitle").textContent = isPourOver ? "对应做法" : "步骤流程";
@@ -4331,6 +4419,11 @@
         value: row.querySelector("td").textContent.trim()
       }));
       if (recipe.template === "pour-over") {
+        recipe.pourStages = [...document.querySelectorAll("#pourStageParamRows [data-pour-param-stage]")].map((row) => ({
+          label: String(row.querySelector("[data-pour-stage-label]")?.value ?? row.querySelector("[data-pour-stage-label]")?.textContent ?? "").trim(),
+          time: String(row.querySelector("[data-pour-stage-time]")?.value ?? row.querySelector("[data-pour-stage-time]")?.textContent ?? "").trim(),
+          grams: String(row.querySelector("[data-pour-stage-grams]")?.value ?? row.querySelector("[data-pour-stage-grams]")?.textContent ?? "").trim()
+        }));
         recipe.pourPlan = [...document.querySelectorAll("#genericPourPlanRows [data-pour-stage]")].map((row) => ({
           id: row.dataset.pourStageId || `pour-${Date.now().toString(36)}`,
           time: String(row.querySelector("[data-pour-time]")?.value ?? row.querySelector(".pour-plan-time")?.textContent ?? "").trim(),
@@ -4381,6 +4474,13 @@
     }
 
     function saveGenericRecipe() {
+      const missingPourParam = [...document.querySelectorAll("#pourStageParamRows input")]
+        .find((node) => !node.value.trim());
+      if (getGenericRecipe(activeGenericRecipeId)?.template === "pour-over" && missingPourParam) {
+        missingPourParam.focus();
+        document.getElementById("genericSaveStatus").textContent = "请填写每段注水的名称、时间和累计克重。";
+        return;
+      }
       const missingPourField = [...document.querySelectorAll("#genericPourPlanRows input")]
         .find((node) => !node.value.trim());
       if (getGenericRecipe(activeGenericRecipeId)?.template === "pour-over" && missingPourField) {
@@ -4418,6 +4518,7 @@
         renderRecipes("listRecipes");
       }
       renderGenericParams(recipe.params, recipe.type, false);
+      renderPourStageParams(recipe, false);
       renderGenericBeanLink(recipe, false);
       if (recipe.template === "pour-over") renderPourPlan(recipe, false);
       setGenericEditing(false);
@@ -4592,6 +4693,7 @@
       renderGenericRecipe(recipe.id);
       setPage("genericDetail");
       renderGenericParams(recipe.params, recipe.type, true);
+      renderPourStageParams(recipe, true);
       renderGenericBeanLink(recipe, true);
       setGenericEditing(true);
     }
@@ -6513,6 +6615,7 @@
       if (event.target.closest("#genericEdit")) {
         genericDraft = getGenericRecipe(activeGenericRecipeId);
         renderGenericParams(genericDraft.params, genericDraft.type, true);
+        renderPourStageParams(genericDraft, true);
         renderGenericBeanLink(genericDraft, true);
         if (genericDraft.template === "pour-over") renderPourPlan(genericDraft, true);
         setGenericEditing(true);
