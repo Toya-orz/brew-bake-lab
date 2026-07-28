@@ -29,7 +29,18 @@ def seed(page):
             category: "饮品 / 咖啡 / 手冲",
             action: "准备"
           }), "pour-over", "bean-smoke");
-          localStorage.setItem("brewBakeLab.customRecipes.v1", JSON.stringify({ [recipe.id]: recipe }));
+          const second = applyCoffeeTemplate(createRecipeTemplate({
+            type: "drink",
+            title: "测试手冲 · 大杯",
+            category: "饮品 / 咖啡 / 手冲",
+            action: "准备"
+          }), "pour-over", "bean-smoke");
+          second.id = `${recipe.id}-large`;
+          second.params.find(item => item.type === "用水").value = "总水量 300g。";
+          localStorage.setItem("brewBakeLab.customRecipes.v1", JSON.stringify({
+            [recipe.id]: recipe,
+            [second.id]: second
+          }));
           window.__smokeRecipeId = recipe.id;
         }"""
     )
@@ -50,21 +61,21 @@ def verify_viewport(browser, width, height, suffix):
     assert page.locator("#genericPourPlanRows [data-pour-stage]").count() == 4
     assert not page.locator("#genericStepList").is_visible()
     assert "自动粉水比 1:16" in page.locator("#genericParamHint").inner_text()
+    assert page.locator("#pourPresetSelect option").count() == 2
     page.screenshot(path=f"/tmp/brew-bake-pour-{suffix}.png", full_page=True)
 
     page.click("#genericEdit")
-    assert page.locator("[data-pour-time]").count() == 4
-    page.locator("[data-pour-time]").first.fill("00:05")
-    page.click("#addPourStage")
-    assert page.locator("[data-pour-time]").count() == 5
-    page.locator("[data-delete-pour-stage]").last.click()
+    water_value = page.locator("#genericParamTable tr").nth(1).locator("td").first
+    water_value.fill("总水量 300g。")
     page.click("#genericSave")
-    assert page.locator(".pour-plan-time").first.inner_text() == "00:05"
-    saved_time = page.evaluate(
-        """recipeId => JSON.parse(localStorage.getItem("brewBakeLab.customRecipes.v1"))[recipeId].pourPlan[0].time""",
+    assert page.locator(".pour-plan-grams").nth(2).inner_text() == "300g"
+    saved_water = page.evaluate(
+        """recipeId => JSON.parse(localStorage.getItem("brewBakeLab.customRecipes.v1"))[recipeId].params.find(item => item.type === "用水").value""",
         recipe_id,
     )
-    assert saved_time == "00:05"
+    assert saved_water == "总水量 300g。"
+    page.locator("#pourPresetSelect").select_option(f"{recipe_id}-large")
+    assert page.locator("#genericTitle").inner_text() == "测试手冲 · 大杯"
 
     page.evaluate('openBeanLibrary("bean-smoke")')
     dialog = page.locator("#beanLibraryDialog")

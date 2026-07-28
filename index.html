@@ -1690,6 +1690,31 @@
       resize: vertical;
     }
     .pour-plan-result p { margin: 0; color: var(--muted); line-height: 1.65; }
+    .pour-guide-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px 4px;
+    }
+    .pour-guide-head strong { display: block; color: var(--coffee-dark); font-size: 17px; }
+    .pour-guide-head span { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; }
+    .pour-guide-switch {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pour-guide-switch select { flex: 1; }
+    .pour-guide-switch select {
+      min-height: 40px;
+      max-width: 220px;
+      padding: 0 32px 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      color: var(--ink);
+      background: #fffdf8;
+      font: inherit;
+    }
 
     .generic-detail .state-tile { min-height: 160px; }
     .generic-detail .state-content { justify-content: flex-end; }
@@ -2313,6 +2338,8 @@
       .bean-form-scroll .wide { grid-column: auto; }
       .bean-form-actions { padding-top: 12px; }
       .pour-plan { padding-inline: 12px; }
+      .pour-guide-head { align-items: stretch; flex-direction: column; }
+      .pour-guide-switch select { width: 100%; max-width: none; }
       .pour-plan-head { display: none; }
       .pour-plan-row {
         grid-template-columns: 76px 88px minmax(0, 1fr);
@@ -2606,7 +2633,7 @@
             <p class="section-desc">具体粉量、研磨、水温与萃取参数保存在各自配方中。</p>
           </div>
           <div class="bean-method-actions">
-            <button class="ghost-btn" type="button" data-new-bean-method="pour-over"><i data-lucide="coffee"></i>新建手冲</button>
+            <button class="ghost-btn" type="button" data-new-bean-method="pour-over"><i data-lucide="coffee"></i>新建手冲参数</button>
             <button class="primary-btn" type="button" data-new-bean-method="espresso"><i data-lucide="gauge"></i>新建意式</button>
           </div>
         </div>
@@ -2995,13 +3022,15 @@
               </div>
               <div class="generic-step-list" id="genericStepList"></div>
               <div class="pour-plan" id="genericPourPlan" hidden>
+                <div class="pour-guide-head">
+                  <div><strong>三段式手冲</strong><span>固定做法，只替换当前参数。</span></div>
+                  <div class="pour-guide-switch">
+                    <select id="pourPresetSelect" aria-label="切换手冲参数卡"></select>
+                    <button class="primary-btn" id="openPourGuide" type="button"><i data-lucide="play"></i>跟做</button>
+                  </div>
+                </div>
                 <div class="pour-plan-head"><span>开始时间</span><span>累计克重</span><span>注水手法</span><span></span></div>
                 <div id="genericPourPlanRows"></div>
-                <button class="edit-action add generic-add-control" id="addPourStage" type="button">＋ 添加注水段</button>
-                <div class="pour-plan-result">
-                  <strong>冲煮结果</strong>
-                  <p id="genericPourResult"></p>
-                </div>
               </div>
               <p class="image-credit" id="genericImageCredit" hidden></p>
               <button class="edit-action add generic-add-control" id="addGenericStep" type="button">＋ 添加步骤</button>
@@ -3090,7 +3119,7 @@
           <select id="newRecipeTemplate">
             <option value="baking">通用烘焙</option>
             <option value="drink">通用饮品</option>
-            <option value="pour-over">手冲咖啡</option>
+            <option value="pour-over">手冲参数卡</option>
             <option value="espresso">意式半自动</option>
           </select>
         </label>
@@ -3602,8 +3631,8 @@
       ].join("");
       const recipes = Object.values(loadCustomRecipes()).filter((recipe) => recipe.coffeeBeanId === beanId);
       const groups = [
-        { template: "pour-over", label: "手冲配方" },
-        { template: "espresso", label: "意式配方" }
+        { template: "pour-over", label: "手冲参数" },
+        { template: "espresso", label: "意式参数" }
       ];
       document.getElementById("beanMethodGroups").innerHTML = recipes.length
         ? groups.map((group) => {
@@ -3619,7 +3648,7 @@
                 </button>`).join("")}</div>
             </section>`;
           }).join("")
-        : `<div class="bean-empty">还没有关联做法。可以从这款豆子直接新建手冲或意式配方。</div>`;
+        : `<div class="bean-empty">还没有关联参数。可以从这款豆子直接新建手冲或意式参数卡。</div>`;
       lucide.createIcons();
     }
 
@@ -3866,9 +3895,26 @@
       ];
     }
 
+    function fixedPourPlan(recipe) {
+      const doseText = recipe.params?.find((item) => item.type === "咖啡豆")?.value || "";
+      const waterText = recipe.params?.find((item) => item.type === "用水")?.value || "";
+      const extractionText = recipe.params?.find((item) => item.type === "萃取")?.value || "";
+      const dose = Number(doseText.match(/(\d+(?:\.\d+)?)\s*g/i)?.[1]) || 15;
+      const water = Number(waterText.match(/(\d+(?:\.\d+)?)\s*g/i)?.[1]) || 240;
+      const bloom = Math.round(dose * 2);
+      const middle = Math.round(water * 0.625);
+      const finishTime = extractionText.match(/\d:\d{2}/)?.[0] || "02:30";
+      return [
+        { id: "pour-fixed-1", time: "00:00", grams: `${bloom}g`, method: "中心小圈注水，完全润湿咖啡粉。" },
+        { id: "pour-fixed-2", time: "00:30", grams: `${middle}g`, method: "从中心向外稳定绕圈。" },
+        { id: "pour-fixed-3", time: "01:15", grams: `${Math.round(water)}g`, method: "小圈注水至目标总水量。" },
+        { id: "pour-fixed-4", time: finishTime, grams: "完成", method: "滴滤结束后移走滤杯。" }
+      ];
+    }
+
     function preparePourRecipe(recipe) {
       if (recipe.template !== "pour-over") return recipe;
-      if (!Array.isArray(recipe.pourPlan) || !recipe.pourPlan.length) recipe.pourPlan = defaultPourPlan();
+      recipe.pourPlan = fixedPourPlan(recipe);
       const resultParam = recipe.params?.find((item) => item.type === "成品");
       if (!recipe.resultNotes) recipe.resultNotes = resultParam?.value || "记录香气、酸甜苦、口感与降温后的变化。";
       recipe.params = (recipe.params || []).filter((item) => item.type !== "比例" && item.type !== "成品");
@@ -4019,36 +4065,24 @@
         <button type="button" data-open-linked-bean="${escapeHTML(bean.id)}">查看完整档案</button>`;
     }
 
-    function pourPlanRowMarkup(stage, isEditing = false) {
-      if (!isEditing) {
-        return `<div class="pour-plan-row" data-pour-stage data-pour-stage-id="${escapeHTML(stage.id || "")}">
-          <span class="pour-plan-time">${escapeHTML(stage.time || "")}</span>
-          <strong class="pour-plan-grams">${escapeHTML(stage.grams || "")}</strong>
-          <span class="pour-plan-method">${escapeHTML(stage.method || "")}</span>
-        </div>`;
-      }
-      return `<div class="pour-plan-row" data-pour-stage data-pour-stage-id="${escapeHTML(stage.id || `pour-${Date.now().toString(36)}`)}">
-        <input data-pour-time value="${escapeHTML(stage.time || "")}" aria-label="开始时间" placeholder="00:00">
-        <input data-pour-grams value="${escapeHTML(stage.grams || "")}" aria-label="累计克重" placeholder="150g">
-        <input data-pour-method value="${escapeHTML(stage.method || "")}" aria-label="注水手法" placeholder="中心向外稳定绕圈">
-        <span class="generic-row-controls">
-          <button class="param-control" type="button" data-move-pour-stage="up" aria-label="上移注水段"><i data-lucide="arrow-up"></i></button>
-          <button class="param-control" type="button" data-move-pour-stage="down" aria-label="下移注水段"><i data-lucide="arrow-down"></i></button>
-          <button class="param-control delete" type="button" data-delete-pour-stage aria-label="删除注水段"><i data-lucide="trash-2"></i></button>
-        </span>
+    function pourPlanRowMarkup(stage) {
+      return `<div class="pour-plan-row" data-pour-stage data-pour-stage-id="${escapeHTML(stage.id || "")}">
+        <span class="pour-plan-time">${escapeHTML(stage.time || "")}</span>
+        <strong class="pour-plan-grams">${escapeHTML(stage.grams || "")}</strong>
+        <span class="pour-plan-method">${escapeHTML(stage.method || "")}</span>
       </div>`;
     }
 
     function renderPourPlan(recipe, isEditing = false) {
       document.getElementById("genericPourPlanRows").innerHTML = recipe.pourPlan
-        .map((stage) => pourPlanRowMarkup(stage, isEditing))
+        .map((stage) => pourPlanRowMarkup(stage))
         .join("");
-      const result = document.getElementById("genericPourResult");
-      if (isEditing) {
-        result.outerHTML = `<textarea id="genericPourResult" aria-label="冲煮结果" placeholder="记录香气、酸甜苦、口感与降温后的变化。">${escapeHTML(recipe.resultNotes || "")}</textarea>`;
-      } else {
-        result.outerHTML = `<p id="genericPourResult">${escapeHTML(recipe.resultNotes || "完成后记录这一杯的表现。")}</p>`;
-      }
+      const presets = Object.values(loadCustomRecipes())
+        .filter((item) => item.template === "pour-over")
+        .sort((a, b) => a.title.localeCompare(b.title, "zh-CN"));
+      document.getElementById("pourPresetSelect").innerHTML = presets.map((item) =>
+        `<option value="${escapeHTML(item.id)}"${item.id === recipe.id ? " selected" : ""}>${escapeHTML(item.title)}</option>`
+      ).join("");
       lucide.createIcons();
     }
 
@@ -4069,9 +4103,9 @@
       renderGenericParams(recipe.params, recipe.type, false);
 
       const isPourOver = recipe.template === "pour-over";
-      document.getElementById("genericStepsTitle").textContent = isPourOver ? "注水计划" : "步骤流程";
+      document.getElementById("genericStepsTitle").textContent = isPourOver ? "对应做法" : "步骤流程";
       document.getElementById("genericStepsHint").textContent = isPourOver
-        ? "开始后只看时间、累计克重和手法。"
+        ? "做法保持不变；切换参数卡即可替换粉量、水量、水温与研磨设置。"
         : "按动手顺序排列；操作必填，判断和注意没有内容时不展示。";
       document.getElementById("genericPourPlan").hidden = !isPourOver;
       document.getElementById("genericStepList").hidden = isPourOver;
@@ -4249,34 +4283,6 @@
       refreshGenericStepNumbers();
     }
 
-    function addPourStage() {
-      const rows = document.getElementById("genericPourPlanRows");
-      rows.insertAdjacentHTML("beforeend", pourPlanRowMarkup({
-        id: `pour-${Date.now().toString(36)}`,
-        time: "",
-        grams: "",
-        method: ""
-      }, true));
-      lucide.createIcons();
-      rows.querySelector("[data-pour-stage]:last-child [data-pour-time]")?.focus();
-    }
-
-    function movePourStage(row, direction) {
-      const sibling = direction === "up" ? row.previousElementSibling : row.nextElementSibling;
-      if (!sibling) return;
-      if (direction === "up") row.parentElement.insertBefore(row, sibling);
-      else row.parentElement.insertBefore(sibling, row);
-    }
-
-    function deletePourStage(row) {
-      const rows = document.querySelectorAll("#genericPourPlanRows [data-pour-stage]");
-      if (rows.length <= 1) {
-        document.getElementById("genericSaveStatus").textContent = "至少保留一段注水计划。";
-        return;
-      }
-      row.remove();
-    }
-
     function addGenericState() {
       const index = document.querySelectorAll("#genericStateGrid .state-tile").length + 1;
       document.getElementById("genericStateGrid").insertAdjacentHTML("beforeend", `
@@ -4320,8 +4326,6 @@
           grams: String(row.querySelector("[data-pour-grams]")?.value ?? row.querySelector(".pour-plan-grams")?.textContent ?? "").trim(),
           method: String(row.querySelector("[data-pour-method]")?.value ?? row.querySelector(".pour-plan-method")?.textContent ?? "").trim()
         }));
-        const resultField = document.getElementById("genericPourResult");
-        recipe.resultNotes = String(resultField.value ?? resultField.textContent ?? "").trim();
         recipe.phases = [{
           name: "注水",
           steps: recipe.pourPlan.map((stage, index) => ({
@@ -4380,7 +4384,7 @@
         document.getElementById("genericSaveStatus").textContent = "每个步骤都必须填写“操作”。";
         return;
       }
-      const recipe = captureGenericRecipe();
+      const recipe = preparePourRecipe(captureGenericRecipe());
       try {
         if (isBuiltInGenericRecipe(activeGenericRecipeId)) {
           const saved = loadGenericRecipes();
@@ -6512,7 +6516,7 @@
       if (event.target.closest("#deleteGenericRecipe")) deleteGenericRecipe();
       if (event.target.closest("#addGenericParam")) addGenericParam();
       if (event.target.closest("#addGenericStep")) addGenericStep();
-      if (event.target.closest("#addPourStage")) addPourStage();
+      if (event.target.closest("#openPourGuide")) openGenericFollowDialog();
       if (event.target.closest("#addGenericState")) addGenericState();
       if (event.target.closest("#addGenericTrouble")) addGenericTrouble();
       const deleteParam = event.target.closest("[data-delete-generic-param]");
@@ -6523,10 +6527,6 @@
       if (deleteStep) deleteGenericStep(deleteStep.closest("[data-generic-step]"));
       const moveStep = event.target.closest("[data-move-generic-step]");
       if (moveStep) moveGenericStep(moveStep.closest("[data-generic-step]"), moveStep.dataset.moveGenericStep);
-      const deletePourStageButton = event.target.closest("[data-delete-pour-stage]");
-      if (deletePourStageButton) deletePourStage(deletePourStageButton.closest("[data-pour-stage]"));
-      const movePourStageButton = event.target.closest("[data-move-pour-stage]");
-      if (movePourStageButton) movePourStage(movePourStageButton.closest("[data-pour-stage]"), movePourStageButton.dataset.movePourStage);
       const deleteState = event.target.closest("[data-delete-generic-state]");
       if (deleteState) deleteState.closest(".state-tile")?.remove();
       const deleteTrouble = event.target.closest("[data-delete-generic-trouble]");
@@ -6540,6 +6540,12 @@
     document.getElementById("beanForm").addEventListener("submit", saveCoffeeBean);
     document.getElementById("newRecipeTemplate").addEventListener("change", (event) => {
       configureRecipeTemplate(event.target.value);
+    });
+
+    document.getElementById("pourPresetSelect").addEventListener("change", (event) => {
+      if (!event.target.value) return;
+      renderGenericRecipe(event.target.value);
+      window.scrollTo({ top: document.getElementById("genericParams").offsetTop - 20, behavior: "smooth" });
     });
 
     document.getElementById("newRecipeType").addEventListener("change", (event) => {
