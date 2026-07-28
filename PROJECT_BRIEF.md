@@ -151,6 +151,8 @@ Implemented in prototype:
 - Reusable coffee bean profiles linked to dedicated pour-over and semi-automatic espresso recipe templates
 - A dedicated Coffee Bean Library navigation module with repeatable variety/process/blend-ratio rows
 - Coffee bean detail pages with linked brewing recipes and bean-aware shortcuts for creating pour-over or espresso methods
+- A full-height coffee bean editor with a scrollable field area and always-visible save actions on mobile and desktop
+- A dedicated pour-over plan editor organized by start time, cumulative water, pouring technique, and result notes
 - Full-device backup and restore for all Brew & Bake Lab browser data
 - Installable PWA with synchronized updates, a timed offline fallback, and lightweight runtime image caching for unstable mobile networks
 - Shared follow-along mode for Swiss Roll, Pour-over Coffee, and custom recipes, with per-recipe progress and screen wake lock where supported
@@ -182,6 +184,6 @@ Complete the general recipe workflow before expanding the template system:
 The coffee templates should separate reusable bean information from brewing recipes:
 
 - Coffee bean profile: roaster, origin, variety, process, roast level, roast date, tasting notes, and recommended resting period.
-- Pour-over recipe: bean dose, water, ratio, grind setting, water temperature, brewer, filter, pouring stages, total time, and result notes.
+- Pour-over recipe: preparation parameters, an automatically derived ratio, pouring stages (start time, cumulative water, and technique), total time, and result notes.
 - Semi-automatic espresso recipe: bean dose, yield, ratio, grind setting, extraction time, temperature, pressure when relevant, basket, milk parameters, and result notes.
 - One coffee bean profile can link to multiple pour-over or espresso recipes so the bean information does not need to be entered repeatedly.

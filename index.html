@@ -1637,6 +1637,60 @@
 
     .generic-step-list .phase-divider { margin-top: 22px; }
 
+    .pour-plan {
+      padding: 4px 18px 18px;
+      border-radius: 10px;
+      background: rgba(255, 253, 248, 0.72);
+    }
+    .pour-plan[hidden] { display: none; }
+    .pour-plan-head,
+    .pour-plan-row {
+      display: grid;
+      grid-template-columns: 92px 110px minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+    }
+    .pour-plan-head {
+      padding: 14px 4px 9px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .06em;
+    }
+    .pour-plan-row {
+      min-height: 62px;
+      padding: 12px 4px;
+      border-top: 1px solid rgba(82, 56, 35, 0.09);
+    }
+    .pour-plan-time { color: var(--blue); font-weight: 800; }
+    .pour-plan-grams { color: var(--coffee-dark); font-size: 18px; font-weight: 900; }
+    .pour-plan-method { line-height: 1.55; }
+    .pour-plan input {
+      width: 100%;
+      min-width: 0;
+      min-height: 40px;
+      padding: 8px 10px;
+      border: 1px solid rgba(79, 100, 119, 0.22);
+      border-radius: 7px;
+      color: var(--ink);
+      background: #fffdf8;
+      font: inherit;
+    }
+    .pour-plan-result {
+      display: grid;
+      gap: 7px;
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 8px;
+      background: rgba(112, 143, 120, 0.1);
+    }
+    .pour-plan-result strong { color: #607d63; font-size: 12px; }
+    .pour-plan-result textarea {
+      min-height: 76px;
+      resize: vertical;
+    }
+    .pour-plan-result p { margin: 0; color: var(--muted); line-height: 1.65; }
+
     .generic-detail .state-tile { min-height: 160px; }
     .generic-detail .state-content { justify-content: flex-end; }
     .generic-detail:not(.is-editing) .generic-optional:has(.generic-editable:empty) { display: none; }
@@ -1644,6 +1698,8 @@
     .generic-detail.is-editing .generic-row-controls { display: inline-flex; }
     .generic-detail.is-editing .generic-add-control { display: inline-flex; }
     .generic-add-control { display: none; margin-top: 12px; }
+    .generic-add-control[hidden],
+    .generic-step-list[hidden] { display: none !important; }
     .generic-param-type-editor {
       display: grid;
       gap: 6px;
@@ -1806,6 +1862,30 @@
     }
     .bean-library { display: grid; gap: 16px; margin-block: 20px; }
     .bean-library-list { display: grid; gap: 10px; }
+    #beanLibraryToolbar[hidden],
+    .bean-library-list[hidden] { display: none; }
+    .bean-editor-dialog {
+      width: min(720px, calc(100vw - 28px));
+      height: min(820px, calc(100dvh - 28px));
+      max-height: none;
+      overflow: hidden;
+    }
+    .bean-editor-shell {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      height: 100%;
+    }
+    .bean-editor-shell > .recipe-create-head {
+      padding: 22px 24px 16px;
+      border-bottom: 1px solid rgba(82, 56, 35, 0.1);
+    }
+    .bean-editor-shell > .bean-library {
+      min-height: 0;
+      margin: 0;
+      padding: 18px 24px 20px;
+      overflow: hidden;
+    }
+    .bean-editor-shell > .bean-library:has(.bean-form:not([hidden])) { display: block; }
     .bean-page-summary {
       display: grid;
       grid-template-columns: auto 1fr;
@@ -1905,13 +1985,18 @@
     .bean-card strong { grid-column: 1; grid-row: 1; min-width: 0; font-size: 15px; }
     .bean-card span { grid-column: 1; grid-row: 2; min-width: 0; color: var(--muted); font-size: 12px; }
     .bean-card > svg { grid-row: 1 / 3; grid-column: 2; align-self: center; width: 17px; }
-    .bean-form {
+    .bean-form { display: grid; grid-template-rows: minmax(0, 1fr) auto; height: 100%; min-height: 0; }
+    .bean-form[hidden] { display: none; }
+    .bean-form-scroll {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
+      min-height: 0;
+      padding: 2px 4px 18px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
     }
-    .bean-form[hidden] { display: none; }
-    .bean-form .wide { grid-column: 1 / -1; }
+    .bean-form-scroll .wide { grid-column: 1 / -1; }
     .bean-components {
       display: grid;
       gap: 8px;
@@ -1945,10 +2030,11 @@
     .bean-component-row .param-control { width: 34px; height: 34px; }
     .bean-form-actions {
       display: flex;
-      grid-column: 1 / -1;
       justify-content: space-between;
       gap: 10px;
-      margin-top: 4px;
+      padding: 14px 4px 0;
+      border-top: 1px solid rgba(82, 56, 35, 0.1);
+      background: var(--panel);
     }
     .bean-empty {
       padding: 22px;
@@ -2214,9 +2300,26 @@
       .follow-dialog-body,
       .follow-dialog-actions { padding-inline: 18px; }
       .follow-focus-item { grid-template-columns: 24px 44px minmax(0, 1fr); }
-      .bean-form { grid-template-columns: 1fr; }
-      .bean-form .wide,
-      .bean-form-actions { grid-column: auto; }
+      .bean-editor-dialog {
+        width: 100vw;
+        height: 100dvh;
+        max-width: none;
+        margin: 0;
+        border-radius: 0;
+      }
+      .bean-editor-shell > .recipe-create-head { padding: 18px 18px 14px; }
+      .bean-editor-shell > .bean-library { padding: 14px 18px 16px; }
+      .bean-form-scroll { grid-template-columns: 1fr; padding-inline: 2px; }
+      .bean-form-scroll .wide { grid-column: auto; }
+      .bean-form-actions { padding-top: 12px; }
+      .pour-plan { padding-inline: 12px; }
+      .pour-plan-head { display: none; }
+      .pour-plan-row {
+        grid-template-columns: 76px 88px minmax(0, 1fr);
+        gap: 9px;
+      }
+      .pour-plan-row .generic-row-controls { grid-column: 1 / -1; justify-self: end; }
+      .pour-plan-grams { font-size: 16px; }
       .bean-page-grid { grid-template-columns: 1fr; }
       .bean-detail-hero { grid-template-columns: 1fr; padding: 20px; }
       .bean-detail-actions > * { flex: 1; justify-content: center; }
@@ -2886,11 +2989,20 @@
             <section class="detail-section" id="genericSteps">
               <div class="section-head">
                 <div>
-                  <h2>步骤流程</h2>
-                  <p class="section-desc">按动手顺序排列；操作必填，判断和注意没有内容时不展示。</p>
+                  <h2 id="genericStepsTitle">步骤流程</h2>
+                  <p class="section-desc" id="genericStepsHint">按动手顺序排列；操作必填，判断和注意没有内容时不展示。</p>
                 </div>
               </div>
               <div class="generic-step-list" id="genericStepList"></div>
+              <div class="pour-plan" id="genericPourPlan" hidden>
+                <div class="pour-plan-head"><span>开始时间</span><span>累计克重</span><span>注水手法</span><span></span></div>
+                <div id="genericPourPlanRows"></div>
+                <button class="edit-action add generic-add-control" id="addPourStage" type="button">＋ 添加注水段</button>
+                <div class="pour-plan-result">
+                  <strong>冲煮结果</strong>
+                  <p id="genericPourResult"></p>
+                </div>
+              </div>
               <p class="image-credit" id="genericImageCredit" hidden></p>
               <button class="edit-action add generic-add-control" id="addGenericStep" type="button">＋ 添加步骤</button>
             </section>
@@ -3021,8 +3133,8 @@
     </form>
   </dialog>
 
-  <dialog class="recipe-create-dialog" id="beanLibraryDialog" aria-labelledby="beanLibraryTitle">
-    <div class="recipe-create-form">
+  <dialog class="recipe-create-dialog bean-editor-dialog" id="beanLibraryDialog" aria-labelledby="beanLibraryTitle">
+    <div class="bean-editor-shell">
       <div class="recipe-create-head">
         <div>
           <h2 id="beanLibraryTitle">咖啡豆档案</h2>
@@ -3037,43 +3149,45 @@
         </div>
         <div class="bean-library-list" id="beanLibraryList"></div>
         <form class="bean-form" id="beanForm" hidden>
-          <input id="beanId" type="hidden">
-          <label class="recipe-create-field wide">档案名称
-            <input id="beanName" maxlength="60" placeholder="例如：埃塞俄比亚 花蝶" required>
-          </label>
-          <label class="recipe-create-field">烘焙商
-            <input id="beanRoaster" maxlength="60">
-          </label>
-          <label class="recipe-create-field">产地
-            <input id="beanOrigin" maxlength="80">
-          </label>
-          <div class="bean-components">
-            <div class="bean-components-head">
-              <div><strong>品种与处理法</strong><br><span>拼配豆可逐行添加，占比未知时留空。</span></div>
-              <button class="ghost-btn" id="addBeanComponent" type="button"><i data-lucide="plus"></i>添加组成</button>
+          <div class="bean-form-scroll">
+            <input id="beanId" type="hidden">
+            <label class="recipe-create-field wide">档案名称
+              <input id="beanName" maxlength="60" placeholder="例如：埃塞俄比亚 花蝶" required>
+            </label>
+            <label class="recipe-create-field">烘焙商
+              <input id="beanRoaster" maxlength="60">
+            </label>
+            <label class="recipe-create-field">产地
+              <input id="beanOrigin" maxlength="80">
+            </label>
+            <div class="bean-components">
+              <div class="bean-components-head">
+                <div><strong>品种与处理法</strong><br><span>拼配豆可逐行添加，占比未知时留空。</span></div>
+                <button class="ghost-btn" id="addBeanComponent" type="button"><i data-lucide="plus"></i>添加组成</button>
+              </div>
+              <div id="beanComponentRows"></div>
             </div>
-            <div id="beanComponentRows"></div>
+            <label class="recipe-create-field">烘焙度
+              <select id="beanRoastLevel">
+                <option value="">未记录</option>
+                <option>浅烘焙</option>
+                <option>中浅烘焙</option>
+                <option>中烘焙</option>
+                <option>中深烘焙</option>
+                <option>深烘焙</option>
+              </select>
+            </label>
+            <label class="recipe-create-field">烘焙日期
+              <input id="beanRoastDate" type="date">
+            </label>
+            <label class="recipe-create-field wide">建议养豆
+              <input id="beanRest" maxlength="100" placeholder="例如：烘焙后 10–20 天">
+            </label>
+            <label class="recipe-create-field wide">风味描述
+              <textarea id="beanNotes" maxlength="500" placeholder="例如：白花、柑橘、蜂蜜，降温后茶感明显。"></textarea>
+            </label>
+            <p class="recipe-create-error wide" id="beanFormError" aria-live="polite"></p>
           </div>
-          <label class="recipe-create-field">烘焙度
-            <select id="beanRoastLevel">
-              <option value="">未记录</option>
-              <option>浅烘焙</option>
-              <option>中浅烘焙</option>
-              <option>中烘焙</option>
-              <option>中深烘焙</option>
-              <option>深烘焙</option>
-            </select>
-          </label>
-          <label class="recipe-create-field">烘焙日期
-            <input id="beanRoastDate" type="date">
-          </label>
-          <label class="recipe-create-field wide">建议养豆
-            <input id="beanRest" maxlength="100" placeholder="例如：烘焙后 10–20 天">
-          </label>
-          <label class="recipe-create-field wide">风味描述
-            <textarea id="beanNotes" maxlength="500" placeholder="例如：白花、柑橘、蜂蜜，降温后茶感明显。"></textarea>
-          </label>
-          <p class="recipe-create-error wide" id="beanFormError" aria-live="polite"></p>
           <div class="bean-form-actions">
             <button class="ghost-btn generic-delete" id="deleteCoffeeBean" type="button">删除</button>
             <div class="recipe-create-actions">
@@ -3693,7 +3807,7 @@
       recipe.tags = [template === "espresso" ? "意式" : "手冲", "咖啡", "自建菜谱"];
       recipe.paramHint = template === "espresso"
         ? "意式参数：粉量、液重、比例、研磨、时间与温度。"
-        : "手冲参数：粉量、水量、比例、研磨、水温与总时间。";
+        : "开始前确认粉量、总水量、研磨、水温、器具与目标时间。";
       if (template === "espresso") {
         recipe.params = [
           { type: "咖啡豆", value: "粉量 18g。" },
@@ -3719,14 +3833,14 @@
       } else {
         recipe.params = [
           { type: "咖啡豆", value: "咖啡豆 15g。" },
-          { type: "用水", value: "过滤水 240g。" },
-          { type: "比例", value: "粉水比 1:16。" },
+          { type: "用水", value: "总水量 240g。" },
           { type: "研磨", value: "中细研磨，填写磨豆机刻度。" },
           { type: "水温", value: "92°C。" },
           { type: "器具", value: "滤杯、滤纸、分享壶、电子秤、细口壶。" },
-          { type: "萃取", value: "闷蒸 30 秒；总时间 2:30–3:00。" },
-          { type: "成品", value: "记录香气、酸甜苦、口感与降温后的变化。" }
+          { type: "萃取", value: "目标总时间 2:30–3:00。" }
         ];
+        recipe.pourPlan = defaultPourPlan();
+        recipe.resultNotes = "记录香气、酸甜苦、口感与降温后的变化。";
         recipe.phases = [
           { name: "准备", steps: [
             { id: "generic-step-1-1", title: "称豆、烧水并润洗", action: "称取咖啡豆，烧水；润洗滤纸并预热器具。", check: "", note: "" },
@@ -3743,11 +3857,29 @@
       return recipe;
     }
 
+    function defaultPourPlan() {
+      return [
+        { id: "pour-1", time: "00:00", grams: "30g", method: "中心小圈注水，完全润湿咖啡粉。" },
+        { id: "pour-2", time: "00:30", grams: "150g", method: "从中心向外稳定绕圈。" },
+        { id: "pour-3", time: "01:15", grams: "240g", method: "小圈注水，避免直接冲到滤纸。" },
+        { id: "pour-4", time: "02:30", grams: "完成", method: "等待滴滤结束，移走滤杯。" }
+      ];
+    }
+
+    function preparePourRecipe(recipe) {
+      if (recipe.template !== "pour-over") return recipe;
+      if (!Array.isArray(recipe.pourPlan) || !recipe.pourPlan.length) recipe.pourPlan = defaultPourPlan();
+      const resultParam = recipe.params?.find((item) => item.type === "成品");
+      if (!recipe.resultNotes) recipe.resultNotes = resultParam?.value || "记录香气、酸甜苦、口感与降温后的变化。";
+      recipe.params = (recipe.params || []).filter((item) => item.type !== "比例" && item.type !== "成品");
+      return recipe;
+    }
+
     function getGenericRecipe(recipeId) {
       const base = Object.values(recipeSchemas).find((recipe) => recipe.id === recipeId)
         || loadCustomRecipes()[recipeId];
       if (!base) return null;
-      return { ...cloneData(base), ...(loadGenericRecipes()[recipeId] || {}) };
+      return preparePourRecipe({ ...cloneData(base), ...(loadGenericRecipes()[recipeId] || {}) });
     }
 
     function createGenericImageInput(kind, labelText, ariaLabel) {
@@ -3855,6 +3987,13 @@
       lucide.createIcons();
     }
 
+    function pourRatioLabel(recipe) {
+      if (recipe.template !== "pour-over") return "";
+      const dose = Number(recipe.params.find((item) => item.type === "咖啡豆")?.value.match(/(\d+(?:\.\d+)?)\s*g/i)?.[1]);
+      const water = Number(recipe.params.find((item) => item.type === "用水")?.value.match(/(\d+(?:\.\d+)?)\s*g/i)?.[1]);
+      return dose > 0 && water > 0 ? ` · 自动粉水比 1:${(water / dose).toFixed(1).replace(/\.0$/, "")}` : "";
+    }
+
     function renderGenericBeanLink(recipe, isEditing = false) {
       const container = document.getElementById("genericBeanLink");
       const isCoffeeRecipe = recipe.template === "pour-over" || recipe.template === "espresso" || Boolean(recipe.coffeeBeanId);
@@ -3880,6 +4019,39 @@
         <button type="button" data-open-linked-bean="${escapeHTML(bean.id)}">查看完整档案</button>`;
     }
 
+    function pourPlanRowMarkup(stage, isEditing = false) {
+      if (!isEditing) {
+        return `<div class="pour-plan-row" data-pour-stage data-pour-stage-id="${escapeHTML(stage.id || "")}">
+          <span class="pour-plan-time">${escapeHTML(stage.time || "")}</span>
+          <strong class="pour-plan-grams">${escapeHTML(stage.grams || "")}</strong>
+          <span class="pour-plan-method">${escapeHTML(stage.method || "")}</span>
+        </div>`;
+      }
+      return `<div class="pour-plan-row" data-pour-stage data-pour-stage-id="${escapeHTML(stage.id || `pour-${Date.now().toString(36)}`)}">
+        <input data-pour-time value="${escapeHTML(stage.time || "")}" aria-label="开始时间" placeholder="00:00">
+        <input data-pour-grams value="${escapeHTML(stage.grams || "")}" aria-label="累计克重" placeholder="150g">
+        <input data-pour-method value="${escapeHTML(stage.method || "")}" aria-label="注水手法" placeholder="中心向外稳定绕圈">
+        <span class="generic-row-controls">
+          <button class="param-control" type="button" data-move-pour-stage="up" aria-label="上移注水段"><i data-lucide="arrow-up"></i></button>
+          <button class="param-control" type="button" data-move-pour-stage="down" aria-label="下移注水段"><i data-lucide="arrow-down"></i></button>
+          <button class="param-control delete" type="button" data-delete-pour-stage aria-label="删除注水段"><i data-lucide="trash-2"></i></button>
+        </span>
+      </div>`;
+    }
+
+    function renderPourPlan(recipe, isEditing = false) {
+      document.getElementById("genericPourPlanRows").innerHTML = recipe.pourPlan
+        .map((stage) => pourPlanRowMarkup(stage, isEditing))
+        .join("");
+      const result = document.getElementById("genericPourResult");
+      if (isEditing) {
+        result.outerHTML = `<textarea id="genericPourResult" aria-label="冲煮结果" placeholder="记录香气、酸甜苦、口感与降温后的变化。">${escapeHTML(recipe.resultNotes || "")}</textarea>`;
+      } else {
+        result.outerHTML = `<p id="genericPourResult">${escapeHTML(recipe.resultNotes || "完成后记录这一杯的表现。")}</p>`;
+      }
+      lucide.createIcons();
+    }
+
     function renderGenericRecipe(recipeId) {
       const recipe = getGenericRecipe(recipeId);
       if (!recipe) return;
@@ -3892,12 +4064,22 @@
         `<span class="tag ${index === 0 ? "blue" : ""}">${escapeHTML(tag)}</span>`
       ).join("");
       renderGenericPhoto(recipe);
-      document.getElementById("genericParamHint").textContent = recipe.paramHint;
+      document.getElementById("genericParamHint").textContent = `${recipe.paramHint}${pourRatioLabel(recipe)}`;
       document.getElementById("genericTypeTag").textContent = recipe.typeLabel;
       renderGenericParams(recipe.params, recipe.type, false);
 
+      const isPourOver = recipe.template === "pour-over";
+      document.getElementById("genericStepsTitle").textContent = isPourOver ? "注水计划" : "步骤流程";
+      document.getElementById("genericStepsHint").textContent = isPourOver
+        ? "开始后只看时间、累计克重和手法。"
+        : "按动手顺序排列；操作必填，判断和注意没有内容时不展示。";
+      document.getElementById("genericPourPlan").hidden = !isPourOver;
+      document.getElementById("genericStepList").hidden = isPourOver;
+      document.getElementById("addGenericStep").hidden = isPourOver;
+      if (isPourOver) renderPourPlan(recipe, false);
+
       let stepNumber = 0;
-      document.getElementById("genericStepList").innerHTML = recipe.phases.map((phase, phaseIndex) => `
+      document.getElementById("genericStepList").innerHTML = isPourOver ? "" : recipe.phases.map((phase, phaseIndex) => `
         <div class="phase-divider"><span>PHASE ${String(phaseIndex + 1).padStart(2, "0")}</span><b class="generic-editable">${escapeHTML(phase.name)}</b></div>
         ${phase.steps.map((step, stepIndex) => {
           stepNumber += 1;
@@ -3924,7 +4106,7 @@
       const imageCredit = document.getElementById("genericImageCredit");
       imageCredit.replaceChildren();
       const credits = Array.isArray(recipe.imageCredits) ? recipe.imageCredits : [];
-      if (credits.length) {
+      if (!isPourOver && credits.length) {
         imageCredit.append("过程图：");
         credits.forEach((credit, index) => {
           if (index) imageCredit.append(" · ");
@@ -4067,6 +4249,34 @@
       refreshGenericStepNumbers();
     }
 
+    function addPourStage() {
+      const rows = document.getElementById("genericPourPlanRows");
+      rows.insertAdjacentHTML("beforeend", pourPlanRowMarkup({
+        id: `pour-${Date.now().toString(36)}`,
+        time: "",
+        grams: "",
+        method: ""
+      }, true));
+      lucide.createIcons();
+      rows.querySelector("[data-pour-stage]:last-child [data-pour-time]")?.focus();
+    }
+
+    function movePourStage(row, direction) {
+      const sibling = direction === "up" ? row.previousElementSibling : row.nextElementSibling;
+      if (!sibling) return;
+      if (direction === "up") row.parentElement.insertBefore(row, sibling);
+      else row.parentElement.insertBefore(sibling, row);
+    }
+
+    function deletePourStage(row) {
+      const rows = document.querySelectorAll("#genericPourPlanRows [data-pour-stage]");
+      if (rows.length <= 1) {
+        document.getElementById("genericSaveStatus").textContent = "至少保留一段注水计划。";
+        return;
+      }
+      row.remove();
+    }
+
     function addGenericState() {
       const index = document.querySelectorAll("#genericStateGrid .state-tile").length + 1;
       document.getElementById("genericStateGrid").insertAdjacentHTML("beforeend", `
@@ -4103,26 +4313,47 @@
         type: getGenericParamType(row),
         value: row.querySelector("td").textContent.trim()
       }));
-      let phaseIndex = -1;
-      recipe.phases = [];
-      document.querySelectorAll("#genericStepList > *").forEach((node) => {
-        if (node.classList.contains("phase-divider")) {
-          phaseIndex += 1;
-          recipe.phases.push({ name: node.querySelector("b").textContent.trim(), steps: [] });
-          return;
-        }
-        const notes = [...node.querySelectorAll(".step-note span")];
-        recipe.phases[phaseIndex].steps.push({
-          id: node.dataset.genericStepId || `generic-step-${phaseIndex + 1}-${recipe.phases[phaseIndex].steps.length + 1}`,
-          title: node.querySelector("h3").textContent.trim(),
-          action: notes[0]?.textContent.trim() || "",
-          check: notes.find((item) => item.parentElement.querySelector("strong")?.textContent === "判断")?.textContent.trim() || "",
-          note: notes.find((item) => item.parentElement.querySelector("strong")?.textContent === "注意")?.textContent.trim() || "",
-          image: node.dataset.genericStepImage || "",
-          imageAlt: node.dataset.genericStepImageAlt || "",
-          imageCaption: node.querySelector(".generic-step-caption")?.textContent.trim() || ""
+      if (recipe.template === "pour-over") {
+        recipe.pourPlan = [...document.querySelectorAll("#genericPourPlanRows [data-pour-stage]")].map((row) => ({
+          id: row.dataset.pourStageId || `pour-${Date.now().toString(36)}`,
+          time: String(row.querySelector("[data-pour-time]")?.value ?? row.querySelector(".pour-plan-time")?.textContent ?? "").trim(),
+          grams: String(row.querySelector("[data-pour-grams]")?.value ?? row.querySelector(".pour-plan-grams")?.textContent ?? "").trim(),
+          method: String(row.querySelector("[data-pour-method]")?.value ?? row.querySelector(".pour-plan-method")?.textContent ?? "").trim()
+        }));
+        const resultField = document.getElementById("genericPourResult");
+        recipe.resultNotes = String(resultField.value ?? resultField.textContent ?? "").trim();
+        recipe.phases = [{
+          name: "注水",
+          steps: recipe.pourPlan.map((stage, index) => ({
+            id: stage.id,
+            title: `${stage.time} 开始`,
+            action: `${stage.grams} · ${stage.method}`,
+            check: "",
+            note: ""
+          }))
+        }];
+      } else {
+        let phaseIndex = -1;
+        recipe.phases = [];
+        document.querySelectorAll("#genericStepList > *").forEach((node) => {
+          if (node.classList.contains("phase-divider")) {
+            phaseIndex += 1;
+            recipe.phases.push({ name: node.querySelector("b").textContent.trim(), steps: [] });
+            return;
+          }
+          const notes = [...node.querySelectorAll(".step-note span")];
+          recipe.phases[phaseIndex].steps.push({
+            id: node.dataset.genericStepId || `generic-step-${phaseIndex + 1}-${recipe.phases[phaseIndex].steps.length + 1}`,
+            title: node.querySelector("h3").textContent.trim(),
+            action: notes[0]?.textContent.trim() || "",
+            check: notes.find((item) => item.parentElement.querySelector("strong")?.textContent === "判断")?.textContent.trim() || "",
+            note: notes.find((item) => item.parentElement.querySelector("strong")?.textContent === "注意")?.textContent.trim() || "",
+            image: node.dataset.genericStepImage || "",
+            imageAlt: node.dataset.genericStepImageAlt || "",
+            imageCaption: node.querySelector(".generic-step-caption")?.textContent.trim() || ""
+          });
         });
-      });
+      }
       recipe.states = [...document.querySelectorAll("#genericStateGrid .state-tile")].map((tile) => ({
         name: tile.querySelector("strong").textContent.trim(),
         description: tile.querySelector(".state-description").textContent.trim()
@@ -4135,6 +4366,13 @@
     }
 
     function saveGenericRecipe() {
+      const missingPourField = [...document.querySelectorAll("#genericPourPlanRows input")]
+        .find((node) => !node.value.trim());
+      if (getGenericRecipe(activeGenericRecipeId)?.template === "pour-over" && missingPourField) {
+        missingPourField.focus();
+        document.getElementById("genericSaveStatus").textContent = "每段注水都要填写时间、累计克重和手法。";
+        return;
+      }
       const missingAction = [...document.querySelectorAll("#genericStepList [data-required-action]")]
         .find((node) => !node.textContent.trim());
       if (missingAction) {
@@ -4166,6 +4404,7 @@
       }
       renderGenericParams(recipe.params, recipe.type, false);
       renderGenericBeanLink(recipe, false);
+      if (recipe.template === "pour-over") renderPourPlan(recipe, false);
       setGenericEditing(false);
       document.getElementById("genericSaveStatus").textContent = "已保存到当前设备。";
     }
@@ -6260,6 +6499,7 @@
         genericDraft = getGenericRecipe(activeGenericRecipeId);
         renderGenericParams(genericDraft.params, genericDraft.type, true);
         renderGenericBeanLink(genericDraft, true);
+        if (genericDraft.template === "pour-over") renderPourPlan(genericDraft, true);
         setGenericEditing(true);
         document.getElementById("genericSaveStatus").textContent = "";
       }
@@ -6272,6 +6512,7 @@
       if (event.target.closest("#deleteGenericRecipe")) deleteGenericRecipe();
       if (event.target.closest("#addGenericParam")) addGenericParam();
       if (event.target.closest("#addGenericStep")) addGenericStep();
+      if (event.target.closest("#addPourStage")) addPourStage();
       if (event.target.closest("#addGenericState")) addGenericState();
       if (event.target.closest("#addGenericTrouble")) addGenericTrouble();
       const deleteParam = event.target.closest("[data-delete-generic-param]");
@@ -6282,6 +6523,10 @@
       if (deleteStep) deleteGenericStep(deleteStep.closest("[data-generic-step]"));
       const moveStep = event.target.closest("[data-move-generic-step]");
       if (moveStep) moveGenericStep(moveStep.closest("[data-generic-step]"), moveStep.dataset.moveGenericStep);
+      const deletePourStageButton = event.target.closest("[data-delete-pour-stage]");
+      if (deletePourStageButton) deletePourStage(deletePourStageButton.closest("[data-pour-stage]"));
+      const movePourStageButton = event.target.closest("[data-move-pour-stage]");
+      if (movePourStageButton) movePourStage(movePourStageButton.closest("[data-pour-stage]"), movePourStageButton.dataset.movePourStage);
       const deleteState = event.target.closest("[data-delete-generic-state]");
       if (deleteState) deleteState.closest(".state-tile")?.remove();
       const deleteTrouble = event.target.closest("[data-delete-generic-trouble]");
