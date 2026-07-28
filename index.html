@@ -2102,6 +2102,7 @@
     }
     .bean-detail-hero h1 { font-size: clamp(32px, 5vw, 54px); line-height: 1.05; }
     .bean-detail-hero p { margin: 12px 0 0; color: var(--muted); line-height: 1.65; }
+    .bean-detail-hero #beanDetailSummary { display: none; }
     .bean-detail-actions { display: flex; align-items: flex-start; gap: 8px; flex-wrap: wrap; }
     .bean-detail-grid {
       display: grid;
@@ -2116,6 +2117,25 @@
     }
     .bean-detail-panel.wide { grid-column: 1 / -1; }
     .bean-detail-panel h2 { margin: 0 0 12px; font-size: 18px; }
+    .bean-profile-sections {
+      display: grid;
+      grid-template-columns: 1fr 1.25fr 1fr;
+      gap: 0;
+    }
+    .bean-profile-section {
+      min-width: 0;
+      padding: 2px 18px;
+    }
+    .bean-profile-section:first-child { padding-left: 0; }
+    .bean-profile-section:last-child { padding-right: 0; }
+    .bean-profile-section + .bean-profile-section {
+      border-left: 1px solid rgba(82, 56, 35, 0.1);
+    }
+    .bean-profile-section h3 {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
     .bean-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
     .bean-fact span { display: block; color: var(--muted); font-size: 11px; }
     .bean-fact strong { display: block; margin-top: 4px; color: var(--coffee-dark); font-size: 14px; }
@@ -2624,10 +2644,20 @@
       .bean-detail-hero { grid-template-columns: 1fr; padding: 20px; }
       .bean-detail-actions > * { flex: 1; justify-content: center; }
       .bean-detail-grid,
-      .bean-facts,
       .bean-method-list,
       .bean-method-groups { grid-template-columns: 1fr; }
       .bean-detail-panel.wide { grid-column: auto; }
+      .bean-profile-sections { grid-template-columns: 1fr; }
+      .bean-profile-section,
+      .bean-profile-section:first-child,
+      .bean-profile-section:last-child { padding: 12px 0; }
+      .bean-profile-section:first-child { padding-top: 0; }
+      .bean-profile-section:last-child { padding-bottom: 0; }
+      .bean-profile-section + .bean-profile-section {
+        border-top: 1px solid rgba(82, 56, 35, 0.1);
+        border-left: 0;
+      }
+      .bean-profile-panel .bean-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .bean-detail-component { grid-template-columns: 1fr; gap: 3px; }
       .bean-method-head { align-items: flex-start; flex-direction: column; }
       .bean-method-actions { width: 100%; }
@@ -2926,23 +2956,27 @@
           </div>
         </div>
         <div class="bean-detail-grid">
-          <section class="bean-detail-panel">
-            <h2>豆子信息</h2>
-            <div class="bean-facts" id="beanDetailFacts"></div>
-          </section>
-          <section class="bean-detail-panel">
-            <h2>品种与处理法</h2>
-            <div class="bean-detail-components" id="beanDetailComponents"></div>
-          </section>
-          <section class="bean-detail-panel wide">
-            <h2>风味与养豆</h2>
-            <div class="bean-facts" id="beanDetailTaste"></div>
+          <section class="bean-detail-panel wide bean-profile-panel">
+            <h2>豆子档案</h2>
+            <div class="bean-profile-sections">
+              <div class="bean-profile-section">
+                <h3>基本信息</h3>
+                <div class="bean-facts" id="beanDetailFacts"></div>
+              </div>
+              <div class="bean-profile-section">
+                <h3>品种与处理法</h3>
+                <div class="bean-detail-components" id="beanDetailComponents"></div>
+              </div>
+              <div class="bean-profile-section">
+                <h3>风味与养豆</h3>
+                <div class="bean-facts" id="beanDetailTaste"></div>
+              </div>
+            </div>
           </section>
         </div>
         <div class="bean-method-head">
           <div>
             <h2>冲煮参数</h2>
-            <p class="section-desc">参数跟着豆子保存，可直接带入固定做法。</p>
           </div>
           <div class="bean-method-actions">
             <button class="ghost-btn" id="editBeanBrewParams" type="button"><i data-lucide="pencil"></i>编辑参数</button>
