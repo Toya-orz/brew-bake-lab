@@ -1,4 +1,4 @@
-const CACHE_NAME = "brew-bake-lab-v28";
+const CACHE_NAME = "brew-bake-lab-v29";
 const NAVIGATION_TIMEOUT_MS = 4000;
 const CORE_ASSETS = [
   "./",

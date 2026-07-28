@@ -191,4 +191,5 @@ Coffee uses three separate layers so brewing instructions are not duplicated for
 - Fixed method recipe: one reusable full recipe such as three-stage pour-over or standard espresso extraction. Its parameter card can temporarily display values from the selected coffee bean profile.
 - Pour-over method ownership: the bean supplies each stage's time and cumulative water; the technique template supplies the action, check, caution, and follow-along structure.
 - Pour-over follow progress is isolated per coffee bean, while edits to stage instructions remain attached to the shared technique template.
+- A reusable Espresso technique template for Americanos and milk drinks, with bean-owned dose, yield, grind, temperature, and extraction time.
 - The temporary combination does not overwrite either the coffee bean profile or the original method recipe.

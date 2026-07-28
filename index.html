@@ -2656,6 +2656,15 @@
               <p class="recipe-key">固定操作、判断和排查；粉量、水温、研磨与注水克重跟随咖啡豆。</p>
             </div>
           </article>
+          <article class="recipe-card" data-page="genericDetail" data-recipe-id="espresso-technique" tabindex="0" role="button" aria-label="打开意式浓缩基础技巧">
+            <div class="recipe-img"><img src="assets/recipes/kitchen-worktop.jpg" alt="意式浓缩制作台" loading="lazy" decoding="async"></div>
+            <div class="recipe-body">
+              <div class="tag-row"><span class="tag blue">咖啡</span><span class="tag">通用模板</span><span class="tag">美式 / 拿铁基底</span></div>
+              <h3 class="recipe-title">意式浓缩</h3>
+              <div class="recipe-meta"><span>布粉 · 压粉 · 萃取</span><span>参数可从咖啡豆档案带入</span></div>
+              <p class="recipe-key">固定准备、萃取判断和调整方式；粉量、液重、研磨、水温和时间跟随咖啡豆。</p>
+            </div>
+          </article>
         </div>
       </section>
 
@@ -3572,6 +3581,79 @@
         ],
         sharedSections: ["基础信息", "材料与器具", "参数", "步骤", "关键状态", "失败排查", "版本"],
         extensions: ["粉水比", "水温", "研磨度", "注水节奏"]
+      },
+      espresso: {
+        id: "espresso-technique",
+        type: "drink",
+        template: "espresso",
+        typeLabel: "饮品技巧",
+        detailPage: "genericDetail",
+        category: ["饮品", "咖啡", "意式浓缩"],
+        title: "意式浓缩",
+        description: "美式和拿铁共用的浓缩基底。咖啡豆提供粉量、目标液重、研磨、水温与时间；模板负责准备、布粉压粉、萃取判断和下一杯调整。",
+        tags: ["基础技巧", "美式 / 拿铁基底", "参数随豆替换"],
+        image: "assets/recipes/pour-over-coffee.jpg",
+        paramHint: "开始前确认粉量、目标液重、研磨刻度、水温和萃取时间。",
+        params: [
+          { type: "咖啡豆", value: "咖啡豆 18g。" },
+          { type: "比例", value: "18g → 36g，粉液比 1:2。" },
+          { type: "研磨", value: "填写磨豆机刻度。" },
+          { type: "水温", value: "92°C。" },
+          { type: "萃取", value: "目标 25–30 秒。" },
+          { type: "器具", value: "半自动咖啡机、双份粉碗、电子秤、布粉器、压粉器。" }
+        ],
+        phases: [
+          {
+            name: "准备",
+            steps: [
+              {
+                id: "espresso-1",
+                title: "预热并擦干粉碗",
+                action: "充分预热咖啡机、冲煮头和手柄；放水清洁冲煮头，擦干粉碗。",
+                check: "手柄已经温热，粉碗内没有残水或旧咖啡粉。",
+                note: "湿粉碗会让咖啡粉提前结块，影响布粉均匀。"
+              },
+              {
+                id: "espresso-2",
+                title: "称粉、布粉与压粉",
+                action: "称取目标粉量，均匀布粉后保持水平压粉，清理粉碗边缘。",
+                check: "粉床平整，没有明显裂缝、斜面或边缘浮粉。",
+                note: "压粉力度保持稳定即可，不要用压粉力度补偿错误研磨。"
+              }
+            ]
+          },
+          {
+            name: "萃取",
+            steps: [
+              {
+                id: "espresso-3",
+                title: "开始萃取并计时",
+                action: "锁上手柄后立即开始萃取并计时，到目标液重时停止。",
+                check: "咖啡液由细流稳定汇合，颜色逐渐变浅；时间落在目标范围。",
+                note: "液重到达后立即停泵，秤上可能仍会增加少量残余液体。"
+              },
+              {
+                id: "espresso-4",
+                title: "搅匀、品尝并调整",
+                action: "搅匀浓缩后品尝；记录甜感、酸苦平衡和醇厚度。",
+                check: "作为美式或拿铁基底时仍有清晰甜感，没有尖酸或持续干苦。",
+                note: "偏酸且流速快则磨细；偏苦且流速慢则磨粗。下一杯只改研磨。"
+              }
+            ]
+          }
+        ],
+        states: [
+          { name: "粉床平整", description: "压粉后表面水平、边缘干净，没有裂缝和斜坡。" },
+          { name: "流速稳定", description: "萃取液形成连续细流，颜色由深逐渐变浅，没有明显喷溅。" },
+          { name: "风味平衡", description: "搅匀后甜感清楚，酸苦不过度，加入水或牛奶后仍能辨认咖啡风味。" }
+        ],
+        trouble: [
+          { problem: "流速太快、尖酸偏薄", cause: "优先磨细；同时确认粉量充足、布粉均匀且粉碗尺寸匹配。" },
+          { problem: "流速太慢、苦涩发干", cause: "优先磨粗；同时检查粉量是否过多或粉饼碰到冲煮头。" },
+          { problem: "喷溅、忽快忽慢", cause: "可能发生通道效应；改善布粉、保持水平压粉并擦净粉碗边缘。" }
+        ],
+        sharedSections: ["基础信息", "参数", "步骤", "关键状态", "失败排查"],
+        extensions: ["粉液比", "研磨刻度", "萃取时间", "粉碗"]
       }
     };
 
@@ -3894,10 +3976,8 @@
 
     function findCoffeeMethodRecipe(kind = "pour") {
       if (kind === "pour") return recipeSchemas.pourOver;
-      const custom = Object.values(loadCustomRecipes());
-      return custom.find((recipe) => recipe.title?.includes("意式浓缩"))
-        || custom.find((recipe) => recipe.template === "espresso")
-        || null;
+      if (kind === "espresso") return recipeSchemas.espresso;
+      return null;
     }
 
     function openBrewGuide(kind, beanId = activeBeanId) {
@@ -4513,7 +4593,7 @@
       document.getElementById("genericEdit").textContent = coffeeMethodContext ? "编辑原菜谱" : (isCoffeeParameter ? "编辑参数" : "编辑");
       const back = document.getElementById("genericBack");
       const hasLinkedBean = Boolean(loadCoffeeBeans()[recipe.coffeeBeanId]);
-      const isTechniqueEntry = recipeId === recipeSchemas.pourOver.id && !coffeeMethodContext;
+      const isTechniqueEntry = [recipeSchemas.pourOver.id, recipeSchemas.espresso.id].includes(recipeId) && !coffeeMethodContext;
       back.dataset.page = hasLinkedBean ? "beanDetail" : (isTechniqueEntry ? "techniques" : (isCoffeeParameter ? "beans" : "recipes"));
       back.dataset.beanId = hasLinkedBean ? recipe.coffeeBeanId : "";
       back.querySelector("span").textContent = hasLinkedBean ? "返回咖啡豆" : (isTechniqueEntry ? "返回基础技巧" : (isCoffeeParameter ? "返回咖啡豆仓库" : "返回作品库"));

@@ -26,6 +26,9 @@ assert.match(html, /function applyBeanParamsToMethod\(recipe, beanId, kind = "po
 assert.match(html, /renderGenericRecipe\(method\.id, \{ beanId, kind \}\)/);
 assert.match(html, /data-method-bean-switch/);
 assert.match(html, /title: "三段式手冲"/);
+assert.match(html, /id: "espresso-technique"/);
+assert.match(html, /title: "意式浓缩"/);
+assert.match(html, /return recipeSchemas\.espresso/);
 assert.match(html, /function applyCoffeeTemplate\(recipe, template, coffeeBeanId = ""\)/);
 assert.match(html, /function defaultPourPlan\(\)/);
 assert.match(html, /function renderPourPlan\(recipe, isEditing = false\)/);

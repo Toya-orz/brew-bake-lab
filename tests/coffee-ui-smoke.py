@@ -142,6 +142,11 @@ def verify_viewport(browser, width, height, suffix):
         )
         == "中心小圈注水，确保粉床全部润湿。"
     )
+    page.evaluate("""() => { renderBeanDetail("bean-second"); setPage("beanDetail"); }""")
+    page.locator('[data-open-brew-guide="espresso"]').click()
+    assert page.locator("#genericTitle").inner_text() == "意式浓缩"
+    assert "19g → 40g" in page.locator("#genericParamTable").inner_text()
+    assert page.locator("#genericStepList").get_by_role("heading", name="开始萃取并计时", exact=True).is_visible()
     page.close()
 
 
