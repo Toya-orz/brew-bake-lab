@@ -204,4 +204,5 @@ Coffee uses three separate layers so brewing instructions are not duplicated for
 - Generic recipe reading mode prioritizes overview, parameters, executable steps, and collapsed troubleshooting; repeated state galleries and data-management cards remain available only while editing.
 - Adding a recipe now opens directly in local note-import mode, with paste or TXT/Markdown loading as the primary path and blank creation retained as a secondary option.
 - Note import previews recognized content while typing and opens the full editor in one action, without a separate confirmation step.
+- Imported recipes store materials and tools as separate editable preparation lists; parameter cards no longer duplicate those lists.
 - The temporary combination does not overwrite either the coffee bean profile or the original method recipe.

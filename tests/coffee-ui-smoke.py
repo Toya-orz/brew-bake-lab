@@ -174,7 +174,7 @@ def verify_viewport(browser, width, height, suffix):
         files=[{
             "name": "my-recipe.md",
             "mimeType": "text/markdown",
-            "buffer": b"# Apple Cake\n1. Mix flour and eggs\n2. Bake until golden",
+            "buffer": "# Apple Cake\n鸡蛋*2 低粉100g\n工具：烤箱、电子秤\n1. Mix flour and eggs\n2. Bake until golden".encode(),
         }]
     )
     page.wait_for_function("document.querySelector('#recipeNoteInput').value.includes('Apple Cake')")
@@ -184,7 +184,15 @@ def verify_viewport(browser, width, height, suffix):
     assert page.locator("#recipeCreateSubmit").inner_text().strip() == "导入并编辑"
     page.locator("#recipeCreateSubmit").click()
     assert page.locator("#genericTitle").inner_text() == "Apple Cake"
+    assert page.locator("#genericIngredientList [data-generic-ingredient]").count() == 2
+    assert "烤箱" in page.locator("#genericToolList").inner_text()
+    assert "电子秤" in page.locator("#genericToolList").inner_text()
     assert page.locator("#genericSave").is_visible()
+    page.locator("#genericIngredientList [data-generic-ingredient]").first.locator(".generic-prep-amount").fill("3个")
+    page.locator("#genericSave").click()
+    assert "3个" in page.locator("#genericIngredientList").inner_text()
+    assert "材料" not in page.locator("#genericParamTable").inner_text()
+    page.screenshot(path=f"/tmp/brew-bake-import-prep-{suffix}.png", full_page=True)
     page.close()
 
 

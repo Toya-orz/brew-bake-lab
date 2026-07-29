@@ -1779,6 +1779,50 @@
     .generic-add-control { display: none; margin-top: 12px; }
     .generic-add-control[hidden],
     .generic-step-list[hidden] { display: none !important; }
+    .generic-prep-grid {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 22px;
+    }
+    .generic-prep-group {
+      min-width: 0;
+      padding: 16px 18px;
+      border-radius: 9px;
+      background: rgba(242, 233, 218, 0.48);
+    }
+    .generic-prep-group h3 {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin: 0 0 10px;
+      color: var(--coffee-dark);
+      font-size: 14px;
+    }
+    .generic-prep-group h3 svg { width: 16px; height: 16px; }
+    .generic-prep-list { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
+    .generic-prep-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      align-items: center;
+      gap: 8px;
+      min-height: 30px;
+      color: var(--ink);
+      font-size: 14px;
+    }
+    .generic-prep-name { min-width: 0; }
+    .generic-prep-amount { color: var(--muted); white-space: nowrap; }
+    .generic-detail.is-editing .generic-prep-name,
+    .generic-detail.is-editing .generic-prep-amount {
+      min-height: 34px;
+      padding: 6px 8px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fffdf8;
+    }
+    .generic-detail.is-editing .generic-prep-amount { min-width: 86px; }
+    .generic-prep-empty { color: var(--muted); font-size: 13px; }
+    .generic-prep-add { margin-top: 10px; }
+    .anchor-tabs a[hidden] { display: none; }
     .generic-param-type-editor {
       display: grid;
       gap: 6px;
@@ -2627,6 +2671,7 @@
       .recipe-grid,
       .category-grid,
       .scenario-strip { grid-template-columns: 1fr; }
+      .generic-prep-grid { grid-template-columns: 1fr; gap: 10px; }
       .mini-spec { left: 22px; right: 22px; grid-template-columns: 1fr; }
       .hero-visual::after { height: 150px; }
       .list-head { align-items: stretch; flex-direction: column; }
@@ -3396,6 +3441,7 @@
         </div>
 
         <div class="anchor-tabs">
+          <a href="#genericPrep">准备</a>
           <a href="#genericParams">参数</a>
           <a href="#genericSteps">步骤</a>
           <a href="#genericStates">状态图</a>
@@ -3404,6 +3450,29 @@
 
         <div class="detail-shell">
           <div>
+            <section class="detail-section" id="genericPrep" hidden>
+              <div class="content-band">
+                <div class="band-head">
+                  <div>
+                    <h2>准备</h2>
+                    <p>材料与工具集中确认，参数另列。</p>
+                  </div>
+                </div>
+                <div class="generic-prep-grid">
+                  <div class="generic-prep-group">
+                    <h3><i data-lucide="wheat"></i>材料</h3>
+                    <ul class="generic-prep-list" id="genericIngredientList"></ul>
+                    <button class="edit-action add generic-add-control generic-prep-add" id="addGenericIngredient" type="button">＋ 添加材料</button>
+                  </div>
+                  <div class="generic-prep-group">
+                    <h3><i data-lucide="cooking-pot"></i>工具</h3>
+                    <ul class="generic-prep-list" id="genericToolList"></ul>
+                    <button class="edit-action add generic-add-control generic-prep-add" id="addGenericTool" type="button">＋ 添加工具</button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
             <section class="detail-section" id="genericParams">
               <div class="content-band">
                 <div class="band-head">
@@ -4533,18 +4602,17 @@
         tags: [isDrink ? "饮品" : "烘焙", "自建菜谱"],
         image: "assets/recipes/kitchen-worktop.jpg",
         paramHint: isDrink
-          ? "饮品专属参数：比例、水温、器具与制作时间。"
-          : "烘焙专属参数：材料、烤箱与模具、烘烤与定型。",
+          ? "饮品专属参数：比例、水温与制作时间。"
+          : "烘焙专属参数：烤箱与模具、烘烤与定型。",
+        ingredients: [],
+        tools: [],
         params: isDrink
           ? [
-              { type: "材料", value: "点击编辑，填写用量。" },
               { type: "比例", value: "点击编辑，填写比例。" },
               { type: "水温", value: "点击编辑，填写温度。" },
-              { type: "器具", value: "点击编辑，填写器具。" },
               { type: "制作", value: "点击编辑，填写时间。" }
             ]
           : [
-              { type: "材料", value: "点击编辑，填写用量。" },
               { type: "烤箱 & 烤盘", value: "点击编辑，填写尺寸与设备。" },
               { type: "烘烤", value: "点击编辑，填写温度与时间。" },
               { type: "定型", value: "点击编辑，填写冷却或定型方式。" }
@@ -4855,6 +4923,47 @@
       </tr>`;
     }
 
+    function genericPrepRowMarkup(item, kind, isEditing = false) {
+      const isIngredient = kind === "ingredient";
+      const name = isIngredient
+        ? String(typeof item === "string" ? item : item?.name || "")
+        : String(item || "");
+      const amount = isIngredient && typeof item !== "string" ? String(item?.amount || "") : "";
+      return `<li class="generic-prep-row" data-generic-${kind}>
+        <span class="generic-prep-name"${isEditing ? ' contenteditable="true"' : ""}>${escapeHTML(name)}</span>
+        ${isIngredient ? `<span class="generic-prep-amount"${isEditing ? ' contenteditable="true"' : ""}>${escapeHTML(amount)}</span>` : ""}
+        <button class="param-control delete generic-row-controls" type="button" data-delete-generic-prep aria-label="删除${isIngredient ? "材料" : "工具"}"><i data-lucide="trash-2"></i></button>
+      </li>`;
+    }
+
+    function renderGenericPrep(recipe, isEditing = false) {
+      const ingredients = Array.isArray(recipe.ingredients) ? recipe.ingredients : [];
+      const tools = Array.isArray(recipe.tools) ? recipe.tools : [];
+      const section = document.getElementById("genericPrep");
+      const anchor = document.querySelector('.anchor-tabs a[href="#genericPrep"]');
+      const hasContent = ingredients.length || tools.length;
+      section.hidden = !hasContent && !isEditing;
+      anchor.hidden = section.hidden;
+      document.getElementById("genericIngredientList").innerHTML = ingredients.length
+        ? ingredients.map((item) => genericPrepRowMarkup(item, "ingredient", isEditing)).join("")
+        : (isEditing ? '<li class="generic-prep-empty">还没有材料，点击下方添加。</li>' : "");
+      document.getElementById("genericToolList").innerHTML = tools.length
+        ? tools.map((item) => genericPrepRowMarkup(item, "tool", isEditing)).join("")
+        : (isEditing ? '<li class="generic-prep-empty">没有需要单独确认的工具可留空。</li>' : "");
+      lucide.createIcons();
+    }
+
+    function addGenericPrepItem(kind) {
+      const isIngredient = kind === "ingredient";
+      const list = document.getElementById(isIngredient ? "genericIngredientList" : "genericToolList");
+      list.querySelector(".generic-prep-empty")?.remove();
+      list.insertAdjacentHTML("beforeend", genericPrepRowMarkup(isIngredient
+        ? { name: "新材料", amount: "用量" }
+        : "新工具", kind, true));
+      lucide.createIcons();
+      list.querySelector(".generic-prep-row:last-child .generic-prep-name")?.focus();
+    }
+
     function renderGenericParams(params, recipeType, isEditing = false) {
       document.getElementById("genericParamTable").innerHTML = params
         .map((item) => genericParamRowMarkup(item, recipeType, isEditing))
@@ -4981,6 +5090,7 @@
       renderGenericPhoto(recipe);
       document.getElementById("genericParamHint").textContent = `${recipe.paramHint}${pourRatioLabel(recipe)}`;
       document.getElementById("genericTypeTag").textContent = recipe.typeLabel;
+      renderGenericPrep(recipe, false);
       renderGenericParams(recipe.params, recipe.type, false);
       renderPourStageParams(recipe, false);
       if (recipe.template === "pour-over") document.getElementById("pourStageParams").hidden = true;
@@ -5202,6 +5312,13 @@
       recipe.imageAlt = genericPhoto.dataset.genericImageAlt || "";
       const beanSelect = document.getElementById("genericBeanSelect");
       if (beanSelect) recipe.coffeeBeanId = beanSelect.value;
+      recipe.ingredients = [...document.querySelectorAll("#genericIngredientList [data-generic-ingredient]")].map((row) => ({
+        name: row.querySelector(".generic-prep-name").textContent.trim(),
+        amount: row.querySelector(".generic-prep-amount").textContent.trim()
+      })).filter((item) => item.name);
+      recipe.tools = [...document.querySelectorAll("#genericToolList [data-generic-tool]")]
+        .map((row) => row.querySelector(".generic-prep-name").textContent.trim())
+        .filter(Boolean);
       recipe.params = [...document.querySelectorAll("#genericParamTable tr")].map((row) => ({
         type: getGenericParamType(row),
         value: row.querySelector("td").textContent.trim()
@@ -5310,6 +5427,7 @@
         renderRecipes("homeRecipes");
         renderRecipes("listRecipes");
       }
+      renderGenericPrep(recipe, false);
       renderGenericParams(recipe.params, recipe.type, false);
       renderPourStageParams(recipe, false);
       renderGenericBeanLink(recipe, false);
@@ -5415,10 +5533,24 @@
         const name = match[1].replace(/^(加入|倒入|筛入|加|至|和|或)/, "");
         const amount = match[2] || match[4];
         const unit = match[3] || match[5] || (/鸡蛋|蛋黄|蛋白/.test(name) ? "个" : "");
-        const ingredient = `${name} ${amount}${unit}`.trim();
-        if (name && !matches.includes(ingredient)) matches.push(ingredient);
+        const ingredient = { name, amount: `${amount}${unit}`.trim() };
+        if (name && !matches.some((item) => item.name === ingredient.name && item.amount === ingredient.amount)) {
+          matches.push(ingredient);
+        }
       }
       return matches.slice(0, 18);
+    }
+
+    function extractRecipeNoteTools(note) {
+      const source = String(note || "");
+      const knownTools = [
+        "电动打蛋器", "厨房电子秤", "半自动咖啡机", "面粉筛", "厨师机", "擀面杖",
+        "温度计", "电子秤", "厨房秤", "打蛋器", "烤箱", "烤盘", "刮刀", "筛网",
+        "模具", "滤杯", "滤纸", "分享壶", "细口壶", "咖啡机", "粉碗"
+      ];
+      return knownTools.filter((tool, index) =>
+        source.includes(tool) && !knownTools.slice(0, index).some((longer) => longer.includes(tool) && source.includes(longer))
+      ).slice(0, 12);
     }
 
     function parseRecipeNote(note, type) {
@@ -5461,10 +5593,12 @@
       const steps = phases.flatMap((item) => item.steps);
       if (!steps.length) return { error: "没有识别到编号步骤。请使用“1、操作内容”的格式。" };
       const ingredients = extractRecipeNoteIngredients(note);
+      const tools = extractRecipeNoteTools(note);
       return {
         title: title || "从笔记导入的菜谱",
         type,
         ingredients,
+        tools,
         phases,
         stepCount: steps.length
       };
@@ -5476,7 +5610,7 @@
       if (!parsed || parsed.error) return;
       document.getElementById("recipeNotePreviewTitle").textContent = parsed.title;
       document.getElementById("recipeNotePreviewSummary").textContent =
-        `识别到 ${parsed.ingredients.length} 项材料 · ${parsed.phases.length} 个阶段 · ${parsed.stepCount} 个步骤`;
+        `识别到 ${parsed.ingredients.length} 项材料${parsed.tools.length ? ` · ${parsed.tools.length} 件工具` : ""} · ${parsed.phases.length} 个阶段 · ${parsed.stepCount} 个步骤`;
       document.getElementById("recipeNotePreviewSteps").innerHTML = parsed.phases
         .flatMap((phase) => phase.steps.map((step) => `<li>${escapeHTML(step.title)}</li>`))
         .slice(0, 6)
@@ -5504,10 +5638,8 @@
         action: parsed.phases[0].steps[0].action
       });
       recipe.description = "由个人制作笔记导入。材料和步骤已经初步整理，请按实际操作继续校对。";
-      recipe.params[0] = {
-        type: parsed.type === "drink" ? "原料" : "材料",
-        value: parsed.ingredients.length ? parsed.ingredients.join("；") : "请补充材料与用量。"
-      };
+      recipe.ingredients = parsed.ingredients;
+      recipe.tools = parsed.tools;
       recipe.phases = parsed.phases.map((phase, phaseIndex) => ({
         name: phase.name,
         steps: phase.steps.map((step, stepIndex) => ({
@@ -5527,6 +5659,7 @@
       closeRecipeCreateDialog();
       renderGenericRecipe(recipe.id);
       setPage("genericDetail");
+      renderGenericPrep(recipe, true);
       renderGenericParams(recipe.params, recipe.type, true);
       renderPourStageParams(recipe, true);
       renderGenericBeanLink(recipe, true);
@@ -5618,6 +5751,8 @@
           || source.params.length > 50
           || source.phases.length > 20
           || stepCount > 200
+          || (Array.isArray(source.ingredients) && source.ingredients.length > 60)
+          || (Array.isArray(source.tools) && source.tools.length > 40)
           || (Array.isArray(source.states) && source.states.length > 50)
           || (Array.isArray(source.trouble) && source.trouble.length > 50)
         ) {
@@ -5631,6 +5766,16 @@
           ? recipe.category.map((item) => String(item).slice(0, 80))
           : [recipe.type === "drink" ? "饮品" : "烘焙"];
         recipe.tags = Array.isArray(recipe.tags) ? recipe.tags.slice(0, 5).map((item) => String(item).slice(0, 30)) : ["导入菜谱"];
+        recipe.ingredients = Array.isArray(recipe.ingredients)
+          ? recipe.ingredients.slice(0, 60).map((item) => ({
+              name: String(typeof item === "string" ? item : item?.name || "").slice(0, 80),
+              amount: String(typeof item === "string" ? "" : item?.amount || "").slice(0, 40)
+            })).filter((item) => item.name)
+          : [];
+        recipe.tools = Array.isArray(recipe.tools)
+          ? recipe.tools.slice(0, 40).filter((item) => typeof item === "string")
+            .map((item) => item.slice(0, 80)).filter(Boolean)
+          : [];
         recipe.image = isPortableRecipeImage(recipe.image) ? recipe.image : "assets/recipes/kitchen-worktop.jpg";
         recipe.imageAlt = typeof recipe.imageAlt === "string" ? recipe.imageAlt.slice(0, 160) : "";
         recipe.phases = recipe.phases.map((phase) => ({
@@ -7460,6 +7605,7 @@
       if (event.target.closest("#genericEdit")) {
         activeCoffeeMethodContext = null;
         genericDraft = getGenericRecipe(activeGenericRecipeId);
+        renderGenericPrep(genericDraft, true);
         renderGenericParams(genericDraft.params, genericDraft.type, true);
         renderPourStageParams(genericDraft, true);
         renderGenericBeanLink(genericDraft, true);
@@ -7475,11 +7621,15 @@
       if (event.target.closest("#exportGenericRecipe")) exportGenericRecipe();
       if (event.target.closest("#deleteGenericRecipe")) deleteGenericRecipe();
       if (event.target.closest("#addGenericParam")) addGenericParam();
+      if (event.target.closest("#addGenericIngredient")) addGenericPrepItem("ingredient");
+      if (event.target.closest("#addGenericTool")) addGenericPrepItem("tool");
       if (event.target.closest("#addGenericStep")) addGenericStep();
       if (event.target.closest("#addGenericState")) addGenericState();
       if (event.target.closest("#addGenericTrouble")) addGenericTrouble();
       const deleteParam = event.target.closest("[data-delete-generic-param]");
       if (deleteParam) deleteParam.closest("tr")?.remove();
+      const deletePrep = event.target.closest("[data-delete-generic-prep]");
+      if (deletePrep) deletePrep.closest(".generic-prep-row")?.remove();
       const moveParam = event.target.closest("[data-move-generic-param]");
       if (moveParam) moveGenericParam(moveParam.closest("tr"), moveParam.dataset.moveGenericParam);
       const deleteStep = event.target.closest("[data-delete-generic-step]");
