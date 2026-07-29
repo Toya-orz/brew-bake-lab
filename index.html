@@ -4192,6 +4192,7 @@
     const genericRecipeStorageKey = "brewBakeLab.genericRecipes.v1";
     const customRecipeStorageKey = "brewBakeLab.customRecipes.v1";
     const coffeeBeanStorageKey = "brewBakeLab.coffeeBeans.v1";
+    const recoveredCoffeeBeanKey = "brewBakeLab.restore.whiteChocolateStrawberry.v1";
     let activeGenericRecipeId = null;
     let activeCoffeeMethodContext = null;
     let activeBeanId = null;
@@ -4239,6 +4240,55 @@
 
     function persistCoffeeBeans(beansById) {
       localStorage.setItem(coffeeBeanStorageKey, JSON.stringify(beansById));
+    }
+
+    function restoreWhiteChocolateStrawberryBean() {
+      if (localStorage.getItem(recoveredCoffeeBeanKey)) return;
+      try {
+        const beans = loadCoffeeBeans();
+        const existing = Object.values(beans).find((bean) => bean.name === "白巧克力与草莓");
+        if (!existing) {
+          beans["bean-white-chocolate-strawberry"] = {
+            id: "bean-white-chocolate-strawberry",
+            name: "白巧克力与草莓",
+            roaster: "良致咖啡",
+            origin: "哥斯达黎加",
+            components: [
+              { variety: "红卡杜艾", process: "黑蜜处理", ratio: "" },
+              { variety: "Marespi", process: "CO2浸渍", ratio: "" }
+            ],
+            roastLevel: "中烘焙",
+            roastDate: "",
+            rest: "",
+            notes: "白巧克力、草莓",
+            brewParams: {
+              pour: {
+                dose: "15.5g",
+                water: "240g",
+                grind: "刻度 13（百胜图 e6 air）",
+                temp: "92°C",
+                stages: [
+                  { label: "闷蒸", time: "00:00", grams: "30g" },
+                  { label: "第二段", time: "00:30", grams: "150g" },
+                  { label: "第三段", time: "01:15", grams: "240g" }
+                ]
+              },
+              espresso: {
+                dose: "18g",
+                yield: "36g",
+                grind: "刻度 0.8（百胜图 e6 air）",
+                temp: "92°C",
+                time: "20秒"
+              }
+            },
+            updatedAt: new Date().toISOString()
+          };
+          persistCoffeeBeans(beans);
+        }
+        localStorage.setItem(recoveredCoffeeBeanKey, "1");
+      } catch (error) {
+        // Keep the app usable if private browsing blocks or exhausts local storage.
+      }
     }
 
     function getBeanComponents(bean) {
@@ -7829,6 +7879,7 @@
       }
     });
 
+    restoreWhiteChocolateStrawberryBean();
     renderRecipes("homeRecipes");
     renderRecipes("listRecipes");
     buildDefaultRecipeContent();

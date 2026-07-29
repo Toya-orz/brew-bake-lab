@@ -8,6 +8,32 @@ BASE_URL = "http://127.0.0.1:4173"
 def seed(page):
     page.goto(BASE_URL)
     page.wait_for_load_state("networkidle")
+    page.evaluate("localStorage.clear()")
+    page.reload()
+    page.wait_for_load_state("networkidle")
+    recovered = page.evaluate(
+        """() => JSON.parse(localStorage.getItem("brewBakeLab.coffeeBeans.v1"))[
+          "bean-white-chocolate-strawberry"
+        ]"""
+    )
+    assert recovered["name"] == "白巧克力与草莓"
+    assert recovered["brewParams"]["pour"]["dose"] == "15.5g"
+    assert recovered["brewParams"]["pour"]["stages"][2]["grams"] == "240g"
+    assert recovered["brewParams"]["espresso"]["time"] == "20秒"
+    page.evaluate(
+        """() => {
+          const beans = JSON.parse(localStorage.getItem("brewBakeLab.coffeeBeans.v1"));
+          delete beans["bean-white-chocolate-strawberry"];
+          localStorage.setItem("brewBakeLab.coffeeBeans.v1", JSON.stringify(beans));
+        }"""
+    )
+    page.reload()
+    page.wait_for_load_state("networkidle")
+    assert page.evaluate(
+        """() => Boolean(JSON.parse(localStorage.getItem("brewBakeLab.coffeeBeans.v1"))[
+          "bean-white-chocolate-strawberry"
+        ])"""
+    ) is False
     page.evaluate(
         """() => {
           localStorage.setItem("brewBakeLab.coffeeBeans.v1", JSON.stringify({
