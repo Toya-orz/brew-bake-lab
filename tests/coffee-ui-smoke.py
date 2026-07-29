@@ -192,6 +192,8 @@ def verify_viewport(browser, width, height, suffix):
     page.locator("#genericSave").click()
     assert "3个" in page.locator("#genericIngredientList").inner_text()
     assert "材料" not in page.locator("#genericParamTable").inner_text()
+    assert page.locator('.anchor-tabs a[href="#genericSteps"]').is_visible()
+    assert page.locator('.anchor-tabs a[href="#genericStates"]').is_hidden()
     page.screenshot(path=f"/tmp/brew-bake-import-prep-{suffix}.png", full_page=True)
     page.evaluate("openRecipeCreateDialog()")
     page.locator('[data-recipe-create-mode="manual"]').click()
@@ -206,6 +208,15 @@ def verify_viewport(browser, width, height, suffix):
     assert "蛋糕糊" in page.locator("#genericParamTable").inner_text()
     assert "夹馅" in page.locator("#genericParamTable").inner_text()
     assert page.locator("#genericStepList .phase-divider").count() == 2
+    page.locator("#genericSave").click()
+    original_id = page.evaluate("activeGenericRecipeId")
+    recipe_count = page.evaluate("Object.keys(loadCustomRecipes()).length")
+    page.locator("#duplicateGenericRecipe").click()
+    assert page.locator("#genericTitle").inner_text() == "测试蛋糕模板（副本）"
+    assert page.evaluate("activeGenericRecipeId") != original_id
+    assert page.evaluate("Object.keys(loadCustomRecipes()).length") == recipe_count + 1
+    assert page.evaluate("(id) => loadCustomRecipes()[id].title", original_id) == "测试蛋糕模板"
+    assert page.locator("#genericSave").is_visible()
     page.close()
 
 

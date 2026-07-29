@@ -1152,6 +1152,9 @@
     .edit-action.add { background: #e8efe7; color: #506a52; }
     .edit-button:active,
     .edit-action:active { transform: scale(.97); }
+    .generic-duplicate-button { display: inline-flex; align-items: center; gap: 5px; }
+    .generic-duplicate-button svg { width: 14px; height: 14px; }
+    .generic-detail.is-editing .generic-duplicate-button { display: none; }
 
     .param-add-row { display: none; margin-top: 12px; }
     #params.is-editing .param-add-row { display: inline-flex; }
@@ -1874,7 +1877,7 @@
     .generic-detail.coffee-parameter-view #genericParamHint,
     .generic-detail.coffee-parameter-view #genericStates,
     .generic-detail.coffee-parameter-view .detail-shell > .aside-panel,
-    .generic-detail.coffee-parameter-view .anchor-tabs a:nth-child(3) { display: none; }
+    .generic-detail.coffee-parameter-view .anchor-tabs a[href="#genericStates"] { display: none; }
     .generic-detail.coffee-parameter-view .detail-shell { grid-template-columns: minmax(0, 1fr); }
     .generic-detail.coffee-parameter-view:not(.is-editing) .detail-hero { margin-bottom: 12px; }
     .generic-detail.coffee-parameter-view:not(.is-editing) .detail-title {
@@ -1966,7 +1969,7 @@
       display: none;
     }
     .generic-detail:not(.is-editing):not(.coffee-parameter-view) #genericStates,
-    .generic-detail:not(.is-editing):not(.coffee-parameter-view) .anchor-tabs a:nth-child(3) {
+    .generic-detail:not(.is-editing):not(.coffee-parameter-view) .anchor-tabs a[href="#genericStates"] {
       display: none;
     }
     .generic-detail.is-editing #coffeeFollowStart { display: none; }
@@ -3426,6 +3429,7 @@
             <div class="overview-head">
               <div class="tag-row" id="genericTags"></div>
               <div class="section-tools">
+                <button class="edit-button generic-duplicate-button" id="duplicateGenericRecipe" type="button"><i data-lucide="copy"></i>复制</button>
                 <button class="edit-button" id="genericEdit" type="button">编辑</button>
                 <div class="edit-actions" id="genericEditActions" hidden>
                   <button class="edit-action save" id="genericSave" type="button">保存</button>
@@ -5814,6 +5818,40 @@
       document.getElementById("genericDataStatus").textContent = "已导出 JSON 备份。";
     }
 
+    function duplicateGenericRecipe() {
+      const source = getGenericRecipe(activeGenericRecipeId);
+      if (!source) return;
+      const customRecipes = loadCustomRecipes();
+      if (Object.keys(customRecipes).length >= 100) {
+        document.getElementById("genericDataStatus").textContent = "当前设备最多保存 100 份自建菜谱。";
+        return;
+      }
+      const recipe = cloneData(source);
+      recipe.id = createRecipeId(`${source.title}-copy`);
+      recipe.title = `${source.title}（副本）`;
+      recipe.custom = true;
+      recipe.tags = Array.from(new Set([...(Array.isArray(recipe.tags) ? recipe.tags : []), "自建菜谱"])).slice(0, 5);
+      customRecipes[recipe.id] = recipe;
+      try {
+        persistCustomRecipes(customRecipes);
+      } catch (error) {
+        document.getElementById("genericDataStatus").textContent = "设备空间不足，无法复制；原菜谱没有变化。";
+        return;
+      }
+      renderRecipes("homeRecipes");
+      renderRecipes("listRecipes");
+      activeCoffeeMethodContext = null;
+      renderGenericRecipe(recipe.id);
+      setPage("genericDetail");
+      renderGenericPrep(recipe, true);
+      renderGenericParams(recipe.params, recipe.type, true);
+      renderPourStageParams(recipe, true);
+      renderGenericBeanLink(recipe, true);
+      if (recipe.template === "pour-over") renderPourPlan(recipe, true);
+      setGenericEditing(true);
+      document.getElementById("genericSaveStatus").textContent = "已复制为新菜谱，修改后保存。";
+    }
+
     async function importGenericRecipe(input) {
       try {
         if (input.files[0].size > 10 * 1024 * 1024) {
@@ -7706,6 +7744,7 @@
         document.getElementById("genericSaveStatus").textContent = "已取消，未保存更改。";
       }
       if (event.target.closest("#exportGenericRecipe")) exportGenericRecipe();
+      if (event.target.closest("#duplicateGenericRecipe")) duplicateGenericRecipe();
       if (event.target.closest("#deleteGenericRecipe")) deleteGenericRecipe();
       if (event.target.closest("#addGenericParam")) addGenericParam();
       if (event.target.closest("#addGenericIngredient")) addGenericPrepItem("ingredient");
