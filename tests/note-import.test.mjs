@@ -4,6 +4,9 @@ import { readFile } from "node:fs/promises";
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 
 assert.match(html, /data-recipe-create-mode="note"/);
+assert.match(html, /let recipeCreateMode = "note"/);
+assert.match(html, /setRecipeCreateMode\("note"\)/);
+assert.match(html, /data-recipe-create-mode="note">从笔记导入/);
 assert.match(html, /function parseRecipeNote\(note, type\)/);
 assert.match(html, /没有识别到编号步骤/);
 assert.match(html, /function extractRecipeNoteIngredients\(note\)/);

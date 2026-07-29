@@ -3508,15 +3508,15 @@
       <div class="recipe-create-head">
         <div>
           <h2 id="recipeCreateTitle">添加菜谱</h2>
-          <p>先建立最小骨架，创建后再完善参数和步骤。</p>
+          <p>粘贴笔记或读取文字文件，识别后再校对。</p>
         </div>
         <button class="follow-close" id="closeRecipeCreate" type="button" aria-label="关闭添加菜谱"><i data-lucide="x"></i></button>
       </div>
       <div class="recipe-create-modes" role="tablist" aria-label="添加方式">
-        <button class="recipe-create-mode active" type="button" role="tab" aria-selected="true" data-recipe-create-mode="manual">快速建立</button>
-        <button class="recipe-create-mode" type="button" role="tab" aria-selected="false" data-recipe-create-mode="note">粘贴笔记</button>
+        <button class="recipe-create-mode active" type="button" role="tab" aria-selected="true" data-recipe-create-mode="note">从笔记导入</button>
+        <button class="recipe-create-mode" type="button" role="tab" aria-selected="false" data-recipe-create-mode="manual">空白创建</button>
       </div>
-      <div class="recipe-create-fields" id="recipeCreateManualFields">
+      <div class="recipe-create-fields" id="recipeCreateManualFields" hidden>
         <label class="recipe-create-field">模板
           <select id="newRecipeTemplate">
             <option value="baking">通用烘焙</option>
@@ -3537,7 +3537,7 @@
           <select id="newRecipeBean"></select>
         </label>
       </div>
-      <div class="recipe-create-fields" id="recipeCreateNoteFields" hidden>
+      <div class="recipe-create-fields" id="recipeCreateNoteFields">
         <label class="recipe-create-field">类型
           <select id="noteRecipeType">
             <option value="baking">烘焙</option>
@@ -4119,7 +4119,7 @@
     let activeCoffeeMethodContext = null;
     let activeBeanId = null;
     let genericDraft = null;
-    let recipeCreateMode = "manual";
+    let recipeCreateMode = "note";
     let parsedRecipeNote = null;
 
     function cloneData(data) {
@@ -5325,10 +5325,10 @@
       document.getElementById("recipeCreateError").textContent = "";
       document.getElementById("recipeNoteFileName").textContent = "支持 TXT / Markdown，最大 1MB";
       parsedRecipeNote = null;
-      setRecipeCreateMode("manual");
+      setRecipeCreateMode("note");
       renderRecipeNotePreview(null);
       document.getElementById("recipeCreateDialog").showModal();
-      requestAnimationFrame(() => document.getElementById("newRecipeTitle").focus());
+      requestAnimationFrame(() => document.getElementById("recipeNoteInput").focus());
     }
 
     function closeRecipeCreateDialog() {

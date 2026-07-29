@@ -202,4 +202,5 @@ Coffee uses three separate layers so brewing instructions are not duplicated for
 - Mobile navigation uses a compact four-item icon row and removes the repeated sidebar release note so recipe content appears substantially earlier.
 - Five-petal yogurt flower bread is included as a complete baking recipe with optimized local photos for windowpane, first proof, final proof, and finished state.
 - Generic recipe reading mode prioritizes overview, parameters, executable steps, and collapsed troubleshooting; repeated state galleries and data-management cards remain available only while editing.
+- Adding a recipe now opens directly in local note-import mode, with paste or TXT/Markdown loading as the primary path and blank creation retained as a secondary option.
 - The temporary combination does not overwrite either the coffee bean profile or the original method recipe.
