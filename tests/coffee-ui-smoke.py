@@ -193,6 +193,19 @@ def verify_viewport(browser, width, height, suffix):
     assert "3个" in page.locator("#genericIngredientList").inner_text()
     assert "材料" not in page.locator("#genericParamTable").inner_text()
     page.screenshot(path=f"/tmp/brew-bake-import-prep-{suffix}.png", full_page=True)
+    page.evaluate("openRecipeCreateDialog()")
+    page.locator('[data-recipe-create-mode="manual"]').click()
+    page.locator("#newRecipeTemplate").select_option("cake")
+    assert page.locator("#newRecipeCategory").input_value() == "烘焙 / 蛋糕"
+    assert page.locator("#newRecipeBeanField").is_hidden()
+    page.screenshot(path=f"/tmp/brew-bake-template-picker-{suffix}.png", full_page=True)
+    page.locator("#newRecipeTitle").fill("测试蛋糕模板")
+    page.locator("#newRecipeAction").fill("称量材料并完成第一步混合。")
+    page.locator("#recipeCreateSubmit").click()
+    assert page.locator("#genericTitle").inner_text() == "测试蛋糕模板"
+    assert "蛋糕糊" in page.locator("#genericParamTable").inner_text()
+    assert "夹馅" in page.locator("#genericParamTable").inner_text()
+    assert page.locator("#genericStepList .phase-divider").count() == 2
     page.close()
 
 

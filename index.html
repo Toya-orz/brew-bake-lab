@@ -2045,6 +2045,7 @@
       font-size: 13px;
       font-weight: 700;
     }
+    .recipe-create-field[hidden] { display: none; }
 
     .recipe-create-field input,
     .recipe-create-field select,
@@ -3577,7 +3578,7 @@
       <div class="recipe-create-head">
         <div>
           <h2 id="recipeCreateTitle">添加菜谱</h2>
-          <p>粘贴笔记，直接导入完整编辑页校对。</p>
+          <p id="recipeCreateSubtitle">粘贴笔记，直接导入完整编辑页校对。</p>
         </div>
         <button class="follow-close" id="closeRecipeCreate" type="button" aria-label="关闭添加菜谱"><i data-lucide="x"></i></button>
       </div>
@@ -3589,6 +3590,9 @@
         <label class="recipe-create-field">模板
           <select id="newRecipeTemplate">
             <option value="baking">通用烘焙</option>
+            <option value="bread">面包 / 发酵面团</option>
+            <option value="cake">蛋糕 / 蛋糕卷</option>
+            <option value="oven">烤箱料理</option>
             <option value="drink">通用饮品</option>
           </select>
         </label>
@@ -4631,6 +4635,79 @@
       };
     }
 
+    function applyStarterTemplate(recipe, template) {
+      recipe.template = template;
+      if (template === "bread") {
+        recipe.typeLabel = "面包配方";
+        recipe.tags = ["面包", "自建菜谱"];
+        recipe.paramHint = "记录揉面、发酵、整形、烘烤与冷却参数。";
+        recipe.params = [
+          { type: "揉面", value: "填写面团终温与出膜状态。" },
+          { type: "一次发酵", value: "填写温度、时间与体积变化。" },
+          { type: "整形", value: "填写分割克重、松弛与整形方式。" },
+          { type: "二次发酵", value: "填写温湿度、时间与最终状态。" },
+          { type: "烘烤", value: "填写温度、层位与时间。" },
+          { type: "定型", value: "填写脱模与冷却方式。" }
+        ];
+        recipe.phases = [
+          { name: "面团", steps: [
+            { title: "混合与揉面", action: recipe.phases[0].steps[0].action, check: "", note: "" }
+          ] },
+          { name: "发酵与整形", steps: [
+            { title: "一次发酵与整形", action: "完成一次发酵后排气、分割、松弛并整形。", check: "", note: "" },
+            { title: "二次发酵", action: "发酵至目标体积和手感，准备烘烤。", check: "", note: "" }
+          ] },
+          { name: "烘烤", steps: [
+            { title: "烘烤与冷却", action: "按设定参数烘烤，出炉后按成品需要脱模冷却。", check: "", note: "" }
+          ] }
+        ];
+        recipe.extensions = ["揉面", "发酵", "整形", "烘烤", "定型"];
+      } else if (template === "cake") {
+        recipe.typeLabel = "蛋糕配方";
+        recipe.tags = ["蛋糕", "自建菜谱"];
+        recipe.paramHint = "记录蛋糕糊、烤箱与模具、烘烤、定型及夹馅参数。";
+        recipe.params = [
+          { type: "蛋糕糊", value: "填写搅拌、乳化或打发状态。" },
+          { type: "烤箱 & 烤盘", value: "填写设备、模具尺寸与预热温度。" },
+          { type: "烘烤", value: "填写温度、层位与时间。" },
+          { type: "定型", value: "填写脱模、冷却或卷制定型方式。" },
+          { type: "夹馅", value: "没有夹馅可删除。" }
+        ];
+        recipe.phases = [
+          { name: "蛋糕糊", steps: [
+            { title: "制作蛋糕糊", action: recipe.phases[0].steps[0].action, check: "", note: "" }
+          ] },
+          { name: "烘烤与定型", steps: [
+            { title: "入模与烘烤", action: "倒入模具，整理表面并按设定参数烘烤。", check: "", note: "" },
+            { title: "脱模与定型", action: "出炉后按成品需要脱模、冷却、卷制或夹馅。", check: "", note: "" }
+          ] }
+        ];
+        recipe.extensions = ["蛋糕糊", "烤箱与模具", "烘烤", "定型", "夹馅"];
+      } else if (template === "oven") {
+        recipe.typeLabel = "烤箱料理";
+        recipe.tags = ["烤箱料理", "自建菜谱"];
+        recipe.paramHint = "记录份量、调味、烤盘、温度、时间与熟度。";
+        recipe.params = [
+          { type: "份量", value: "填写食材份量与切分大小。" },
+          { type: "调味", value: "填写腌制比例与时间。" },
+          { type: "烤箱 & 烤盘", value: "填写设备、烤盘与预热温度。" },
+          { type: "烘烤", value: "填写温度、层位、时间与翻面节点。" },
+          { type: "成品", value: "填写上色、中心温度或熟度判断。" }
+        ];
+        recipe.phases = [
+          { name: "准备", steps: [
+            { title: "处理与调味", action: recipe.phases[0].steps[0].action, check: "", note: "" }
+          ] },
+          { name: "烘烤", steps: [
+            { title: "摆盘与烘烤", action: "食材均匀铺开，按设定参数烘烤并在需要时翻面。", check: "", note: "" },
+            { title: "确认熟度", action: "检查上色与中心熟度，达到目标后出炉。", check: "", note: "" }
+          ] }
+        ];
+        recipe.extensions = ["份量", "调味", "烤箱与烤盘", "烘烤", "熟度"];
+      }
+      return recipe;
+    }
+
     function applyCoffeeTemplate(recipe, template, coffeeBeanId = "") {
       recipe.template = template;
       recipe.coffeeBeanId = coffeeBeanId;
@@ -4889,7 +4966,7 @@
     }
 
     const genericParamTypeOptions = {
-      baking: ["成品", "材料", "蛋糕糊", "夹馅", "装饰", "模具 / 器具", "烤箱 & 烤盘", "烘烤", "冷却", "卷制", "定型", "保存"],
+      baking: ["成品", "材料", "份量", "蛋糕糊", "夹馅", "装饰", "揉面", "一次发酵", "整形", "二次发酵", "调味", "模具 / 器具", "烤箱 & 烤盘", "烘烤", "冷却", "卷制", "定型", "保存"],
       drink: ["成品", "材料", "原料", "咖啡", "咖啡豆", "用水", "比例", "研磨", "水温", "器具", "萃取", "奶泡", "制作", "保存"]
     };
 
@@ -5468,6 +5545,9 @@
       });
       document.querySelector("#recipeCreateSubmit span").textContent =
         recipeCreateMode === "note" ? "导入并编辑" : "创建并继续编辑";
+      document.getElementById("recipeCreateSubtitle").textContent = recipeCreateMode === "note"
+        ? "粘贴笔记，直接导入完整编辑页校对。"
+        : "选择模板，只填写名称和第一步即可开始。";
       document.getElementById("recipeCreateError").textContent = "";
       if (recipeCreateMode === "note") requestAnimationFrame(() => document.getElementById("recipeNoteInput").focus());
     }
@@ -5503,7 +5583,7 @@
 
     function configureRecipeTemplate(template) {
       const isCoffee = template === "pour-over" || template === "espresso";
-      const type = template === "baking" ? "baking" : "drink";
+      const type = ["drink", "pour-over", "espresso"].includes(template) ? "drink" : "baking";
       document.getElementById("newRecipeTemplate").value = template;
       document.getElementById("newRecipeType").value = type;
       document.getElementById("newRecipeBeanField").hidden = !isCoffee;
@@ -5517,7 +5597,12 @@
         category.value = "饮品 / 咖啡 / 意式";
         action.value = "充分预热咖啡机与手柄，擦干粉碗后称取咖啡粉。";
       } else {
-        category.value = type === "drink" ? "饮品 / " : "烘焙 / ";
+        category.value = {
+          bread: "烘焙 / 面包",
+          cake: "烘焙 / 蛋糕",
+          oven: "烤箱料理",
+          drink: "饮品 / "
+        }[template] || "烘焙 / ";
         action.value = "";
       }
     }
@@ -5704,6 +5789,8 @@
       let recipe = createRecipeTemplate({ type, title, category, action });
       if (template === "pour-over" || template === "espresso") {
         recipe = applyCoffeeTemplate(recipe, template, document.getElementById("newRecipeBean").value);
+      } else {
+        recipe = applyStarterTemplate(recipe, template);
       }
       persistNewCustomRecipe(recipe);
       document.getElementById("genericSaveStatus").textContent = "菜谱已建立，请继续完善后保存。";
