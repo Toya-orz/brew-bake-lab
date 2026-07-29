@@ -3508,7 +3508,7 @@
       <div class="recipe-create-head">
         <div>
           <h2 id="recipeCreateTitle">添加菜谱</h2>
-          <p>粘贴笔记或读取文字文件，识别后再校对。</p>
+          <p>粘贴笔记，直接导入完整编辑页校对。</p>
         </div>
         <button class="follow-close" id="closeRecipeCreate" type="button" aria-label="关闭添加菜谱"><i data-lucide="x"></i></button>
       </div>
@@ -3563,7 +3563,7 @@
       <p class="recipe-create-error" id="recipeCreateError" aria-live="polite"></p>
       <div class="recipe-create-actions">
         <button class="ghost-btn" id="cancelRecipeCreate" type="button">取消</button>
-        <button class="primary-btn" id="recipeCreateSubmit" type="submit"><span>创建并继续编辑</span><i data-lucide="arrow-right"></i></button>
+        <button class="primary-btn" id="recipeCreateSubmit" type="submit"><span>导入并编辑</span><i data-lucide="arrow-right"></i></button>
       </div>
     </form>
   </dialog>
@@ -5349,7 +5349,7 @@
         button.setAttribute("aria-selected", String(isActive));
       });
       document.querySelector("#recipeCreateSubmit span").textContent =
-        recipeCreateMode === "note" && !parsedRecipeNote ? "识别笔记" : "创建并继续编辑";
+        recipeCreateMode === "note" ? "导入并编辑" : "创建并继续编辑";
       document.getElementById("recipeCreateError").textContent = "";
       if (recipeCreateMode === "note") requestAnimationFrame(() => document.getElementById("recipeNoteInput").focus());
     }
@@ -5483,6 +5483,18 @@
         .join("");
     }
 
+    function syncRecipeNotePreview() {
+      const note = document.getElementById("recipeNoteInput").value;
+      if (!note.trim()) {
+        parsedRecipeNote = null;
+        renderRecipeNotePreview(null);
+        return;
+      }
+      const parsed = parseRecipeNote(note, document.getElementById("noteRecipeType").value);
+      parsedRecipeNote = parsed && !parsed.error ? parsed : null;
+      renderRecipeNotePreview(parsed);
+    }
+
     function buildRecipeFromNote(parsed) {
       const category = parsed.type === "drink" ? "饮品 / 待分类" : "烘焙 / 待分类";
       const recipe = createRecipeTemplate({
@@ -5524,21 +5536,17 @@
     function createCustomRecipe(event) {
       event.preventDefault();
       if (recipeCreateMode === "note") {
-        if (!parsedRecipeNote) {
-          parsedRecipeNote = parseRecipeNote(
-            document.getElementById("recipeNoteInput").value,
-            document.getElementById("noteRecipeType").value
-          );
-          if (!parsedRecipeNote || parsedRecipeNote.error) {
-            document.getElementById("recipeCreateError").textContent =
-              parsedRecipeNote?.error || "请先粘贴制作笔记。";
-            parsedRecipeNote = null;
-            return;
-          }
-          renderRecipeNotePreview(parsedRecipeNote);
-          document.querySelector("#recipeCreateSubmit span").textContent = "确认创建";
+        const parsed = parseRecipeNote(
+          document.getElementById("recipeNoteInput").value,
+          document.getElementById("noteRecipeType").value
+        );
+        if (!parsed || parsed.error) {
+          document.getElementById("recipeCreateError").textContent =
+            parsed?.error || "请先粘贴制作笔记。";
+          parsedRecipeNote = null;
           return;
         }
+        parsedRecipeNote = parsed;
         if (Object.keys(loadCustomRecipes()).length >= 100) {
           document.getElementById("recipeCreateError").textContent = "当前设备最多保存 100 份自建菜谱，请先导出并删除不常用的菜谱。";
           return;
@@ -7500,19 +7508,8 @@
       }
     });
 
-    document.getElementById("recipeNoteInput").addEventListener("input", () => {
-      if (!parsedRecipeNote) return;
-      parsedRecipeNote = null;
-      renderRecipeNotePreview(null);
-      document.querySelector("#recipeCreateSubmit span").textContent = "识别笔记";
-    });
-
-    document.getElementById("noteRecipeType").addEventListener("change", () => {
-      if (!parsedRecipeNote) return;
-      parsedRecipeNote = null;
-      renderRecipeNotePreview(null);
-      document.querySelector("#recipeCreateSubmit span").textContent = "识别笔记";
-    });
+    document.getElementById("recipeNoteInput").addEventListener("input", syncRecipeNotePreview);
+    document.getElementById("noteRecipeType").addEventListener("change", syncRecipeNotePreview);
 
     document.getElementById("recipeNoteFile").addEventListener("change", (event) => {
       readRecipeNoteFile(event.target);

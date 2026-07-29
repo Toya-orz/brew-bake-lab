@@ -180,7 +180,11 @@ def verify_viewport(browser, width, height, suffix):
     page.wait_for_function("document.querySelector('#recipeNoteInput').value.includes('Apple Cake')")
     assert "Apple Cake" in page.locator("#recipeNoteInput").input_value()
     assert page.locator("#recipeNoteFileName").inner_text() == "my-recipe.md"
-    page.locator("#cancelRecipeCreate").click()
+    assert page.locator("#recipeNotePreview").is_visible()
+    assert page.locator("#recipeCreateSubmit").inner_text().strip() == "导入并编辑"
+    page.locator("#recipeCreateSubmit").click()
+    assert page.locator("#genericTitle").inner_text() == "Apple Cake"
+    assert page.locator("#genericSave").is_visible()
     page.close()
 
 

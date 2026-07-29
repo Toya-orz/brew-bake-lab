@@ -11,12 +11,15 @@ assert.match(html, /function parseRecipeNote\(note, type\)/);
 assert.match(html, /没有识别到编号步骤/);
 assert.match(html, /function extractRecipeNoteIngredients\(note\)/);
 assert.match(html, /function renderRecipeNotePreview\(parsed\)/);
+assert.match(html, /function syncRecipeNotePreview\(\)/);
 assert.match(html, /function buildRecipeFromNote\(parsed\)/);
-assert.match(html, /if \(!parsedRecipeNote\)[\s\S]*renderRecipeNotePreview\(parsedRecipeNote\)/);
+assert.match(html, /recipeCreateMode === "note" \? "导入并编辑"/);
+assert.doesNotMatch(html, /确认创建/);
+assert.doesNotMatch(html, />识别笔记</);
 assert.match(html, /只在当前设备解析，不会上传/);
 assert.match(html, /id="recipeNoteFile"/);
 assert.match(html, /function readRecipeNoteFile\(input\)/);
 assert.match(html, /file\.size > 1024 \* 1024/);
 assert.match(html, /await file\.text\(\)/);
 
-console.log("Local note parsing, preview confirmation, and recipe creation guards are present.");
+console.log("Local note parsing, live preview, and one-step recipe creation guards are present.");
