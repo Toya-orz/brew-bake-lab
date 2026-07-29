@@ -2570,6 +2570,7 @@
       }
       .nav button svg { width: 19px; height: 19px; }
       .sidebar-note { display: none; }
+      .generic-detail .anchor-tabs { position: static; }
       .main { padding: 20px 16px 40px; }
       .topbar { align-items: stretch; flex-direction: column; }
       .hero-copy { padding-top: 10px; }
@@ -3878,8 +3879,8 @@
         title: "五瓣酸奶花朵面包",
         description: "为6寸五瓣加高模具调整的小份酸奶餐包。配方刚好分成五颗主面团，在模具里自然连成完整花形；使用一整颗鸡蛋，不留多余蛋液。",
         tags: ["新手友好", "约 3 小时", "厨师机"],
-        image: "assets/recipes/kitchen-worktop.jpg",
-        imageAlt: "五瓣酸奶花朵面包制作台占位图",
+        image: "assets/yogurt-flower-bread/finished.jpg",
+        imageAlt: "六寸五瓣模具中烤至金黄的酸奶花朵面包",
         paramHint: "酸奶浓稠度会影响吸水；牛奶先保留5g，确认面团偏硬后再补。",
         params: [
           { type: "成品", value: "6寸五瓣花朵面包 1个，约342g面团。" },
@@ -3905,13 +3906,19 @@
                 title: "揉出厚膜后加入黄油",
                 action: "转中速揉至面团基本光滑、能拉出厚膜；加入软化黄油，低速吸收后再转中速揉至完全扩展。",
                 check: "面团能拉出薄而有韧性的膜，破口边缘较光滑；出缸温度24–27°C。",
-                note: "面团偏硬时再逐次补入预留牛奶；接近28°C时暂停并冷却搅拌缸。"
+                note: "面团偏硬时再逐次补入预留牛奶；接近28°C时暂停并冷却搅拌缸。",
+                image: "assets/yogurt-flower-bread/windowpane.jpg",
+                imageAlt: "双手将酸奶面团拉成薄而连续的透明膜",
+                imageCaption: "完全扩展：薄膜连续、有韧性，边缘平滑且能透光"
               },
               {
                 title: "第一次发酵",
                 action: "面团滚圆并盖好，在约28°C环境发酵至约两倍大。",
                 check: "手指蘸粉轻按，凹痕缓慢回弹且不会立刻缩回。",
-                note: "通常需要60–90分钟，以状态而不是固定时间为准。"
+                note: "通常需要60–90分钟，以状态而不是固定时间为准。",
+                image: "assets/yogurt-flower-bread/first-proof.jpg",
+                imageAlt: "手指轻按发酵至两倍大的酸奶面团检查回弹",
+                imageCaption: "一发完成：面团约两倍大，浅按后凹痕缓慢回弹"
               }
             ]
           },
@@ -3933,7 +3940,10 @@
                 title: "最后发酵",
                 action: "在32–35°C湿润环境中发酵，直到五颗面团明显膨胀并彼此接触。",
                 check: "面团约到模具八九分满，轻按表面后凹痕缓慢回弹。",
-                note: "通常需要40–60分钟；不要为了追求两倍大而发到失去弹性。"
+                note: "通常需要40–60分钟；不要为了追求两倍大而发到失去弹性。",
+                image: "assets/yogurt-flower-bread/final-proof.jpg",
+                imageAlt: "五颗面团在五瓣花朵模具中膨胀并轻轻相接",
+                imageCaption: "二发到位：五颗面团轻轻相接，仍保留清楚的花瓣边界"
               }
             ]
           },
@@ -3950,7 +3960,10 @@
                 title: "判断出炉时间",
                 action: "放入中下层烘烤20–25分钟；上色满意后盖锡纸。",
                 check: "表面金黄、按压能够回弹；有温度计时中心达到93–95°C。",
-                note: "模具中央连接处熟得最慢，应以中心状态判断是否出炉。"
+                note: "模具中央连接处熟得最慢，应以中心状态判断是否出炉。",
+                image: "assets/yogurt-flower-bread/finished.jpg",
+                imageAlt: "五瓣酸奶花朵面包烤至均匀金黄的成品",
+                imageCaption: "烘烤完成：五瓣均匀金黄，中央连接处定型且按压能回弹"
               },
               {
                 title: "脱模冷却",
@@ -3962,8 +3975,8 @@
           }
         ],
         states: [
-          { name: "完全扩展", description: "面团可拉出薄而有韧性的膜，破口边缘光滑，表面细腻有弹性。" },
-          { name: "二发到位", description: "五颗面团自然接触并达到模具八九分满，轻按后缓慢回弹。" },
+          { name: "完全扩展", description: "面团可拉出薄而有韧性的膜，破口边缘光滑，表面细腻有弹性。", image: "assets/yogurt-flower-bread/windowpane.jpg", imageAlt: "酸奶面团的完全扩展薄膜状态" },
+          { name: "二发到位", description: "五颗面团自然接触并达到模具八九分满，轻按后缓慢回弹。", image: "assets/yogurt-flower-bread/final-proof.jpg", imageAlt: "五瓣酸奶面包二发到位状态" },
           { name: "中心烤熟", description: "中央连接处按压能回弹、不湿黏；测温时达到93–95°C。" }
         ],
         trouble: [
@@ -4023,7 +4036,7 @@
         tags: ["新手友好", "约3小时", "厨师机"],
         meta: ["6寸五瓣模", "5个", "175°C"],
         key: "关键：约342g面团均分五瓣，每瓣约68g，二发至八九分满。",
-        img: "assets/recipes/kitchen-worktop.jpg",
+        img: "assets/yogurt-flower-bread/finished.jpg",
         color: "green",
         detailPage: recipeSchemas.yogurtFlowerBread.detailPage
       }
@@ -5019,7 +5032,8 @@
       }
 
       document.getElementById("genericStateGrid").innerHTML = recipe.states.map((state, index) => `
-        <article class="state-tile">
+        <article class="state-tile" data-generic-state-image="${escapeHTML(state.image || "")}" data-generic-state-image-alt="${escapeHTML(state.imageAlt || "")}">
+          ${state.image ? `<div class="state-media"><img src="${escapeHTML(state.image)}" loading="lazy" alt="${escapeHTML(state.imageAlt || state.name)}"></div>` : ""}
           <div class="state-content">
             <span class="state-index">STATE ${String(index + 1).padStart(2, "0")}</span>
             <strong class="generic-editable">${escapeHTML(state.name)}</strong>
@@ -5230,7 +5244,9 @@
       }
       recipe.states = [...document.querySelectorAll("#genericStateGrid .state-tile")].map((tile) => ({
         name: tile.querySelector("strong").textContent.trim(),
-        description: tile.querySelector(".state-description").textContent.trim()
+        description: tile.querySelector(".state-description").textContent.trim(),
+        image: tile.dataset.genericStateImage || "",
+        imageAlt: tile.dataset.genericStateImageAlt || ""
       }));
       recipe.trouble = [...document.querySelectorAll("#genericTroubleTable tr")].map((row) => ({
         problem: row.querySelector("th").textContent.trim(),
