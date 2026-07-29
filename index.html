@@ -1915,6 +1915,17 @@
       font-weight: 750;
       line-height: 1.45;
     }
+    .generic-detail:not(.is-editing) .detail-shell {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .generic-detail:not(.is-editing) .detail-shell > .aside-panel {
+      display: none;
+    }
+    .generic-detail:not(.is-editing):not(.coffee-parameter-view) #genericStates,
+    .generic-detail:not(.is-editing):not(.coffee-parameter-view) .anchor-tabs a:nth-child(3) {
+      display: none;
+    }
+    .generic-detail.is-editing #coffeeFollowStart { display: none; }
 
     .list-actions {
       display: flex;
@@ -4981,7 +4992,7 @@
       document.getElementById("genericStepsHint").textContent = isPourOver
         ? "按时间和累计注水依次操作。"
         : (recipe.template === "espresso" ? "按顺序完成准备、萃取与调整。" : "按动手顺序排列；操作必填，判断和注意没有内容时不展示。");
-      document.getElementById("coffeeFollowStart").hidden = !isCoffeeTechnique;
+      document.getElementById("coffeeFollowStart").hidden = false;
       document.getElementById("genericPourPlan").hidden = !isPourOver;
       document.getElementById("genericStepList").hidden = isPourOver;
       document.getElementById("addGenericStep").hidden = isPourOver;
