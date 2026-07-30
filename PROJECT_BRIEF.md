@@ -208,4 +208,5 @@ Coffee uses three separate layers so brewing instructions are not duplicated for
 - Blank creation offers lightweight reusable starters for general baking, bread dough, cakes and rolls, oven dishes, and general drinks.
 - Any recipe can be duplicated into an independent editable custom recipe without changing the source.
 - A one-time recovery seed restores the White Chocolate & Strawberry coffee bean profile and its recorded pour-over and espresso parameters when missing.
+- Saving coffee beans or recipes marks the existing backup entry with a subtle pending dot until a full JSON backup is exported.
 - The temporary combination does not overwrite either the coffee bean profile or the original method recipe.

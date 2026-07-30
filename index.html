@@ -2535,6 +2535,18 @@
 
     .backup-actions > * { justify-content: center; }
     .backup-actions input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+    [data-backup-trigger] { position: relative; }
+    [data-backup-trigger].needs-backup::after {
+      content: "";
+      position: absolute;
+      top: 7px;
+      right: 7px;
+      width: 7px;
+      height: 7px;
+      border: 2px solid var(--panel);
+      border-radius: 50%;
+      background: #c78a2c;
+    }
 
     .backup-install {
       display: flex;
@@ -2945,7 +2957,7 @@
           </div>
           <div class="list-actions">
             <button class="primary-btn" id="openRecipeCreate" type="button"><i data-lucide="plus"></i>添加菜谱</button>
-            <button class="ghost-btn" id="openBackupCenter" type="button"><i data-lucide="hard-drive-download"></i>备份与安装</button>
+            <button class="ghost-btn" id="openBackupCenter" data-backup-trigger type="button"><i data-lucide="hard-drive-download"></i>备份与安装</button>
             <div class="sort-box">
               <span>排序</span>
               <select>
@@ -3043,7 +3055,7 @@
           </div>
           <div class="list-actions">
             <button class="primary-btn" id="addCoffeeBeanFromPage" type="button"><i data-lucide="plus"></i>添加咖啡豆</button>
-            <button class="ghost-btn" id="openBackupCenterFromBeans" type="button"><i data-lucide="hard-drive-download"></i>备份</button>
+            <button class="ghost-btn" id="openBackupCenterFromBeans" data-backup-trigger type="button"><i data-lucide="hard-drive-download"></i>备份</button>
           </div>
         </div>
         <div class="bean-page-grid" id="beanPageList"></div>
@@ -4228,6 +4240,7 @@
 
     function persistCustomRecipes(recipesById) {
       localStorage.setItem(customRecipeStorageKey, JSON.stringify(recipesById));
+      markDataChanged();
     }
 
     function loadCoffeeBeans() {
@@ -4240,6 +4253,7 @@
 
     function persistCoffeeBeans(beansById) {
       localStorage.setItem(coffeeBeanStorageKey, JSON.stringify(beansById));
+      markDataChanged();
     }
 
     function restoreWhiteChocolateStrawberryBean() {
@@ -5542,6 +5556,7 @@
           const saved = loadGenericRecipes();
           saved[activeGenericRecipeId] = recipe;
           localStorage.setItem(genericRecipeStorageKey, JSON.stringify(saved));
+          markDataChanged();
         } else {
           const saved = loadGenericRecipes();
           delete saved[activeGenericRecipeId];
@@ -6000,7 +6015,31 @@
 
     const fullBackupFormat = "brew-bake-lab-full-backup";
     const fullBackupTimeKey = "brewBakeLab.lastFullBackupAt";
+    const lastDataChangeKey = "brewBakeLab.lastDataChangeAt";
     let deferredInstallPrompt = null;
+
+    function backupIsStale() {
+      const changedAt = Date.parse(localStorage.getItem(lastDataChangeKey) || "");
+      const backedUpAt = Date.parse(localStorage.getItem(fullBackupTimeKey) || "");
+      return Number.isFinite(changedAt) && (!Number.isFinite(backedUpAt) || changedAt > backedUpAt);
+    }
+
+    function updateBackupReminder() {
+      const needsBackup = backupIsStale();
+      document.querySelectorAll("[data-backup-trigger]").forEach((button) => {
+        button.classList.toggle("needs-backup", needsBackup);
+        button.title = needsBackup ? "有新更改尚未导出备份" : "数据已备份";
+      });
+    }
+
+    function markDataChanged() {
+      try {
+        localStorage.setItem(lastDataChangeKey, new Date().toISOString());
+      } catch (error) {
+        return;
+      }
+      updateBackupReminder();
+    }
 
     function collectBrewBakeData() {
       const data = {};
@@ -6022,9 +6061,10 @@
       const bytes = new TextEncoder().encode(JSON.stringify(data)).length;
       document.getElementById("backupStorageUsage").textContent = `${formatBytes(bytes)} · ${Object.keys(data).length} 项`;
       const lastBackup = localStorage.getItem(fullBackupTimeKey);
-      document.getElementById("backupLastTime").textContent = lastBackup
+      const label = lastBackup
         ? new Intl.DateTimeFormat("zh-CN", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(lastBackup))
         : "从未备份";
+      document.getElementById("backupLastTime").textContent = backupIsStale() ? `${label} · 有新更改` : label;
     }
 
     function openBackupCenter() {
@@ -6049,6 +6089,7 @@
       link.click();
       URL.revokeObjectURL(url);
       localStorage.setItem(fullBackupTimeKey, exportedAt);
+      updateBackupReminder();
       updateBackupOverview();
       document.getElementById("backupDataStatus").textContent = "完整备份已导出，请保存到文件或云盘。";
     }
@@ -6209,6 +6250,7 @@
     function persistRecipeEdits() {
       try {
         localStorage.setItem(recipeEditStorageKey, JSON.stringify(savedRecipeEdits));
+        markDataChanged();
         return true;
       } catch (error) {
         return false;
@@ -7880,6 +7922,7 @@
     });
 
     restoreWhiteChocolateStrawberryBean();
+    updateBackupReminder();
     renderRecipes("homeRecipes");
     renderRecipes("listRecipes");
     buildDefaultRecipeContent();

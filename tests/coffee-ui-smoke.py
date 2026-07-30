@@ -138,6 +138,18 @@ def verify_viewport(browser, width, height, suffix):
     assert page.evaluate(
         """() => JSON.parse(localStorage.getItem("brewBakeLab.coffeeBeans.v1"))["bean-smoke"].brewParams.pour.water"""
     ) == "260g"
+    assert page.locator("#openBackupCenterFromBeans").evaluate(
+        "(node) => node.classList.contains('needs-backup')"
+    )
+    page.evaluate("openBackupCenter()")
+    assert "有新更改" in page.locator("#backupLastTime").inner_text()
+    page.screenshot(path=f"/tmp/brew-bake-backup-reminder-{suffix}.png", full_page=False)
+    with page.expect_download():
+        page.locator("#exportAllData").click()
+    assert not page.locator("#openBackupCenterFromBeans").evaluate(
+        "(node) => node.classList.contains('needs-backup')"
+    )
+    page.locator("#closeBackupCenter").click()
     page.evaluate("""() => { renderBeanDetail("bean-smoke"); setPage("beanDetail"); }""")
     page.locator('[data-open-brew-guide="pour"]').click()
     assert page.locator("#genericDetail").evaluate("(node) => node.classList.contains('active')")
