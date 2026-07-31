@@ -24,5 +24,12 @@ assert.match(html, /persistRecipeStatuses\(statuses\);\s*renderRecipes\("homeRec
 assert.match(html, /\.filter\(\(recipe\) => !\["pour-over", "espresso"\]\.includes\(recipe\.template\)\)/);
 assert.doesNotMatch(html, /<h3 class="filter-title">咖啡方式<\/h3>/);
 assert.doesNotMatch(html, /<h3 class="filter-title">技法<\/h3>/);
+assert.match(html, /id="recipeLibrarySearch"/);
+assert.match(html, /data-recipe-category-filter="烘焙"/);
+assert.match(html, /id="recipeSort"/);
+assert.match(html, /recipeLibraryQuery = event\.target\.value\.trim\(\)\.toLocaleLowerCase\(\)/);
+assert.match(html, /activeRecipeCategoryFilter !== "all"/);
+assert.match(html, /count\.textContent = `显示 \$\{cards\.length\} 份菜谱`/);
+assert.match(html, /document\.querySelector\("\.topbar \.search"\)\.hidden = pageId === "recipes"/);
 
 console.log("Imported recipes, personal states, and technique/library separation are present.");

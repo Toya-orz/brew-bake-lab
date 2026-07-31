@@ -212,4 +212,5 @@ Coffee uses three separate layers so brewing instructions are not duplicated for
 - Four source recipes are included as complete editable local recipes: cream scones, reduced-sugar New York soft cookies, banana chocolate cake, and rich cream toast. Their covers are stored locally for reliable mobile loading.
 - Every recipe card and generic recipe detail supports persistent personal “favorite” and “made” marks. The Recipe Library can filter by either mark, and these states are included in full-device backup.
 - Fixed coffee methods such as three-stage pour-over and espresso appear only in Technique Library. Recipe Library is reserved for finished dishes and drinks; coffee bean parameters still open the matching technique directly.
+- Recipe Library uses a compact working toolbar instead of prototype filters: free-text search, category, favorite/made state, result count, and practical sorting all update the cards immediately.
 - The temporary combination does not overwrite either the coffee bean profile or the original method recipe.

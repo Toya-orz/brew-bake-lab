@@ -510,37 +510,68 @@
 
     .list-layout {
       display: grid;
-      grid-template-columns: 258px minmax(0, 1fr);
-      gap: 22px;
-      align-items: start;
+      gap: 16px;
     }
 
     .filters {
-      position: sticky;
-      top: 20px;
-      padding: 16px;
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) auto auto;
+      gap: 18px;
+      align-items: end;
+      padding: 14px 16px;
       border: 1px solid var(--line);
       background: rgba(255, 253, 248, 0.92);
       border-radius: 8px;
     }
 
     .filter-group {
-      padding: 14px 0;
-      border-bottom: 1px solid var(--line);
+      padding: 0;
+      border: 0;
     }
 
-    .filter-group:last-child { border-bottom: 0; }
-
     .filter-title {
-      margin: 0 0 10px;
-      font-size: 13px;
-      color: var(--coffee-dark);
+      margin: 0 0 8px;
+      font-size: 12px;
+      color: var(--muted);
     }
 
     .filter-options {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
+    }
+
+    .recipe-search {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .recipe-search svg {
+      position: absolute;
+      left: 12px;
+      width: 16px;
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    .recipe-search input {
+      width: 100%;
+      min-height: 40px;
+      padding: 9px 12px 9px 38px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--ink);
+      font: inherit;
+    }
+
+    .topbar .search[hidden] { display: none; }
+
+    .recipe-results-count {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 12px;
     }
 
     .chip {
@@ -2680,6 +2711,7 @@
       .sidebar-note { display: none; }
       .generic-detail .anchor-tabs { position: static; }
       .main { padding: 20px 16px 40px; }
+      #recipes .filters { grid-template-columns: 1fr; gap: 14px; }
       .topbar { align-items: stretch; flex-direction: column; }
       .hero-copy { padding-top: 10px; }
       .advanced-recipes { align-items: flex-start; flex-direction: column; }
@@ -2990,18 +3022,18 @@
         <div class="list-head">
           <div>
             <h1>作品库</h1>
-            <p class="section-desc">筛选时优先看“我有什么工具”和“今天有多少时间”。</p>
+            <p class="section-desc">具体菜谱集中在这里；固定做法请到基础技巧。</p>
           </div>
           <div class="list-actions">
             <button class="primary-btn" id="openRecipeCreate" type="button"><i data-lucide="plus"></i>添加菜谱</button>
             <button class="ghost-btn" id="openBackupCenter" data-backup-trigger type="button"><i data-lucide="hard-drive-download"></i>备份与安装</button>
             <div class="sort-box">
               <span>排序</span>
-              <select>
-                <option>默认推荐</option>
-                <option>耗时从短到长</option>
-                <option>新手优先</option>
-                <option>最近更新</option>
+              <select id="recipeSort">
+                <option value="default">默认推荐</option>
+                <option value="favorite">收藏优先</option>
+                <option value="made">做过优先</option>
+                <option value="title">名称排序</option>
               </select>
             </div>
           </div>
@@ -3010,12 +3042,19 @@
         <div class="list-layout">
           <aside class="filters">
             <div class="filter-group">
+              <h3 class="filter-title">搜索</h3>
+              <label class="recipe-search">
+                <i data-lucide="search"></i>
+                <input id="recipeLibrarySearch" type="search" placeholder="搜索名称、分类或关键点" autocomplete="off">
+              </label>
+            </div>
+            <div class="filter-group">
               <h3 class="filter-title">分类</h3>
-              <div class="filter-options">
-                <button class="chip active">全部</button>
-                <button class="chip">烘焙</button>
-                <button class="chip">饮品</button>
-                <button class="chip">烤箱菜</button>
+              <div class="filter-options" id="recipeCategoryFilters">
+                <button class="chip active" type="button" data-recipe-category-filter="all">全部</button>
+                <button class="chip" type="button" data-recipe-category-filter="烘焙">烘焙</button>
+                <button class="chip" type="button" data-recipe-category-filter="饮品">饮品</button>
+                <button class="chip" type="button" data-recipe-category-filter="烤箱菜">烤箱菜</button>
               </div>
             </div>
             <div class="filter-group">
@@ -3026,48 +3065,11 @@
                 <button class="chip" type="button" data-recipe-status-filter="made"><i data-lucide="circle-check"></i>做过</button>
               </div>
             </div>
-            <div class="filter-group">
-              <h3 class="filter-title">饮品二级</h3>
-              <div class="filter-options">
-                <button class="chip">咖啡</button>
-                <button class="chip">抹茶/茶饮</button>
-                <button class="chip">可可/奶饮</button>
-              </div>
-            </div>
-            <div class="filter-group">
-              <h3 class="filter-title">难度</h3>
-              <div class="filter-options">
-                <button class="chip active">全部</button>
-                <button class="chip">新手</button>
-                <button class="chip">中等</button>
-                <button class="chip">进阶</button>
-              </div>
-            </div>
-            <div class="filter-group">
-              <h3 class="filter-title">时间</h3>
-              <div class="filter-options">
-                <button class="chip">15分钟内</button>
-                <button class="chip">1小时内</button>
-                <button class="chip">需冷藏</button>
-                <button class="chip">需腌制</button>
-              </div>
-            </div>
-            <div class="filter-group">
-              <h3 class="filter-title">工具</h3>
-              <div class="filter-options">
-                <button class="chip">烤箱</button>
-                <button class="chip">打蛋器</button>
-                <button class="chip">麦芬模</button>
-                <button class="chip">咖啡滤杯</button>
-              </div>
-            </div>
           </aside>
 
           <div>
+            <p class="recipe-results-count" id="recipeResultsCount"></p>
             <div class="recipe-grid" id="listRecipes"></div>
-            <div class="prototype-panel">
-              后续点击卡片进入作品详情页。详情页会固定包含：顶部概览、参数卡、步骤流程、状态图库、失败排查和版本记录。
-            </div>
           </div>
         </div>
       </section>
@@ -4441,6 +4443,9 @@
 
     const recipeStatusStorageKey = "brewBakeLab.recipeStatus.v1";
     let activeRecipeStatusFilter = "all";
+    let activeRecipeCategoryFilter = "all";
+    let recipeLibraryQuery = "";
+    let recipeLibrarySort = "default";
 
     function loadRecipeStatuses() {
       try {
@@ -4503,10 +4508,25 @@
 
     function renderRecipes(targetId) {
       const target = document.getElementById(targetId);
-      const cards = getRecipeCards().filter((recipe) => {
-        if (targetId !== "listRecipes" || activeRecipeStatusFilter === "all") return true;
-        return Boolean(recipeStatus(recipe.id)[activeRecipeStatusFilter]);
+      let cards = getRecipeCards().filter((recipe) => {
+        if (targetId !== "listRecipes") return true;
+        if (activeRecipeStatusFilter !== "all" && !recipeStatus(recipe.id)[activeRecipeStatusFilter]) return false;
+        if (activeRecipeCategoryFilter !== "all" && !recipe.category.includes(activeRecipeCategoryFilter)) return false;
+        if (recipeLibraryQuery) {
+          const searchable = [recipe.title, recipe.category, recipe.key, ...(recipe.tags || []), ...(recipe.meta || [])]
+            .join(" ").toLocaleLowerCase();
+          if (!searchable.includes(recipeLibraryQuery)) return false;
+        }
+        return true;
       });
+      if (targetId === "listRecipes" && recipeLibrarySort !== "default") {
+        cards = [...cards].sort((a, b) => {
+          if (recipeLibrarySort === "title") return a.title.localeCompare(b.title, "zh-CN");
+          const field = recipeLibrarySort;
+          const difference = Number(recipeStatus(b.id)[field]) - Number(recipeStatus(a.id)[field]);
+          return difference || a.title.localeCompare(b.title, "zh-CN");
+        });
+      }
       target.innerHTML = cards.map((recipe, index) => `
         <div class="recipe-card" data-page="${escapeHTML(recipe.detailPage || "recipes")}" data-recipe-id="${escapeHTML(recipe.id || "")}" tabindex="0" role="button" aria-label="${escapeHTML(recipe.detailPage ? `打开${recipe.title}详情` : recipe.title + "详情尚未完成")}">
           <div class="recipe-img"><img src="${escapeHTML(recipe.img)}" alt="${escapeHTML(recipe.title)}成品图" loading="${index < 2 ? "eager" : "lazy"}" decoding="async"></div>
@@ -4525,13 +4545,18 @@
         </div>
       `).join("");
       if (!cards.length) {
-        target.innerHTML = '<div class="prototype-panel">还没有符合这个标记的菜谱。</div>';
+        target.innerHTML = '<div class="prototype-panel">没有符合条件的菜谱。</div>';
+      }
+      if (targetId === "listRecipes") {
+        const count = document.getElementById("recipeResultsCount");
+        if (count) count.textContent = `显示 ${cards.length} 份菜谱`;
       }
       lucide.createIcons();
     }
 
     function setPage(pageId) {
       if (pageId === "beans") renderBeanPage();
+      document.querySelector(".topbar .search").hidden = pageId === "recipes";
       const navPageId = pageId === "beanDetail" ? "beans" : pageId;
       document.querySelectorAll(".page").forEach((page) => {
         page.classList.toggle("active", page.id === pageId);
@@ -8006,6 +8031,17 @@
         renderRecipes("listRecipes");
         return;
       }
+      const recipeCategoryFilter = event.target.closest("[data-recipe-category-filter]");
+      if (recipeCategoryFilter) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        activeRecipeCategoryFilter = recipeCategoryFilter.dataset.recipeCategoryFilter;
+        document.querySelectorAll("[data-recipe-category-filter]").forEach((button) => {
+          button.classList.toggle("active", button === recipeCategoryFilter);
+        });
+        renderRecipes("listRecipes");
+        return;
+      }
       if (editingSection === "trouble" && event.target.closest("#troubleDetails > summary")) {
         event.preventDefault();
       }
@@ -8240,6 +8276,14 @@
 
     document.getElementById("recipeNoteInput").addEventListener("input", syncRecipeNotePreview);
     document.getElementById("noteRecipeType").addEventListener("change", syncRecipeNotePreview);
+    document.getElementById("recipeLibrarySearch").addEventListener("input", (event) => {
+      recipeLibraryQuery = event.target.value.trim().toLocaleLowerCase();
+      renderRecipes("listRecipes");
+    });
+    document.getElementById("recipeSort").addEventListener("change", (event) => {
+      recipeLibrarySort = event.target.value;
+      renderRecipes("listRecipes");
+    });
 
     document.getElementById("recipeNoteFile").addEventListener("change", (event) => {
       readRecipeNoteFile(event.target);
