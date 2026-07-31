@@ -8344,11 +8344,9 @@
             document.getElementById("installAppHint").textContent = "离线功能暂未启用，请刷新后重试。";
           });
       });
-      let refreshingForServiceWorker = false;
       navigator.serviceWorker.addEventListener("controllerchange", () => {
-        if (refreshingForServiceWorker) return;
-        refreshingForServiceWorker = true;
-        window.location.reload();
+        const statusPill = document.querySelector(".status-pill");
+        statusPill.textContent = "已更新 · 下次打开生效";
       });
     }
   </script>
