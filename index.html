@@ -4554,7 +4554,20 @@
       lucide.createIcons();
     }
 
-    function setPage(pageId) {
+    function pageRoute(pageId) {
+      if (pageId === "genericDetail" && activeGenericRecipeId) {
+        const query = new URLSearchParams();
+        if (activeCoffeeMethodContext?.beanId) query.set("bean", activeCoffeeMethodContext.beanId);
+        if (activeCoffeeMethodContext?.kind) query.set("kind", activeCoffeeMethodContext.kind);
+        const suffix = query.toString();
+        return `#recipe/${encodeURIComponent(activeGenericRecipeId)}${suffix ? `?${suffix}` : ""}`;
+      }
+      if (pageId === "beanDetail" && activeBeanId) return `#bean/${encodeURIComponent(activeBeanId)}`;
+      if (pageId === "detail") return "#swiss-roll";
+      return `#${pageId}`;
+    }
+
+    function setPage(pageId, { historyMode = "push", scroll = true } = {}) {
       if (pageId === "beans") renderBeanPage();
       document.querySelector(".topbar .search").hidden = pageId === "recipes";
       const navPageId = pageId === "beanDetail" ? "beans" : pageId;
@@ -4566,7 +4579,56 @@
           button.classList.toggle("active", button.dataset.page === navPageId);
         }
       });
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      if (historyMode !== "none") {
+        const route = pageRoute(pageId);
+        const state = { brewBakePage: pageId };
+        if (historyMode === "replace" || window.location.hash === route) {
+          window.history.replaceState(state, "", route);
+        } else {
+          window.history.pushState(state, "", route);
+        }
+      }
+      if (scroll) window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function decodeRoutePart(value) {
+      try {
+        return decodeURIComponent(value);
+      } catch {
+        return "";
+      }
+    }
+
+    function restoreRouteFromLocation(historyMode = "replace") {
+      const route = window.location.hash.slice(1) || "home";
+      if (route === "swiss-roll") {
+        setPage("detail", { historyMode, scroll: false });
+        return;
+      }
+      if (route.startsWith("recipe/")) {
+        const [path, queryString = ""] = route.split("?");
+        const recipeId = decodeRoutePart(path.slice("recipe/".length));
+        if (getGenericRecipe(recipeId)) {
+          const query = new URLSearchParams(queryString);
+          const beanId = query.get("bean") || "";
+          const kind = query.get("kind") === "espresso" ? "espresso" : "pour";
+          const context = beanId && loadCoffeeBeans()[beanId] ? { beanId, kind } : null;
+          renderGenericRecipe(recipeId, context);
+          setPage("genericDetail", { historyMode, scroll: false });
+          return;
+        }
+      }
+      if (route.startsWith("bean/")) {
+        const beanId = decodeRoutePart(route.slice("bean/".length));
+        if (loadCoffeeBeans()[beanId]) {
+          renderBeanDetail(beanId);
+          setPage("beanDetail", { historyMode, scroll: false });
+          return;
+        }
+      }
+      const simplePages = new Set(["home", "recipes", "techniques", "beans"]);
+      const pageId = simplePages.has(route) ? route : "home";
+      setPage(pageId, { historyMode, scroll: false });
     }
 
     const genericRecipeStorageKey = "brewBakeLab.genericRecipes.v1";
@@ -8013,6 +8075,12 @@
     }
 
     document.addEventListener("click", (event) => {
+      const sectionAnchor = event.target.closest('.anchor-tabs a[href^="#"]');
+      if (sectionAnchor) {
+        event.preventDefault();
+        document.querySelector(sectionAnchor.getAttribute("href"))?.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
       const recipeStatusButton = event.target.closest("[data-recipe-status]");
       if (recipeStatusButton) {
         event.preventDefault();
@@ -8046,7 +8114,7 @@
         event.preventDefault();
       }
       const trigger = event.target.closest("[data-page]");
-      if (trigger) {
+      if (trigger && !trigger.matches(".recipe-card")) {
         if (trigger.id === "genericBack" && trigger.dataset.beanId) renderBeanDetail(trigger.dataset.beanId);
         setPage(trigger.dataset.page);
       }
@@ -8171,7 +8239,10 @@
 
     document.addEventListener("click", (event) => {
       const card = event.target.closest(".recipe-card[data-page]");
-      if (card?.dataset.page === "genericDetail") renderGenericRecipe(card.dataset.recipeId);
+      if (card) {
+        if (card.dataset.page === "genericDetail") renderGenericRecipe(card.dataset.recipeId);
+        setPage(card.dataset.page);
+      }
       if (event.target.closest("#openRecipeCreate")) openRecipeCreateDialog();
       if (event.target.closest("#openBeanLibrary")) openBeanLibrary();
       if (event.target.closest("#addCoffeeBeanFromPage")) openBeanLibrary("__new__");
@@ -8335,6 +8406,9 @@
     applyVariant("classic");
     lucide.createIcons();
     configureInstallExperience();
+    restoreRouteFromLocation("replace");
+    window.addEventListener("popstate", () => restoreRouteFromLocation("none"));
+    window.addEventListener("hashchange", () => restoreRouteFromLocation("replace"));
 
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
