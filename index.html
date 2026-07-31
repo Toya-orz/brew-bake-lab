@@ -3035,15 +3035,6 @@
               </div>
             </div>
             <div class="filter-group">
-              <h3 class="filter-title">咖啡方式</h3>
-              <div class="filter-options">
-                <button class="chip">手冲</button>
-                <button class="chip">意式</button>
-                <button class="chip">奶咖</button>
-                <button class="chip">冷萃</button>
-              </div>
-            </div>
-            <div class="filter-group">
               <h3 class="filter-title">难度</h3>
               <div class="filter-options">
                 <button class="chip active">全部</button>
@@ -3068,15 +3059,6 @@
                 <button class="chip">打蛋器</button>
                 <button class="chip">麦芬模</button>
                 <button class="chip">咖啡滤杯</button>
-              </div>
-            </div>
-            <div class="filter-group">
-              <h3 class="filter-title">技法</h3>
-              <div class="filter-options">
-                <button class="chip">打发</button>
-                <button class="chip">翻拌</button>
-                <button class="chip">手冲</button>
-                <button class="chip">腌制</button>
               </div>
             </div>
           </aside>
@@ -4441,7 +4423,9 @@
     }
 
     function getRecipeCards() {
-      const customCards = Object.values(loadCustomRecipes()).map((recipe) => ({
+      const customCards = Object.values(loadCustomRecipes())
+        .filter((recipe) => !["pour-over", "espresso"].includes(recipe.template))
+        .map((recipe) => ({
         id: recipe.id,
         title: recipe.title,
         category: recipe.category.join(" / "),
@@ -4451,7 +4435,7 @@
         img: recipe.image || "assets/recipes/kitchen-worktop.jpg",
         color: recipe.type === "drink" ? "blue" : "red",
         detailPage: "genericDetail"
-      }));
+        }));
       return [...recipes, ...customCards];
     }
 

@@ -21,5 +21,8 @@ assert.match(html, /data-recipe-status="made"/);
 assert.match(html, /data-recipe-status-filter="favorite"/);
 assert.match(html, /data-recipe-status-filter="made"/);
 assert.match(html, /persistRecipeStatuses\(statuses\);\s*renderRecipes\("homeRecipes"\)/);
+assert.match(html, /\.filter\(\(recipe\) => !\["pour-over", "espresso"\]\.includes\(recipe\.template\)\)/);
+assert.doesNotMatch(html, /<h3 class="filter-title">咖啡方式<\/h3>/);
+assert.doesNotMatch(html, /<h3 class="filter-title">技法<\/h3>/);
 
-console.log("Four imported recipes and persistent favorite/made states are present.");
+console.log("Imported recipes, personal states, and technique/library separation are present.");
