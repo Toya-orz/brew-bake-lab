@@ -209,4 +209,6 @@ Coffee uses three separate layers so brewing instructions are not duplicated for
 - Any recipe can be duplicated into an independent editable custom recipe without changing the source.
 - A one-time recovery seed restores the White Chocolate & Strawberry coffee bean profile and its recorded pour-over and espresso parameters when missing.
 - Saving coffee beans or recipes marks the existing backup entry with a subtle pending dot until a full JSON backup is exported.
+- Four source recipes are included as complete editable local recipes: cream scones, reduced-sugar New York soft cookies, banana chocolate cake, and rich cream toast. Their covers are stored locally for reliable mobile loading.
+- Every recipe card and generic recipe detail supports persistent personal “favorite” and “made” marks. The Recipe Library can filter by either mark, and these states are included in full-device backup.
 - The temporary combination does not overwrite either the coffee bean profile or the original method recipe.

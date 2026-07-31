@@ -445,6 +445,43 @@
       line-height: 1.55;
     }
 
+    .recipe-status-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 13px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(111, 91, 68, .14);
+    }
+
+    .recipe-status-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      min-height: 32px;
+      padding: 5px 10px;
+      border: 0;
+      border-radius: 999px;
+      background: #f3ecdf;
+      color: var(--muted);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .15s ease, background .15s ease, color .15s ease;
+    }
+
+    .recipe-status-button:hover { transform: translateY(-1px); }
+    .recipe-status-button:active { transform: scale(.95); }
+    .recipe-status-button svg { width: 15px; height: 15px; }
+    .recipe-status-button.active[data-recipe-status="favorite"] { background: #f4e1e2; color: var(--berry); }
+    .recipe-status-button.active[data-recipe-status="made"] { background: #e6eee4; color: var(--ok); }
+
+    .detail-status-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
     .scenario-strip {
       display: grid;
       grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -2982,6 +3019,14 @@
               </div>
             </div>
             <div class="filter-group">
+              <h3 class="filter-title">我的标记</h3>
+              <div class="filter-options" id="recipeStatusFilters">
+                <button class="chip active" type="button" data-recipe-status-filter="all">全部</button>
+                <button class="chip" type="button" data-recipe-status-filter="favorite"><i data-lucide="heart"></i>收藏</button>
+                <button class="chip" type="button" data-recipe-status-filter="made"><i data-lucide="circle-check"></i>做过</button>
+              </div>
+            </div>
+            <div class="filter-group">
               <h3 class="filter-title">饮品二级</h3>
               <div class="filter-options">
                 <button class="chip">咖啡</button>
@@ -3451,6 +3496,7 @@
             </div>
             <h1 class="generic-editable" id="genericTitle"></h1>
             <p class="generic-editable" id="genericDescription"></p>
+            <div class="detail-status-actions" id="genericStatusActions"></div>
             <div class="generic-bean-link" id="genericBeanLink" hidden></div>
             <p class="generic-save-status" id="genericSaveStatus" aria-live="polite"></p>
           </div>
@@ -4090,8 +4136,204 @@
       }
     };
 
+    Object.assign(recipeSchemas, {
+      creamScones: {
+        id: "cream-scones",
+        type: "baking",
+        typeLabel: "烘焙配方",
+        detailPage: "genericDetail",
+        category: ["烘焙", "司康"],
+        title: "淡奶油蔓越莓司康",
+        description: "用淡奶油直接成团的快手司康，重点是少揉、厚切和观察上色。整理自下厨房作者「夜之灵00」。",
+        sourceUrl: "https://www.xiachufang.com/recipe/106516528/",
+        tags: ["新手", "约 45 分钟", "无需打发"],
+        image: "assets/imported-recipes/cream-scones.jpg",
+        imageAlt: "烤至金黄的淡奶油蔓越莓司康",
+        paramHint: "面团偏湿是正常状态；只需成团，不要反复揉压。",
+        ingredients: [
+          { name: "中筋面粉", amount: "125g" }, { name: "低筋面粉", amount: "125g" },
+          { name: "细砂糖", amount: "35g" }, { name: "盐", amount: "2.5g" },
+          { name: "泡打粉", amount: "6g" }, { name: "蔓越莓干", amount: "100g" },
+          { name: "淡奶油", amount: "250g" }, { name: "蛋黄", amount: "1个，刷面" }
+        ],
+        tools: ["大盆", "刮刀", "擀面杖", "烤盘与烘焙纸", "烤箱"],
+        params: [
+          { type: "份量", value: "约 20–24 个小司康。" },
+          { type: "整形", value: "擀至 1.5–2cm 厚，切约 2×3cm。" },
+          { type: "烘烤", value: "180°C，中层 25 分钟；需要时上移约 5 分钟补色。" }
+        ],
+        phases: [
+          { name: "混合与整形", steps: [
+            { title: "混合干料", action: "中筋面粉、低筋面粉、糖、盐和泡打粉混匀；加入切碎的蔓越莓干。", check: "粉类分布均匀，蔓越莓没有结成一团。" },
+            { title: "加入淡奶油成团", action: "倒入淡奶油，用刮刀翻拌并轻压至刚好成团。", check: "看不见大片干粉，面团湿润偏黏。", note: "不要揉到光滑，否则司康容易变硬。" },
+            { title: "厚切摆盘", action: "案板、面团表面和擀面杖薄撒干粉；擀至 1.5–2cm 厚，切成约 2×3cm 小块并摆入铺纸烤盘。", check: "厚度基本一致，块与块之间留有膨胀空间。" }
+          ]},
+          { name: "烘烤", steps: [
+            { title: "刷面并烤熟", action: "表面刷蛋黄；放入已预热至 180°C 的烤箱中层，烤约 25 分钟。", check: "体积膨起，表面与底部呈金黄色。", note: "上色不足可上移烤盘再烤约 5 分钟，最后几分钟不要离开烤箱。" }
+          ]}
+        ],
+        states: [],
+        trouble: [
+          { problem: "成品偏硬", cause: "面团搅拌或揉压过度；下次看不见干粉就停。" },
+          { problem: "内部湿黏", cause: "切得过厚或烘烤不足；延长时间并确认底部上色。" },
+          { problem: "蔓越莓分布不均", cause: "果干太大或最后才加入；提前切碎并与干粉先混匀。" }
+        ],
+        sharedSections: ["材料与器具", "参数", "步骤", "失败排查"],
+        extensions: ["整形", "烘烤"]
+      },
+      newYorkSoftCookies: {
+        id: "new-york-soft-cookies",
+        type: "baking",
+        typeLabel: "烘焙配方",
+        detailPage: "genericDetail",
+        category: ["烘焙", "饼干", "软曲奇"],
+        title: "减糖纽约软曲奇",
+        description: "厚实、外酥内软的巧克力坚果曲奇。整理自下厨房作者「茶苏苏烘焙日记」。",
+        sourceUrl: "https://www.xiachufang.com/recipe/106647420/",
+        tags: ["中等", "约 2 小时", "需冷藏"],
+        image: "assets/imported-recipes/ny-soft-cookies.jpg",
+        imageAlt: "掰开后露出巧克力与坚果的纽约软曲奇",
+        paramHint: "黄油和鸡蛋回温后再混合；面团冷藏到位再分割。",
+        ingredients: [
+          { name: "无盐黄油", amount: "100g" }, { name: "全蛋液", amount: "50g" },
+          { name: "红糖", amount: "20g" }, { name: "细砂糖", amount: "30g" },
+          { name: "低筋面粉", amount: "140g" }, { name: "杏仁粉", amount: "25g" },
+          { name: "泡打粉", amount: "5g" }, { name: "盐", amount: "1g" },
+          { name: "70% 烘焙巧克力", amount: "60g" }, { name: "70% 黑巧克力", amount: "40g" },
+          { name: "核桃", amount: "40g" }, { name: "杏仁", amount: "20g" },
+          { name: "花生", amount: "10g" }, { name: "腰果", amount: "10g" },
+          { name: "榛子仁", amount: "10g" }
+        ],
+        tools: ["打蛋器", "刮刀", "电子秤", "烤盘与烘焙纸", "烤箱"],
+        params: [
+          { type: "份量", value: "每个 70–80g，约 8 个。" },
+          { type: "冷却", value: "面团密封冷藏 1 小时。" },
+          { type: "烘烤", value: "180°C，上下火 15–18 分钟。" }
+        ],
+        phases: [
+          { name: "制作面团", steps: [
+            { title: "打顺黄油和糖", action: "软化黄油加入红糖和细砂糖，搅打至顺滑蓬松。", check: "黄油颜色略变浅，糖与黄油均匀融合。", note: "黄油需软化但不能融化。" },
+            { title: "分次加入蛋液", action: "室温蛋液分 2–3 次加入，每次吸收后再加下一次。", check: "最终呈顺滑黄油霜状，没有明显油水分离。" },
+            { title: "拌入粉类", action: "加入低筋面粉、杏仁粉、泡打粉和盐，翻拌至刚好无干粉。", check: "面团均匀，没有散落干粉。", note: "避免过度翻拌。" },
+            { title: "加入坚果和巧克力", action: "拌入坚果碎、烘焙巧克力和黑巧克力。", check: "配料大致均匀分散在面团里。" }
+          ]},
+          { name: "冷藏与烘烤", steps: [
+            { title: "冷藏面团", action: "面团密封，放入冰箱冷藏 1 小时。", check: "面团变硬，能够分割并保持球形。" },
+            { title: "分割成球", action: "每份称 70–80g，轻轻收成高球状，间隔摆在铺纸烤盘上。", check: "各份大小接近，保持厚度，不要压扁。" },
+            { title: "烘烤并冷却", action: "放入预热至 180°C 的烤箱，烤 15–18 分钟；出炉后留在烤盘上稍凉再移动。", check: "边缘定型，中心仍显柔软。", note: "刚出炉结构脆弱，立即移动容易碎。" }
+          ]}
+        ],
+        states: [],
+        trouble: [
+          { problem: "面团油水分离", cause: "蛋液过冷或一次加入过多；材料回温并分次加入。" },
+          { problem: "曲奇摊得太薄", cause: "黄油过软、面团冷藏不足或烤盘温热。" },
+          { problem: "中心烤得太干", cause: "烘烤过久；边缘定型、中心仍软时即可出炉。" }
+        ],
+        sharedSections: ["材料与器具", "参数", "步骤", "失败排查"],
+        extensions: ["冷藏", "烘烤"]
+      },
+      bananaChocolateCake: {
+        id: "banana-chocolate-cake",
+        type: "baking",
+        typeLabel: "烘焙配方",
+        detailPage: "genericDetail",
+        category: ["烘焙", "蛋糕", "香蕉蛋糕"],
+        title: "香蕉巧克力蛋糕",
+        description: "一个盆完成、无需打发的湿润香蕉巧克力蛋糕。整理自下厨房作者「加奶不加糖-v」。",
+        sourceUrl: "https://www.xiachufang.com/recipe/100481686/",
+        tags: ["新手", "约 55 分钟", "无需打发"],
+        image: "assets/imported-recipes/banana-chocolate-cake.jpg",
+        imageAlt: "切片后湿润松软的香蕉巧克力蛋糕",
+        paramHint: "使用熟透香蕉；筛入粉类后只拌到没有干粉。",
+        ingredients: [
+          { name: "熟透香蕉", amount: "110g" }, { name: "中号鸡蛋", amount: "1个" },
+          { name: "细砂糖", amount: "50g" }, { name: "植物油", amount: "40g" },
+          { name: "朗姆酒", amount: "30g，可换牛奶或水" }, { name: "低筋面粉", amount: "90g" },
+          { name: "可可粉", amount: "10g" }, { name: "泡打粉", amount: "5g" },
+          { name: "巧克力碎或巧克力豆", amount: "40g" }
+        ],
+        tools: ["大盆", "蛋抽", "刮刀", "筛网", "约 23×5×6.5cm 长条模", "烤箱"],
+        params: [
+          { type: "模具 / 器具", value: "约 23×5×6.5cm 长条模 1 个。" },
+          { type: "制作", value: "面糊约 10 分钟，无需打发。" },
+          { type: "烘烤", value: "180°C，中层 36–40 分钟。" }
+        ],
+        phases: [
+          { name: "制作面糊", steps: [
+            { title: "处理香蕉和巧克力", action: "香蕉压成泥，可保留少量果肉颗粒；块状巧克力切碎备用。", check: "香蕉泥基本细腻，没有大块硬果肉。" },
+            { title: "混合湿料", action: "香蕉泥中加入鸡蛋、糖、植物油和朗姆酒，用蛋抽搅匀。", check: "液体均匀乳化，没有明显油层。" },
+            { title: "拌入粉类和巧克力", action: "筛入低筋面粉、可可粉和泡打粉，用刮刀翻拌到刚好无干粉；加入巧克力碎轻拌均匀。", check: "面糊均匀浓稠，看不见干粉。", note: "泡打粉不可省；粉类加入后不要久拌。" }
+          ]},
+          { name: "烘烤", steps: [
+            { title: "入模烘烤", action: "面糊倒入模具，放入已预热至 180°C 的烤箱中层烤 36–40 分钟。", check: "竹签插入中心后没有湿面糊。", note: "表面上色过快可盖锡纸；想要整齐裂口，可在烤 15–20 分钟时浅划一刀。" },
+            { title: "冷却脱模", action: "出炉后连模具放晾架 15 分钟，再脱模并完全晾凉后切片。", check: "侧面定型，切面湿润但不黏刀。" }
+          ]}
+        ],
+        states: [],
+        trouble: [
+          { problem: "蛋糕发不起来、口感死实", cause: "泡打粉失效或省略；确认有效期并准确称量。" },
+          { problem: "味道偏苦", cause: "糖量减得过多、香蕉不够熟或巧克力可可度过高。" },
+          { problem: "中心湿黏", cause: "模具尺寸不同或烘烤不足；盖锡纸后继续烤熟中心。" }
+        ],
+        sharedSections: ["材料与器具", "参数", "步骤", "失败排查"],
+        extensions: ["模具", "烘烤"]
+      },
+      creamToast: {
+        id: "cream-toast",
+        type: "baking",
+        typeLabel: "烘焙配方",
+        detailPage: "genericDetail",
+        category: ["烘焙", "面包", "吐司"],
+        title: "重料淡奶油吐司",
+        description: "直接法制作的浓郁奶香吐司，配方为 450g 吐司盒 2 个。整理自下厨房作者「啊呜511」。",
+        sourceUrl: "https://www.xiachufang.com/recipe/105879399/",
+        tags: ["进阶", "约 3 小时", "高含水面团"],
+        image: "assets/imported-recipes/cream-toast.jpg",
+        imageAlt: "组织轻盈柔软的重料淡奶油吐司",
+        paramHint: "面团前期很黏；预留约 30g 液体，并将出缸面温控制在 26°C 左右。",
+        ingredients: [
+          { name: "面包粉", amount: "500g" }, { name: "盐", amount: "6g" },
+          { name: "细砂糖", amount: "88g" }, { name: "奶粉", amount: "16g" },
+          { name: "鲜酵母", amount: "15g；或干酵母 5g" }, { name: "全蛋液", amount: "100g" },
+          { name: "淡奶油", amount: "180g" }, { name: "牛奶", amount: "100g" },
+          { name: "水", amount: "55g，其中约 30g 预留" }
+        ],
+        tools: ["厨师机", "发酵箱或温湿环境", "450g 吐司盒 2 个", "擀面杖", "烤箱"],
+        params: [
+          { type: "份量", value: "三能 450g 吐司盒 2 个；每盒 3 卷。" },
+          { type: "揉面", value: "出缸面温约 26°C，揉至完全扩展。" },
+          { type: "一次发酵", value: "28°C / 75% 湿度，约 60 分钟，至 2.5 倍。" },
+          { type: "二次发酵", value: "32°C / 80% 湿度，至模具 8.5 分满。" },
+          { type: "烘烤", value: "原方 C76：底层，上火 110–120°C / 下火 210°C，26 分钟。" }
+        ],
+        phases: [
+          { name: "揉面与一发", steps: [
+            { title: "混合并揉至完全扩展", action: "除预留液体外的材料放入厨师机，低速约半分钟混至无干粉，再转中高速揉面；按面团状态逐次补液，揉至完全扩展。", check: "能拉出透明、有延展性的薄膜；出缸面温约 26°C。", note: "面团前期很黏，不要急着加粉；不同面粉吸水不同，约 30g 液体应预留调整。" },
+            { title: "基础发酵", action: "面团滚圆，放在 28°C、约 75% 湿度环境发酵约 60 分钟。", check: "体积达到约 2.5 倍。" }
+          ]},
+          { name: "分割与整形", steps: [
+            { title: "分割并松弛", action: "面团取出，轻柔分成约 165g 一份，共 6 份；滚圆后在 28°C、约 80% 湿度环境松弛 20 分钟。", check: "面团放松，擀开时不明显回缩。", note: "分割时不要拉扯破坏面筋。" },
+            { title: "折叠卷起入模", action: "面团擀开并拍掉边缘气泡，翻面后左右各向中间折 1/3；稍擀长，自上而下卷起，三个一组放入吐司盒。", check: "卷卷松紧一致，收口朝下，三卷间距均匀。" },
+            { title: "最后发酵", action: "放在约 32°C、80% 湿度环境发酵至模具 8.5 分满。", check: "手指轻按表面，凹痕缓慢回弹。", note: "末发接近完成前就开始充分预热烤箱。" }
+          ]},
+          { name: "烘烤", steps: [
+            { title: "烘烤出炉", action: "按原方烤箱参数放底层，上火 110–120°C、下火 210°C，烤约 26 分钟；出炉立即震模并脱模。", check: "表面上色均匀，侧面定型，轻按能回弹。", note: "温度高度依赖烤箱；若不是同型号，优先沿用自己烤 450g 吐司的成熟参数。" }
+          ]}
+        ],
+        states: [],
+        trouble: [
+          { problem: "面团始终黏软、不成团", cause: "液体一次加完或面温过高；预留液体并控制面温。" },
+          { problem: "吐司长不高", cause: "揉面不足、酵母活性弱或发酵温度不合适。" },
+          { problem: "顶部上色过深", cause: "上火偏高或模具离上管太近；按自家烤箱调整并及时盖锡纸。" }
+        ],
+        sharedSections: ["材料与器具", "参数", "步骤", "失败排查"],
+        extensions: ["揉面", "发酵", "整形", "烘烤"]
+      }
+    });
+
     const recipes = [
       {
+        id: "banana-blueberry-muffins",
         title: "香蕉蓝莓麦芬",
         category: "烘焙 / 麦芬",
         tags: ["新手", "45分钟", "无需打发"],
@@ -4112,6 +4354,7 @@
         detailPage: recipeSchemas.swissRoll.detailPage
       },
       {
+        id: "naked-cake",
         title: "裸蛋糕",
         category: "烘焙 / 生日蛋糕",
         tags: ["中等", "2-3小时", "奶油"],
@@ -4121,6 +4364,7 @@
         color: "red"
       },
       {
+        id: "roasted-chicken-wings",
         title: "烤鸡翅",
         category: "烤箱菜",
         tags: ["新手", "45分钟+", "需腌制"],
@@ -4139,6 +4383,50 @@
         img: "assets/yogurt-flower-bread/finished.jpg",
         color: "green",
         detailPage: recipeSchemas.yogurtFlowerBread.detailPage
+      },
+      {
+        id: "cream-scones",
+        title: "淡奶油蔓越莓司康",
+        category: "烘焙 / 司康",
+        tags: ["新手", "约45分钟", "无需打发"],
+        meta: ["淡奶油250g", "180°C", "厚切"],
+        key: "关键：面团刚好成团就停，保持1.5–2cm厚度。",
+        img: "assets/imported-recipes/cream-scones.jpg",
+        color: "green",
+        detailPage: "genericDetail"
+      },
+      {
+        id: "new-york-soft-cookies",
+        title: "减糖纽约软曲奇",
+        category: "烘焙 / 软曲奇",
+        tags: ["中等", "约2小时", "需冷藏"],
+        meta: ["每个70–80g", "180°C", "坚果巧克力"],
+        key: "关键：材料回温，面团冷藏后保持厚球形再烤。",
+        img: "assets/imported-recipes/ny-soft-cookies.jpg",
+        color: "red",
+        detailPage: "genericDetail"
+      },
+      {
+        id: "banana-chocolate-cake",
+        title: "香蕉巧克力蛋糕",
+        category: "烘焙 / 香蕉蛋糕",
+        tags: ["新手", "约55分钟", "无需打发"],
+        meta: ["长条模", "180°C", "一个盆"],
+        key: "关键：香蕉要熟，粉类拌到刚好看不见干粉。",
+        img: "assets/imported-recipes/banana-chocolate-cake.jpg",
+        color: "green",
+        detailPage: "genericDetail"
+      },
+      {
+        id: "cream-toast",
+        title: "重料淡奶油吐司",
+        category: "烘焙 / 吐司",
+        tags: ["进阶", "约3小时", "厨师机"],
+        meta: ["450g吐司盒×2", "完全扩展", "二次发酵"],
+        key: "关键：预留液体，出缸面温约26°C，末发至8.5分满。",
+        img: "assets/imported-recipes/cream-toast.jpg",
+        color: "red",
+        detailPage: "genericDetail"
       }
     ];
 
@@ -4167,9 +4455,75 @@
       return [...recipes, ...customCards];
     }
 
+    const recipeStatusStorageKey = "brewBakeLab.recipeStatus.v1";
+    let activeRecipeStatusFilter = "all";
+
+    function loadRecipeStatuses() {
+      try {
+        const stored = JSON.parse(localStorage.getItem(recipeStatusStorageKey)) || {};
+        return stored && typeof stored === "object" ? stored : {};
+      } catch {
+        return {};
+      }
+    }
+
+    function persistRecipeStatuses(statuses) {
+      localStorage.setItem(recipeStatusStorageKey, JSON.stringify(statuses));
+      markDataChanged();
+    }
+
+    function recipeStatus(recipeId) {
+      const status = loadRecipeStatuses()[recipeId];
+      return {
+        favorite: Boolean(status?.favorite),
+        made: Boolean(status?.made)
+      };
+    }
+
+    function recipeStatusActionsMarkup(recipeId, detail = false) {
+      if (!recipeId) return "";
+      const status = recipeStatus(recipeId);
+      return `<div class="${detail ? "detail-status-actions" : "recipe-status-actions"}">
+        <button class="recipe-status-button${status.favorite ? " active" : ""}" type="button" data-recipe-status="favorite" data-status-recipe-id="${escapeHTML(recipeId)}" aria-pressed="${status.favorite}">
+          <i data-lucide="heart"></i>${status.favorite ? "已收藏" : "收藏"}
+        </button>
+        <button class="recipe-status-button${status.made ? " active" : ""}" type="button" data-recipe-status="made" data-status-recipe-id="${escapeHTML(recipeId)}" aria-pressed="${status.made}">
+          <i data-lucide="circle-check"></i>${status.made ? "做过" : "标记做过"}
+        </button>
+      </div>`;
+    }
+
+    function toggleRecipeStatus(recipeId, field) {
+      if (!recipeId || !["favorite", "made"].includes(field)) return;
+      const statuses = loadRecipeStatuses();
+      const current = {
+        favorite: Boolean(statuses[recipeId]?.favorite),
+        made: Boolean(statuses[recipeId]?.made)
+      };
+      current[field] = !current[field];
+      if (current.favorite || current.made) statuses[recipeId] = current;
+      else delete statuses[recipeId];
+      persistRecipeStatuses(statuses);
+      renderRecipes("homeRecipes");
+      renderRecipes("listRecipes");
+      if (activeGenericRecipeId === recipeId && document.getElementById("genericDetail").classList.contains("active")) {
+        renderGenericStatusActions(recipeId);
+      }
+    }
+
+    function renderGenericStatusActions(recipeId) {
+      document.getElementById("genericStatusActions").outerHTML =
+        recipeStatusActionsMarkup(recipeId, true).replace("<div ", '<div id="genericStatusActions" ');
+      lucide.createIcons();
+    }
+
     function renderRecipes(targetId) {
       const target = document.getElementById(targetId);
-      target.innerHTML = getRecipeCards().map((recipe, index) => `
+      const cards = getRecipeCards().filter((recipe) => {
+        if (targetId !== "listRecipes" || activeRecipeStatusFilter === "all") return true;
+        return Boolean(recipeStatus(recipe.id)[activeRecipeStatusFilter]);
+      });
+      target.innerHTML = cards.map((recipe, index) => `
         <div class="recipe-card" data-page="${escapeHTML(recipe.detailPage || "recipes")}" data-recipe-id="${escapeHTML(recipe.id || "")}" tabindex="0" role="button" aria-label="${escapeHTML(recipe.detailPage ? `打开${recipe.title}详情` : recipe.title + "详情尚未完成")}">
           <div class="recipe-img"><img src="${escapeHTML(recipe.img)}" alt="${escapeHTML(recipe.title)}成品图" loading="${index < 2 ? "eager" : "lazy"}" decoding="async"></div>
           <div class="recipe-body">
@@ -4182,9 +4536,14 @@
               ${recipe.meta.map((item) => `<span>${escapeHTML(item)}</span>`).join("")}
             </div>
             <p class="recipe-key">${escapeHTML(recipe.key)}</p>
+            ${recipeStatusActionsMarkup(recipe.id)}
           </div>
         </div>
       `).join("");
+      if (!cards.length) {
+        target.innerHTML = '<div class="prototype-panel">还没有符合这个标记的菜谱。</div>';
+      }
+      lucide.createIcons();
     }
 
     function setPage(pageId) {
@@ -5227,6 +5586,7 @@
       document.getElementById("genericBreadcrumb").textContent = recipe.category.join(" / ");
       document.getElementById("genericTitle").textContent = recipe.title;
       document.getElementById("genericDescription").textContent = recipe.description;
+      renderGenericStatusActions(recipeId);
       renderGenericBeanLink(recipe, false);
       document.getElementById("genericSaveStatus").textContent = "";
       document.getElementById("genericTags").innerHTML = recipe.tags.map((tag, index) =>
@@ -7644,6 +8004,24 @@
     }
 
     document.addEventListener("click", (event) => {
+      const recipeStatusButton = event.target.closest("[data-recipe-status]");
+      if (recipeStatusButton) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        toggleRecipeStatus(recipeStatusButton.dataset.statusRecipeId, recipeStatusButton.dataset.recipeStatus);
+        return;
+      }
+      const recipeStatusFilter = event.target.closest("[data-recipe-status-filter]");
+      if (recipeStatusFilter) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        activeRecipeStatusFilter = recipeStatusFilter.dataset.recipeStatusFilter;
+        document.querySelectorAll("[data-recipe-status-filter]").forEach((button) => {
+          button.classList.toggle("active", button === recipeStatusFilter);
+        });
+        renderRecipes("listRecipes");
+        return;
+      }
       if (editingSection === "trouble" && event.target.closest("#troubleDetails > summary")) {
         event.preventDefault();
       }
@@ -7654,7 +8032,7 @@
       }
 
       const chip = event.target.closest(".chip");
-      if (chip) chip.classList.toggle("active");
+      if (chip && !chip.matches("[data-recipe-status-filter]")) chip.classList.toggle("active");
 
       const variantTab = event.target.closest("[data-variant]");
       if (variantTab) applyVariant(variantTab.dataset.variant);
